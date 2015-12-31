@@ -113,6 +113,10 @@ __author__ = 'fi11222'
 # aspell --lang fr_FR dump master | aspell --lang fr expand | tr ' ' '\n' > french.dic
 # french.dic must be in a dir by itself
 
+# TODO Verse ref display in single verse (box on the upper-right quadrant like in QuranSE II)
+
+# TODO title display (for browser title bar) in all modules
+
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
 if g_verboseModeOn:

@@ -129,11 +129,11 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
 
     # previous and next links
     # both contain 3 attribute for the new book/chapter/verse value + one for the tooltip (title="")
-    l_previousLink = ('<a href="" class="svSetVerse" newBook="{0}" newChapter="{1}" newVerse="{2}"' +
+    l_previousLink = ('<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}"' +
                       'title="{3}">◄</a>').format(l_previousBook, l_previousChapter, l_previousVerse,
                                                   get_user_string(p_context, 'sv_PreviousLink'))
     
-    l_nextLink = ('<a href="" class="svSetVerse" newBook="{0}" newChapter="{1}" newVerse="{2}"' +
+    l_nextLink = ('<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}"' +
                   'title="{3}">►</a>').format(l_nextBook, l_nextChapter, l_nextVerse,
                                               get_user_string(p_context, 'sv_NextLink'))
 

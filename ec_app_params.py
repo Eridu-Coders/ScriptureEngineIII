@@ -4,7 +4,7 @@ __author__ = 'fi11222'
 
 # general parameters
 g_appName = 'ScriptureEngineIII'
-g_appVersion = '0.1'
+g_appVersion = '3.0.9'
 g_appTitle = 'Followup on QuranSE 1.0 and 2.0'
 
 # HTTP server parameters

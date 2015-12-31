@@ -201,15 +201,7 @@
 					$("#StatusDisplay").hide();
 				});
 				
-				$( "a.svSetVerse" ).on( "click", function(l){
-					l.preventDefault();
-					$("#NavControl_K").val( "V" );
-					$("#NavControl_b").val( $(this).attr("newBook") );
-					$("#NavControl_c").val( $(this).attr("newChapter") );
-					$("#NavControl_v").val( $(this).attr("newVerse") );
-					$("#NavForm").submit();
-				});
-				
+				// links triggering a verse command
 				$( "a.GoOneVerse" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "V" );
@@ -219,13 +211,7 @@
 					$("#NavForm").submit();
 				});
 				
-				$( "a.GoWord" ).on( "click", function(l){
-					l.preventDefault();
-					$("#NavControl_K").val( "W" );
-					$("#NavControl_d").val( $(this).attr("wordId") );
-					$("#NavForm").submit();
-				});
-				
+				// links triggering a word command
 				$( "a.GoOneWord" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "W" );
@@ -236,6 +222,16 @@
 					$("#NavForm").submit();
 				});
 
+				// links triggering a word command. Special case where only the word ID is known (of the form _-_-Z9999)
+				// used in se3_word.py
+				$( "a.GoWord" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "W" );
+					$("#NavControl_d").val( $(this).attr("wordId") );
+					$("#NavForm").submit();
+				});
+				
+				// links triggering a passage command
 				$( "a.svGoPassage" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "P" );
@@ -246,6 +242,7 @@
 					$("#NavForm").submit();
 				});
 				
+				// links triggering a root command
 				$( "a.GoRoot" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "R" );
@@ -253,24 +250,32 @@
 					$("#NavForm").submit();
 				});
 				
+				// action of the submit button in the search form
 				$( "input.SubmitButton" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "S" );
 					$("#NavForm").submit();
 				});
 
+				// link to overcome the soft limit in the search results. Uses command 'Sa' instead of 'S' 
+				// otherwise, the search parameters are unchanged
 				$( "a.DisplayAll" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "Sa" );
 					$("#NavForm").submit();
 				});
 
+				// link to overcome the soft limit in the root or word results. 
+				// Uses command 'Ra' (resp. 'Wa') instead of 'R' (resp 'W') 
+				// otherwise, the root/word parameters are unchanged
 				$( "a.wDisplayAll" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( $(this).attr("command") );
 					$("#NavForm").submit();
 				});
 				
+				// links in the left panel to display the TOC
+				// the command can be T, Ta1, Ta2, Tb or Tc
 				$( "a.GoToc" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( $(this).attr("command") );
