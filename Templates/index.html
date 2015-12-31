@@ -12,16 +12,13 @@
 		<script src="./static/javascript/jquery.js"></script>
 		
 		<script>
-			// Updates the navigation panel on the left when something else changes
+			// Updates the height of the panel on the left when something else changes
 			function updateNavHeight(){
-				/*console.log( "window height: " + $( window ).height() 
-					+ "\nHeader height: " + $( "header" ).height()
-					+ "\nNav height: " + $( "nav" ).height() );*/
-					
-				// the height of the nav panel itself	
+				// the height of the left panel itself	
 				$( "nav" ).height( $( window ).height() - $( "header" ).height() )
 				// the height of the show/hide button
 				$( "#ShowHideNav" ).height( $( "nav" ).height() )
+				// the height of the div "NavContent" inside the left panel
 				$( "#NavContent" ).height( $( "nav" ).height() )
 				// the position of the show/hide symbol (« or »). Must be at midlle height
 				$( "#ShowHideSymbol" ).css( "margin-top", $( "nav" ).height()/2 - 10 )
@@ -31,9 +28,9 @@
 			$( document ).ready(function() {
 				updateNavHeight();
 				
-				// Hide/Show left navigation panel
+				// Hide/Show left panel
 				$( "#ShowHideNav" ).on( "click", function(){
-					//console.log("ShowHideNav clicked: " + $( "#ShowHideSymbol" ).text() );
+					// if the symbol displayed is '«' then it means the panel is extended --> retract it leftward
 					if( $( "#ShowHideSymbol" ).text() == "«"){
 						// reduces the nav panel width so that only the Hide/Show button remains visible
 						$( "nav" ).animate( { width: "§{NavShowHideWidth}em" }, 250 );
@@ -47,7 +44,7 @@
 						$( "#ShowHideSymbol" ).text("»");
 					}
 					else {
-						// reverse of the above
+						// reverse of the above --> extend the panel rightward
 						$( "nav" ).animate( { width: "§{NavWidth}em" }, 250 );
 						$( "#Content" ).animate( { marginLeft: "§{NavWidth}em" }, 250 );
 						$( "#NavContent" ).animate( { width: "§{NavContentWidth}em" }, 250 );
@@ -58,9 +55,10 @@
 
 				// Big/Small header display
 				$( "#BigSmallHeader" ).on( "click", function(){
-					//console.log("BigSmallHeader clicked: " + $( "#BigSmallHeader" ).text() );
+					// if the symbol displayed is '▼' then it means the panel is retracted --> extend it downward
 					if( $( "#BigSmallInner" ).text() == "▼"){
-						// Enlarges the header downwards
+						// Enlarges the header downwards and call updateNavHeight() in the process to make sure the 
+						// left panel retracts downwards at the same time
 						$( "header" ).animate( { height: "§{HeaderHeightBig}em" }, { 
 							duration: 250, 
 							progress: function(a, p, r){
@@ -73,7 +71,9 @@
 						$( "#BigSmallHeader" ).animate( { marginTop: "§{MarginBigSmallBig}em" }, 250 );
 						// Changes the Big/Small header button text
 						$( "#BigSmallInner" ).text("▲");
+						// make the div panel containing the controls visible
 						$( "#HeaderBottom" ).fadeIn(300);
+						// change the design logo area design
 						$( "#LogoPlace" ).removeClass("LogoDecoration")
 						$( "#LogoPlace" ).addClass("LogoDecorationHigh");
 					}
@@ -94,6 +94,7 @@
 					}
 				});
 				
+				// makes the left panel show/hide button sensitive to mouse hover
 				$( "#ShowHideNav" ).mouseover( function(){
 					$(this).removeClass("ShowHideNavDecoration")
 					$(this).addClass("ShowHideNavDecorationHigh");
@@ -105,6 +106,7 @@
 					$(this).css('cursor', 'auto');
 				});
 				
+				// makes the header big/small button sensitive to mouse hover
 				$( "#BigSmallHeader" ).mouseover( function(){
 					$(this).removeClass("BigSmallHeaderBasic");
 					$(this).addClass("BigSmallHeaderHigh")
@@ -116,6 +118,7 @@
 					$(this).css('cursor', 'auto');
 				});
 
+				// makes the header apply button sensitive to mouse hover
 				$( "#ApplyButton" ).mouseover( function(){
 					$(this).removeClass("ApplyButtonBasic");
 					$(this).addClass("ApplyButtonHigh")
@@ -127,67 +130,74 @@
 					$(this).css('cursor', 'auto');
 				});
 				
+				// action of the header apply button
 				$( "#ApplyButton" ).on( "click", function(l){
 					$("#NavForm").submit();
 				});
 				
+				// common routine used by all links which need to unset a parameter flag 
+				// (accessible through p_context['p'] within the app code and in the hidden input NavControl_p below)
 				$( "a.UnsetParameterLink" ).on( "click", function(l){
-					l.preventDefault();NavControl_p
-					console.log("UnsetParameterLink: " + $(this).attr("param") );
-					console.log("NavControl_p: " + $("#NavControl_p").val() );
-
-					//l_newParam = parseInt($("#NavControl_p").val(), 16) & ~ parseInt($(this).attr("param"), 16);
+					l.preventDefault();
+					// the bit mask value is transmitted through the 'param' attr of the <a> tag
+					// the operation here is a bitwise AND NOT
+					// the 16 parameter passed to ParseInt() and val() is for reading and writing hexa
 					l_newParam = parseInt($("#NavControl_p").val(), 16) & ~ parseInt($(this).attr("param"));
 					$("#NavControl_p").val( l_newParam.toString(16) );
 					
-					console.log("NavControl_p after: " + $("#NavControl_p").val() );
-					
 					$("#NavForm").submit();
 				});
+
+				// common routine used by all links which need to set a parameter flag 
+				// (accessible through p_context['p'] within the app code and in the hidden input NavControl_p below)
 				$( "a.SetParameterLink" ).on( "click", function(l){
-					l.preventDefault();
-					console.log("UnsetParameterLink: " + $(this).attr("param") );
-					console.log("NavControl_p: " + $("#NavControl_p").val() );
-					
-					//l_newParam = parseInt($("#NavControl_p").val(), 16) | parseInt($(this).attr("param"), 16);
+					// the bit mask value is transmitted through the 'param' attr of the <a> tag
+					// the operation here is a bitwise OR
+					// the 16 parameter passed to ParseInt() and val() is for reading and writing hexa
 					l_newParam = parseInt($("#NavControl_p").val(), 16) | parseInt($(this).attr("param"));
 					$("#NavControl_p").val( l_newParam.toString(16) );
-					
-					console.log("NavControl_p after: " + $("#NavControl_p").val() );
 					
 					$("#NavForm").submit();
 				});
 				
+				// common routine used by all inputs (checkboxes) which need to toggle a parameter flag 
+				// (accessible through p_context['p'] within the app code and in the hidden input NavControl_p below)
 				$( "input.ToggleParameter" ).on( "click", function(l){
-					console.log("ToggleParameter param_mask: " + $(this).attr("param_mask") );
-					
-					console.log("NavControl_p: " + $("#NavControl_p").val() );
+					// the bit mask value is transmitted through the 'param_mask' attr of the <input> tag
+					// the operation here is a bitwise XOR
+					// the 16 parameter passed to ParseInt() and val() is for reading and writing hexa
 					l_newParam = parseInt($("#NavControl_p").val(), 16) ^ parseInt($(this).attr("param_mask"));
 					$("#NavControl_p").val( l_newParam.toString(16) );
-					console.log("NavControl_p after: " + $("#NavControl_p").val() );
 					
+					// since this is used by links in the header --> triggers the display of the apply button
 					$("#ApplyButton").show();
+					// ... and hiding of the status display
 					$("#StatusDisplay").hide();
 				});
 
+				// common routine used by all inputs (checkboxes) which need to toggle a version flag 
+				// (accessible through p_context['l'] (Bible) or p_context['q'] (Quran) within the app code and in 
+				// the hidden inputs NavControl_q NavControl_p respectively below)
 				$( "input.ToggleVersion" ).on( "click", function(l){
-					console.log("ToggleVersion ver_mask: " + $(this).attr("ver_mask") );
-					console.log("ToggleVersion bible_quran: " + $(this).attr("bible_quran") );
+					// 'bible_quran' attr of the <input> tag = 'Q' --> Quran, 'B' --> Bible
 					
+					// the bit mask value is transmitted through the 'ver_mask' attr of the <input> tag
+					// the operation here is a bitwise XOR
+					// the 16 parameter passed to ParseInt() and val() is for reading and writing hexa
 					if($(this).attr("bible_quran") == "Q") {
 						console.log("NavControl_q: " + $("#NavControl_q").val() );
 						l_newVer = parseInt($("#NavControl_q").val(), 16) ^ parseInt($(this).attr("ver_mask"));
 						$("#NavControl_q").val( l_newVer.toString(16) );
-						console.log("NavControl_q after: " + $("#NavControl_q").val() );
 					}
 					else {
 						console.log("NavControl_l: " + $("#NavControl_l").val() );
 						l_newVer = parseInt($("#NavControl_l").val(), 16) ^ parseInt($(this).attr("ver_mask"));
 						$("#NavControl_l").val( l_newVer.toString(16) );
-						console.log("NavControl_l after: " + $("#NavControl_l").val() );
 					}
 					
+					// since this is used by links in the header --> triggers the display of the apply button
 					$("#ApplyButton").show();
+					// ... and hiding of the status display
 					$("#StatusDisplay").hide();
 				});
 				
@@ -209,16 +219,6 @@
 					$("#NavForm").submit();
 				});
 				
-				$( "a.svGoPassage" ).on( "click", function(l){
-					l.preventDefault();
-					$("#NavControl_K").val( "P" );
-					$("#NavControl_b").val( $(this).attr("newBook") );
-					$("#NavControl_c").val( $(this).attr("newChapter") );
-					$("#NavControl_v").val( $(this).attr("newVerse1") );
-					$("#NavControl_w").val( $(this).attr("newVerse2") );
-					$("#NavForm").submit();
-				});
-				
 				$( "a.GoWord" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "W" );
@@ -236,6 +236,16 @@
 					$("#NavForm").submit();
 				});
 
+				$( "a.svGoPassage" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "P" );
+					$("#NavControl_b").val( $(this).attr("newBook") );
+					$("#NavControl_c").val( $(this).attr("newChapter") );
+					$("#NavControl_v").val( $(this).attr("newVerse1") );
+					$("#NavControl_w").val( $(this).attr("newVerse2") );
+					$("#NavForm").submit();
+				});
+				
 				$( "a.GoRoot" ).on( "click", function(l){
 					l.preventDefault();
 					$("#NavControl_K").val( "R" );
