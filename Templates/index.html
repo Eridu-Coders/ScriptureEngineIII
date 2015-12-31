@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" >
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <meta name="robots" content="index, follow" />
+        
+        <title>ScriptureEngineIII</title>
+        <link rel="shortcut icon" type="./static/images" href="favicon.ico"/>     
+
+		<link rel="stylesheet" type="text/css" href="./static/css/basic.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="./static/css/print.css" media="print"/>
+		<script src="./static/javascript/jquery.js"></script>
+		
+		<script>
+			// Updates the navigation panel on the left when something else changes
+			function updateNavHeight(){
+				/*console.log( "window height: " + $( window ).height() 
+					+ "\nHeader height: " + $( "header" ).height()
+					+ "\nNav height: " + $( "nav" ).height() );*/
+					
+				// the height of the nav panel itself	
+				$( "nav" ).height( $( window ).height() - $( "header" ).height() )
+				// the height of the show/hide button
+				$( "#ShowHideNav" ).height( $( "nav" ).height() )
+				$( "#NavContent" ).height( $( "nav" ).height() )
+				// the position of the show/hide symbol (« or »). Must be at midlle height
+				$( "#ShowHideSymbol" ).css( "margin-top", $( "nav" ).height()/2 - 10 )
+			}
+			
+			// sets up event listeners
+			$( document ).ready(function() {
+				updateNavHeight();
+				
+				// Hide/Show left navigation panel
+				$( "#ShowHideNav" ).on( "click", function(){
+					//console.log("ShowHideNav clicked: " + $( "#ShowHideSymbol" ).text() );
+					if( $( "#ShowHideSymbol" ).text() == "«"){
+						// reduces the nav panel width so that only the Hide/Show button remains visible
+						$( "nav" ).animate( { width: "§{NavShowHideWidth}em" }, 250 );
+						// reduces the content's left margin so that it "follows" the panel to the left
+						$( "#Content" ).animate( { marginLeft: "§{NavShowHideWidth}em" }, 250 );
+						// Completely hide the content of the nav panel
+						$( "#NavContent" ).animate( { width: "0" }, 250 );
+						// Moves the Hide/Show button completely to the left
+						$( "#ShowHideNav" ).animate( { marginLeft: "0" }, 250 );
+						// Change the display symbol
+						$( "#ShowHideSymbol" ).text("»");
+					}
+					else {
+						// reverse of the above
+						$( "nav" ).animate( { width: "§{NavWidth}em" }, 250 );
+						$( "#Content" ).animate( { marginLeft: "§{NavWidth}em" }, 250 );
+						$( "#NavContent" ).animate( { width: "§{NavContentWidth}em" }, 250 );
+						$( "#ShowHideNav" ).animate( { marginLeft: "§{NavContentWidth}em" }, 250 );
+						$( "#ShowHideSymbol" ).text("«");
+					}
+				});
+
+				// Big/Small header display
+				$( "#BigSmallHeader" ).on( "click", function(){
+					//console.log("BigSmallHeader clicked: " + $( "#BigSmallHeader" ).text() );
+					if( $( "#BigSmallInner" ).text() == "▼"){
+						// Enlarges the header downwards
+						$( "header" ).animate( { height: "§{HeaderHeightBig}em" }, { 
+							duration: 250, 
+							progress: function(a, p, r){
+								updateNavHeight();
+							}
+						});
+						// Increases the content's top margin so that it follows the header downwards
+						$( "#Content" ).animate( { marginTop: "§{HeaderHeightBig}em" }, 250 );
+						// Moves the Big/Small header button downwards
+						$( "#BigSmallHeader" ).animate( { marginTop: "§{MarginBigSmallBig}em" }, 250 );
+						// Changes the Big/Small header button text
+						$( "#BigSmallInner" ).text("▲");
+						$( "#HeaderBottom" ).fadeIn(300);
+						$( "#LogoPlace" ).removeClass("LogoDecoration")
+						$( "#LogoPlace" ).addClass("LogoDecorationHigh");
+					}
+					else {
+						// reverse of the above
+						$( "header" ).animate( { height: "§{HeaderHeight}em" }, { 
+							duration: 250, 
+							progress: function(a, p, r){
+								updateNavHeight();
+							}
+						});
+						$( "#Content" ).animate( { marginTop: "§{HeaderHeight}em" }, 250 );
+						$( "#BigSmallHeader" ).animate( { marginTop: "§{HeaderMargin}em" }, 250 );
+						$( "#BigSmallInner" ).text("▼");
+						$( "#HeaderBottom" ).fadeOut(200);
+						$( "#LogoPlace" ).removeClass("LogoDecorationHigh")
+						$( "#LogoPlace" ).addClass("LogoDecoration");
+					}
+				});
+				
+				$( "#ShowHideNav" ).mouseover( function(){
+					$(this).removeClass("ShowHideNavDecoration")
+					$(this).addClass("ShowHideNavDecorationHigh");
+					$(this).css('cursor', 'pointer');
+				});
+				$( "#ShowHideNav" ).mouseout( function(){
+					$(this).addClass("ShowHideNavDecoration")
+					$(this).removeClass("ShowHideNavDecorationHigh");
+					$(this).css('cursor', 'auto');
+				});
+				
+				$( "#BigSmallHeader" ).mouseover( function(){
+					$(this).removeClass("BigSmallHeaderBasic");
+					$(this).addClass("BigSmallHeaderHigh")
+					$(this).css('cursor', 'pointer');
+				});
+				$( "#BigSmallHeader" ).mouseout( function(){
+					$(this).removeClass("BigSmallHeaderHigh");
+					$(this).addClass("BigSmallHeaderBasic");
+					$(this).css('cursor', 'auto');
+				});
+
+				$( "#ApplyButton" ).mouseover( function(){
+					$(this).removeClass("ApplyButtonBasic");
+					$(this).addClass("ApplyButtonHigh")
+					$(this).css('cursor', 'pointer');
+				});
+				$( "#ApplyButton" ).mouseout( function(){
+					$(this).removeClass("ApplyButtonHigh");
+					$(this).addClass("ApplyButtonBasic");
+					$(this).css('cursor', 'auto');
+				});
+				
+				$( "#ApplyButton" ).on( "click", function(l){
+					$("#NavForm").submit();
+				});
+				
+				$( "a.UnsetParameterLink" ).on( "click", function(l){
+					l.preventDefault();NavControl_p
+					console.log("UnsetParameterLink: " + $(this).attr("param") );
+					console.log("NavControl_p: " + $("#NavControl_p").val() );
+
+					//l_newParam = parseInt($("#NavControl_p").val(), 16) & ~ parseInt($(this).attr("param"), 16);
+					l_newParam = parseInt($("#NavControl_p").val(), 16) & ~ parseInt($(this).attr("param"));
+					$("#NavControl_p").val( l_newParam.toString(16) );
+					
+					console.log("NavControl_p after: " + $("#NavControl_p").val() );
+					
+					$("#NavForm").submit();
+				});
+				$( "a.SetParameterLink" ).on( "click", function(l){
+					l.preventDefault();
+					console.log("UnsetParameterLink: " + $(this).attr("param") );
+					console.log("NavControl_p: " + $("#NavControl_p").val() );
+					
+					//l_newParam = parseInt($("#NavControl_p").val(), 16) | parseInt($(this).attr("param"), 16);
+					l_newParam = parseInt($("#NavControl_p").val(), 16) | parseInt($(this).attr("param"));
+					$("#NavControl_p").val( l_newParam.toString(16) );
+					
+					console.log("NavControl_p after: " + $("#NavControl_p").val() );
+					
+					$("#NavForm").submit();
+				});
+				
+				$( "input.ToggleParameter" ).on( "click", function(l){
+					console.log("ToggleParameter param_mask: " + $(this).attr("param_mask") );
+					
+					console.log("NavControl_p: " + $("#NavControl_p").val() );
+					l_newParam = parseInt($("#NavControl_p").val(), 16) ^ parseInt($(this).attr("param_mask"));
+					$("#NavControl_p").val( l_newParam.toString(16) );
+					console.log("NavControl_p after: " + $("#NavControl_p").val() );
+					
+					$("#ApplyButton").show();
+					$("#StatusDisplay").hide();
+				});
+
+				$( "input.ToggleVersion" ).on( "click", function(l){
+					console.log("ToggleVersion ver_mask: " + $(this).attr("ver_mask") );
+					console.log("ToggleVersion bible_quran: " + $(this).attr("bible_quran") );
+					
+					if($(this).attr("bible_quran") == "Q") {
+						console.log("NavControl_q: " + $("#NavControl_q").val() );
+						l_newVer = parseInt($("#NavControl_q").val(), 16) ^ parseInt($(this).attr("ver_mask"));
+						$("#NavControl_q").val( l_newVer.toString(16) );
+						console.log("NavControl_q after: " + $("#NavControl_q").val() );
+					}
+					else {
+						console.log("NavControl_l: " + $("#NavControl_l").val() );
+						l_newVer = parseInt($("#NavControl_l").val(), 16) ^ parseInt($(this).attr("ver_mask"));
+						$("#NavControl_l").val( l_newVer.toString(16) );
+						console.log("NavControl_l after: " + $("#NavControl_l").val() );
+					}
+					
+					$("#ApplyButton").show();
+					$("#StatusDisplay").hide();
+				});
+				
+				$( "a.svSetVerse" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "V" );
+					$("#NavControl_b").val( $(this).attr("newBook") );
+					$("#NavControl_c").val( $(this).attr("newChapter") );
+					$("#NavControl_v").val( $(this).attr("newVerse") );
+					$("#NavForm").submit();
+				});
+				
+				$( "a.GoOneVerse" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "V" );
+					$("#NavControl_b").val( $(this).attr("pBook") );
+					$("#NavControl_c").val( $(this).attr("pChapter") );
+					$("#NavControl_v").val( $(this).attr("pVerse") );
+					$("#NavForm").submit();
+				});
+				
+				$( "a.svGoPassage" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "P" );
+					$("#NavControl_b").val( $(this).attr("newBook") );
+					$("#NavControl_c").val( $(this).attr("newChapter") );
+					$("#NavControl_v").val( $(this).attr("newVerse1") );
+					$("#NavControl_w").val( $(this).attr("newVerse2") );
+					$("#NavForm").submit();
+				});
+				
+				$( "a.GoWord" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "W" );
+					$("#NavControl_d").val( $(this).attr("wordId") );
+					$("#NavForm").submit();
+				});
+				
+				$( "a.GoOneWord" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "W" );
+					$("#NavControl_b").val( $(this).attr("p_book") );
+					$("#NavControl_c").val( $(this).attr("p_chapter") );
+					$("#NavControl_v").val( $(this).attr("p_verse") );
+					$("#NavControl_d").val( $(this).attr("p_wordid") );
+					$("#NavForm").submit();
+				});
+
+				$( "a.GoRoot" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "R" );
+					$("#NavControl_d").val( $(this).attr("p_idroot") );
+					$("#NavForm").submit();
+				});
+				
+				$( "input.SubmitButton" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "S" );
+					$("#NavForm").submit();
+				});
+
+				$( "a.DisplayAll" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( "Sa" );
+					$("#NavForm").submit();
+				});
+
+				$( "a.wDisplayAll" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( $(this).attr("command") );
+					$("#NavForm").submit();
+				});
+				
+				$( "a.GoToc" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( $(this).attr("command") );
+					$("#NavForm").submit();
+				});
+			});
+			
+			// sets up a nav panel resize listener both for the window and the header 
+			$( window ).resize( updateNavHeight );
+			$( "header" ).resize( updateNavHeight );
+			
+		</script>
+		<style media="screen" type="text/css">
+			#PageOuterContainer{
+				padding: 0; /*remove padding */
+				margin: 0; /* remove margins */
+				border: 0; /* remove borders */
+			}
+
+			header.HeaderProxy{
+				height: §{HeaderHeight}em; /* Header height */
+				line-height: §{HeaderHeight}em;
+			}
+			
+			#LogoPlace{
+				margin: 0;
+				padding: 0 0 0 §{NavLeftPadding}em;
+				float: left; /* on the left */
+				width: §{LogoWidth}em;
+			}
+
+			#ApplyButton{
+				width: 10em;
+				text-align: center;
+				margin-top: §{HeaderMargin}em;
+				margin-bottom: §{HeaderMargin}em;
+				margin-left: auto;
+				margin-right: auto;
+				height: §{BigSmallHeight}em;
+				display: none;
+			}
+			#ApplyInner{
+				line-height: §{BigSmallHeight}em;
+				text-align: center;
+				animation: blinker 1s linear infinite;
+			}
+
+			#StatusDisplay{
+				text-align: center;
+				margin-top: §{HeaderMargin}em;
+				margin-bottom: §{HeaderMargin}em;
+				margin-left: auto;
+				margin-right: auto;
+				height: §{BigSmallHeight}em;
+				overflow: hidden;
+				border: 1px solid #1c2329;
+			}
+			#StatusInner{
+				line-height: §{BigSmallHeight}em;
+				text-align: center;
+			}
+
+			#BigSmallHeader{ /* Header Big/Small button */
+				padding: 0;
+				margin: §{HeaderMargin}em;
+				float: right; /* on the right */
+				height: §{BigSmallHeight}em;
+				width: §{BigSmallHeight}em;
+			}
+			#BigSmallInner{
+				line-height: §{BigSmallHeight}em;
+				text-align: center;
+			}
+			
+			div.RestOfPageProxy{
+				margin: 0; /* remove margins */
+				margin-top: §{HeaderHeight}em; /* to leave space for header */
+			}
+
+			nav.NavProxy{
+				width: §{NavWidth}em; /* Width of Nav panel (incl Show/Hide button) */
+			}
+
+			div.ContentProxy{
+				margin: 0; /* remove margins */
+				margin-left: §{NavWidth}em; /* To leave space for nav panel */
+			}
+
+			#ShowHideNav{
+				border: 0; /* remove borders */
+				margin: 0; /* remove margins */
+				padding: 0;
+				text-align: center;
+				margin-left: §{NavContentWidth}em; /* To leave space for nav panel content */
+				width: §{NavShowHideWidth}em; /* Hide/Show button width */
+				position: fixed;
+				overflow: hidden;
+				z-index: 1;
+			}
+			#ShowHideSymbol{
+				border: 0; /* remove borders */
+				margin: 0; /* remove margins */
+				padding: 0;
+			}
+			
+			#NavContent{
+				width: §{NavContentWidth}em; 
+				padding: 0;
+				/* padding: §{NavTopPadding}em §{NavRightPadding}em 0 §{NavLeftPadding}em;*/
+				margin: 0; /* remove margins */
+				float: left;
+				position: fixed;
+				overflow: hidden;
+				z-index: 2;
+			}
+			
+			#NavForm{
+				margin-top: §{NavTopPadding}em;
+				margin-left: §{NavLeftPadding}em;
+				width: §{NavFormWidth}em;
+				padding: 0;
+			}
+			
+			input.TextInput, select.TextInput{
+				width: §{NavFormWidth}em;
+			}
+			
+			#TocLinks{
+				margin-top: §{NavTopPadding}em;
+				margin-left: §{NavLeftPadding}em;
+				width: §{NavFormWidth}em;
+				padding: 0;
+			}
+			#TocLinks ul{
+				margin: 0;
+				padding-left: §{NavLeftPadding}em;
+			}
+			#TocLinks li{
+				margin: 0;
+				padding: 0;
+			}
+
+		</style>
+	</head>
+    <body>
+        <!-- Safeguard against Javascript disabled browsers -->
+        <noscript>
+            <p class="NoJSWarning">The browser apparently does not support Javascript ...</p>
+        </noscript>
+		
+		<div id="PageOuterContainer">
+			<header class="HeaderProxy">
+				<div id="BigSmallHeader" class="BigSmallHeaderBasic"><div id="BigSmallInner">▼</div></div>
+				<div id="LogoPlace" class="LogoDecoration">
+					<div id="Logo">Scripture SE III</div>
+				</div>
+				<div id="CenterHeader">
+					<div id="ApplyButton" class="ApplyButtonBasic"><div id="ApplyInner">Apply</div></div>
+					<div id="StatusDisplay"><div id="StatusInner">§{StatusLine}</div></div>
+				</div>
+				<div id="HeaderBottom">
+					<form id="Versions" action="" accept-charset="UTF-8">
+						<div class="VersionBlock">§{BibleVersions}</div>
+						<div class="VersionBlock">§{QuranVersions}</div>
+						<div class="VersionBlock">§{Parameters}</div>
+					</form>
+				</div>				
+				<!-- <div id="PopupHeader" class="PopupDecoration">Popup<br/>Popup<br/>Popup<br/>Popup<br/>Popup<br/>Popup</div>  -->
+			</header>
+			<div id="RestOfPage" class="RestOfPageProxy">
+				<nav class="NavProxy">
+					<div id="NavContent">
+						<form id="NavForm" action="" accept-charset="UTF-8">
+							<div class="FormRow" style="§{HiddenFieldsStyle}">K: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_K" name="K" value="§{inputValue_K}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">b: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_b" name="b" value="§{inputValue_b}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">c: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_c" name="c" value="§{inputValue_c}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">v: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_v" name="v" value="§{inputValue_v}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">w: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_w" name="w" value="§{inputValue_w}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">q: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_q" name="q" value="§{inputValue_q}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">l: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_l" name="l" value="§{inputValue_l}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">p: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_p" name="p" value="§{inputValue_p}"></div>
+							<div class="FormRow" style="§{HiddenFieldsStyle}">d: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_d" name="d" value="§{inputValue_d}"></div>
+							<div class="FormRow">§{label_search}: <input class="TextInput" type="text" id="NavControl_search" name="s" value="§{inputValue_s}"></div>
+							<div class="FormRow"><input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}> §{label_wholeWords}</div>
+							<div class="FormRow"><input type="checkbox" id="NavControl_caseSensitive" name="u" value="checked" §{inputValue_u}> §{label_caseSensitive}</div>
+							<div class="FormRow" id="ExcludeRow">§{label_exclude}: <input class="TextInput" type="text" id="NavControl_exclude" name="o" value="§{inputValue_o}"></div>
+							<div class="FormRow">
+								§{label_searchMode}: 
+								<select class="TextInput" id="NavControl_mode" name="e">
+									<option value="0" §{inputValue_e0}>§{label_searchMode0}</option>
+									<option value="1" §{inputValue_e1}>§{label_searchMode1}</option>
+									<option value="2" §{inputValue_e2}>§{label_searchMode2}</option>
+								</select>
+							</div>
+							<div class="FormRow" id="SearchScope">§{label_searchScope}:</div>
+							<div class="FormRow">
+								§{label_searchScopeQ}: 
+								<select class="TextInput" id="NavControl_quranScope" name="h">
+									<option value="0" §{inputValue_h0}>§{label_searchScopeQ0}</option>
+									<option value="1" §{inputValue_h1}>§{label_searchScopeQ1}</option>
+								</select>
+							</div>
+							<div class="FormRow">
+								§{label_searchScopeNT}: 
+								<select class="TextInput" id="NavControl_ntScope" name="i">
+									<option value="0" §{inputValue_i0}>§{label_searchScopeNT0}</option>
+									<option value="1" §{inputValue_i1}>§{label_searchScopeNT1}</option>
+									<option value="2" §{inputValue_i2}>§{label_searchScopeNT2}</option>
+									<option value="3" §{inputValue_i3}>§{label_searchScopeNT3}</option>
+									<option value="4" §{inputValue_i4}>§{label_searchScopeNT4}</option>
+								</select>
+							</div>
+							<div class="FormRow">
+								§{label_searchScopeOT}: 
+								<select class="TextInput" id="NavControl_otScope" name="j">
+									<option value="0" §{inputValue_j0}>§{label_searchScopeOT0}</option>
+									<option value="1" §{inputValue_j1}>§{label_searchScopeOT1}</option>
+									<option value="2" §{inputValue_j2}>§{label_searchScopeOT2}</option>
+									<option value="3" §{inputValue_j3}>§{label_searchScopeOT3}</option>
+									<option value="4" §{inputValue_j4}>§{label_searchScopeOT4}</option>
+									<option value="5" §{inputValue_j5}>§{label_searchScopeOT5}</option>
+								</select>
+							</div>
+							<div class="FormRow"><input class="SubmitButton" type="submit" value="go"></div>
+						</form>
+						<div id="TocLinks">
+							<p>§{toc_toc}:</p>
+							<ul>
+								<li><a href="" class="GoToc" command="T">§{toc_allScripture}</a></li>
+								<li><a href="" class="GoToc" command="Ta1">§{toc_Quran}</a></li>
+								<li><a href="" class="GoToc" command="Ta2">§{toc_QuranRev}</a></li>
+								<li><a href="" class="GoToc" command="Tb">§{toc_NT}</a></li>
+								<li><a href="" class="GoToc" command="Tc">§{toc_OT}</a></li>
+							</ul>
+						</div>
+					</div>
+					<div id="ShowHideNav" class="ShowHideNavDecoration">
+						<div id="ShowHideSymbol">«</div>
+					</div>
+				</nav>
+				<div id="Content" class="ContentProxy">
+					<section>
+						§{Response}
+						§{OldContextTable}
+						§{NewContextTable}
+						§{DimensionsTable}
+					</section>
+					<footer>Scripture Search Engine III</footer>
+				</div>
+			</div>
+		</div>
+    </body>
+</html>
+

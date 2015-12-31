@@ -1,0 +1,855 @@
+/* 
+    Document   : basic.css
+    Created on : 29 oct. 2015
+    Author     : Nicolas Reimen
+    Description: Basic test stylesheet
+*/
+
+@font-face { 
+    font-family: 'Calibri Light'; 
+    src: url('./fonts/calibri_light.eot'); 
+    src: url('./fonts/calibri_light.eot?#iefix') format('embedded-opentype'), 
+        url('./fonts/calibri_light.svg#Calibri Light') format('svg'), 
+        url('./fonts/calibri_light.woff') format('woff'), 
+        url('./fonts/calibri_light.ttf') format('truetype'); 
+    font-weight: normal; 
+    font-style: normal;
+}
+
+@font-face { 
+    font-family: 'Tiberian Biblical Hebrew'; 
+    src: url('./fonts/SPTIBERI.eot'); 
+    src: url('./fonts/SPTIBERI.TTF') format('truetype');  
+    src: url('./fonts/SPTIBERI.eot?#iefix') format('embedded-opentype'), 
+        url('./fonts/SPTIBERI.svg#SPTIBERI') format('svg'), 
+        url('./fonts/SPTIBERI.woff') format('woff');
+    font-weight: normal; 
+    font-style: normal;
+}
+
+@font-face { 
+    font-family: 'Ionic Biblical Greek'; 
+    src: url('./fonts/SPIONIC_.eot'); 
+    src: url('./fonts/SPIONIC_.TTF') format('truetype');  
+    src: url('./fonts/SPIONIC_.eot?#iefix') format('embedded-opentype'), 
+        url('./fonts/SPIONIC_.svg#SPIONIC_') format('svg'), 
+        url('./fonts/SPIONIC_.woff') format('woff');
+    font-weight: normal; 
+    font-style: normal;
+}
+
+@font-face { 
+    font-family: 'arabtype'; 
+    src: url('./fonts/arabtype.eot'); 
+    src: url('./fonts/arabtype.ttf') format('truetype');  
+    src: url('./fonts/arabtype.eot?#iefix') format('embedded-opentype'), 
+        url('./fonts/arabtype.svg#arabtype') format('svg'), 
+        url('./fonts/arabtype.woff') format('woff');
+	font-weight: normal; 
+    font-style: normal;
+}
+
+span.TranslationText{
+    font-family: "Calibri Light", Arial, sans-serif;    
+}
+
+/* ------------------------------------------------------------------------------------- */
+:root { 
+    display: block;
+}
+
+html{
+    padding: 0; /*remove padding */
+    margin: 0; /* remove margins */
+    border: 0; /* remove borders */
+}
+
+body{
+    font-family: "Calibri Light", Arial, sans-serif;    
+    padding: 0; /*remove padding */
+    margin: 0; /* remove margins */
+    border: 0; /* remove borders */
+}
+
+.NoDisplay{
+	display: none;
+}
+
+/* ------------------------------------------------------------------------------------- */
+
+header{
+	padding: 0; /*remove padding */
+	margin: 0; /* remove margins */
+	border: 0; /* remove borders */
+	position: fixed; /* does not move with rest of page */
+	width: 100%;
+	top: 0; /* Otherwise, it descends by the amount of margin given to div.RestOfPage !! Why ? Dunno [2/11/2015] */
+	background-color: #1c2329;
+	box-shadow: 0 3px 2px 2px rgba(0, 0, 0, 0.1);
+	color: white;
+	z-index: 100;
+	overflow-x: auto;
+	overflow-y: hidden;
+	/* display: none; */
+}
+
+nav{
+	padding: 0; /*remove padding */
+	margin: 0; /* remove margins */
+	border: 0; /* remove borders */
+	background-color: #444f58;
+	color: white;
+	position: fixed;
+	overflow: hidden; /* If content too big --> truncate */
+	/* display: none; */
+}
+
+#RestOfPage{
+	padding: 0; /*remove padding */
+	border: 0; /* remove borders */
+	/* margin: 0; /* remove margins */
+}
+
+#Content{
+	padding: 0; /*remove padding */
+	border: 0; /* remove borders */
+	/* margin: 0; /* remove margins */
+}
+
+section{
+    border: 0; /* remove borders */
+	padding: 1.5em 1em 1em 1em;
+}
+
+#CenterHeader{
+	margin: 0;
+	padding: 0;
+}
+
+#HeaderBottom{
+	display: none;
+	margin: 0;
+	padding: .5em 0 0 .5em;
+	line-height: normal;
+	white-space: nowrap;
+}
+
+#Versions{
+	margin: 0;
+	padding: 0;
+}
+
+@keyframes blinker {  
+  50% { opacity: 0.0; }
+}
+
+div.VersionBlock{
+	border: 1px solid #77848c;
+	margin-right: .5em;
+	padding: .5em 0 .5em .5em;
+	font-size: smaller;
+	display: inline-block;
+	white-space: nowrap;
+}
+
+div.VersionSegment{
+	padding-right: .5em;
+	float: left;
+	white-space: nowrap;
+}
+
+div.VersionSelector{
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+div.LogoDecoration{
+	border-right: 1px solid white;
+	background-color: #1c2329;
+}
+div.LogoDecorationHigh{
+	border: none;
+	background-color: #444f58;
+}
+
+div.BigSmallHeaderBasic{
+	border: 1px solid #c8ced3;
+}
+div.BigSmallHeaderHigh{
+	background-color: #77848c;
+	color: black;
+	border: 1px solid black;
+}
+
+div.ApplyButtonBasic{
+	border: 1px solid #c8ced3;
+}
+div.ApplyButtonHigh{
+	background-color: #77848c;
+	color: black;
+	border: 1px solid black;
+}
+
+div.FormRow{
+	margin: 0;
+	padding: 0;
+}
+
+input, select{
+	margin: 0;
+	padding: 0;
+}
+
+#SearchScope{
+	margin-top: .7em;
+}
+
+input.SubmitButton{
+	margin-top: 1em;
+}
+
+#NavControl_wholeWords, #ExcludeRow{
+	margin-top: .3em;
+}
+
+div.ShowHideNavDecoration{
+	background-color: #77848c;
+	color: white;
+	z-index: 10;
+	/*box-shadow: -3px 0 2px 2px rgba(0, 0, 0, 0.1);*/
+}
+div.ShowHideNavDecorationHigh{
+	background-color: #c8ced3;
+	color: black;
+	z-index: 10;
+	/*box-shadow: -3px 0 2px 2px rgba(0, 0, 0, 0.1);*/
+}
+
+section p{
+	margin: 0 0 .5em 0;
+}
+
+section table{
+	margin: 0 0 1em 0;
+	border-collapse: collapse;
+}
+
+section td{
+	border: 1px solid #600000;
+	padding: .2em .4em .2em .4em; 
+}
+
+footer{
+    border: 0; /* remove borders */
+	margin-top: 2em;
+	margin-bottom: .5em;
+	text-align: center;
+	font-size: smaller;
+	color: #77848c;
+}
+
+a{
+	color: #124068;
+	text-decoration: none;
+}
+
+a:hover{
+	color: #124068;
+	text-decoration: underline;
+}
+
+a.TopLink{
+	margin-right: .5em;
+}
+
+span.ErrHigh{
+	font-weight: bold;
+	color: #a24c4c;
+}
+
+#TocLinks a{
+	color: #93c7f3;
+	text-decoration: none;
+}
+
+#TocLinks a:hover{
+	color: #93c7f3;
+	text-decoration: underline;
+}
+
+#TocLinks p{
+	margin-top: 1em;
+	margin-bottom: .5em;
+}
+
+p.TocBook{
+	margin-left: 2em;
+	text-indent: -2em;
+}
+
+div.QuranToc{
+	text-align: center;
+}
+
+div.QuranTocCol1{
+	text-align: left;
+	display: inline-block;
+	margin-right: 1em;
+}
+
+div.QuranTocCol2{
+	text-align: left;
+	display: inline-block;
+}
+
+h1.TocTitle{
+	text-align: center;
+}
+/* ---------------------------------- Single Verse ------------------------------------- */
+
+div.svTopBottom{
+	background-color: #e6ebf0;
+	border-top: 1px solid #e6ebf0;
+	border-bottom: 1px solid #e6ebf0;
+	margin-bottom: 1em;
+	padding: .3em;
+	font-size: smaller;
+}
+
+div.svPrevLink{
+	float: left;
+}
+
+div.svNextLink{
+	float: right;
+}
+
+div.svCenterLinks{
+	text-align: center;
+}
+
+#svOuterTable {
+	width: 100%
+}
+
+#svOuterTable td{
+	border: 1px solid #e6ebf0;
+	padding: .5em .4em .3em .4em; 
+}
+
+#svOuterTable td.svVerseTitle{
+	background-color: #77848c;
+	border: 1px solid #e6ebf0;
+	text-align: center;
+	padding: .6em;
+	font-weight: bold;
+	color: white;
+}
+
+#svOuterTable td.svGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: larger;
+	text-align: center;
+}
+
+#svOuterTable td.svGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	text-align: center;
+}
+
+#svOuterTable td.svGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+	text-align: center;
+}
+
+#svOuterTable table.svInterlinearWord{
+	display: inline-block;
+	margin: 0 .5em 0 0;
+}
+#svOuterTable table.svInterlinearWordLink{
+	float: right;
+	font-size: smaller;
+}
+
+#svOuterTable table.svInterlinearWord td{
+	text-align: center;
+	border: 0;
+	padding: 0;
+	margin: 0;
+}
+
+#svOuterTable table.svInterlinearWord td.svTranslit{
+	font-style: italic;
+}
+
+#svOuterTable table.svInterlinearWord td.svGrammar{
+	font-size: smaller;
+	color: #a24c4c;
+}
+
+#svOuterTable td.svTranslationsTitle{
+	background-color: #77848c;
+	border: 1px solid #e6ebf0;
+	font-style: italic;
+	text-align: center;
+	color: white;
+}
+
+#svOuterTable td.svVersionLabel{
+	text-align: center;
+	color: #a24c4c;
+	width: 5em;
+}
+
+/* ------------------------- Passage --------------------------------------------------- */
+
+h1.pChapterName{
+	text-align: center;
+	margin: 1em 0 0 0;
+	font-size: initial;
+}
+
+h2.pVersionName{
+	text-align: center;
+	margin: 0 0 .5em 0;
+	color: #a24c4c;
+	font-size: smaller;
+}
+
+span.pMessage{
+	color: #a24c4c;
+	font-size: smaller;
+	font-style: italic;
+}
+
+#ParallelTable{
+	margin: 0 0 1em 0;
+	padding: 0;
+	border: 0;
+}
+
+#ParallelTable td{
+	padding: .3em;
+	border: 0;
+	vertical-align: top;
+}
+
+#ParallelTable td.LRText{
+	padding: .3em;
+	border: 0;
+	vertical-align: top;
+	text-align: left;
+}
+
+#ParallelTable td.RLText{
+	padding: .3em;
+	border: 0;
+	vertical-align: top;
+	text-align: right;
+}
+
+p.pChapterNameParallel{
+	text-align: center;
+	margin: 0;
+	font-weight: bold;
+	font-size: initial;
+}
+
+p.pVersionNameParallel{
+	text-align: center;
+	margin: 0;
+	color: #a24c4c;
+	font-size: smaller;
+}
+
+td.pVerseRef{
+	white-space: nowrap;
+	font-size: smaller;
+}
+
+a.GoOneVerse{
+	font-weight: bold;
+}
+
+p.OneVerseTranslationRL{
+	text-align: right;
+}
+
+span.pGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: larger;
+}
+
+span.pGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+}
+
+span.pGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+}
+
+/* ------------------------- Word --------------------------------------------------- */
+
+#wOuterTable{
+	width: 100%;
+	border: 1px solid #c8ced3;
+}
+
+#wOuterTable td{
+	border: 1px solid #c8ced3;
+	padding: .5em .4em .3em .4em; 
+}
+
+#wOuterTable td.wGroundCell{
+	border: 1px solid #c8ced3;
+	text-align: center;
+	width: 1em;
+	padding: 1em;
+	margin: 0;
+}
+
+div.wTranslit, span.wTranslit{
+	font-style: italic;
+	margin: 0; padding: 0;
+}
+
+span.pFieldName{
+	font-size: smaller;
+	font-style: italic;
+}
+
+#wOuterTable td.wGrammarBox{
+	border: 1px solid #c8ced3;
+	padding: .5em;
+	text-align: center;
+}
+
+#wOuterTable td.wOccurencesTitle{
+	background-color: #77848c;
+	border: 1px solid #c8ced3;
+	font-style: italic;
+	text-align: center;
+	color: white;
+}
+
+#wOuterTable td.wOccurencesHigh, #rOuterTable td.wOccurencesHigh{
+	background-color: #e6ebf0;
+	border: none;
+	padding: 0 0 0 .5em;
+}
+
+#rOuterTable td.wOccurencesTitle{
+	background-color: #e6ebf0;
+	border: 1px solid #c8ced3;
+	text-align: center;
+}
+
+#wOuterTable td.wOccurences, #rOuterTable td.wOccurences{
+	border: none;
+	padding: 0 0 0 .5em;
+}
+
+#wOuterTable td.wOccurencesMsg, #rOuterTable td.wOccurencesMsg{
+	border: none;
+	padding: .5em 0 .7em .5em;
+}
+
+span.wLimitMessage{
+	margin: 0;
+	color: #a24c4c;
+	font-size: smaller;
+}
+
+div.wVerseRef{
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0 1em 0 0;
+	padding: 0;
+}
+
+div.wGrammar{
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0 0 0 1em;
+	padding: 0;
+}
+
+img.wGrammarImg{
+	vertical-align: middle;
+	margin: 0 0 0 1em;
+	padding: 0;
+}
+
+#wInterlinear{
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0;
+}
+
+#wInterlinear td{
+	border: 0;
+	text-align: center;
+	padding: 0;
+}
+
+#wInterlinear td.wTranslitWord{
+	border: 0;
+	text-align: center;
+	font-style: italic;
+	padding: 0;
+}
+
+div.wGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: 3em;
+	color: #a24c4c;
+	margin: 0; padding: 0;
+}
+
+div.wGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	font-size: 3em;
+	color: #a24c4c;
+	margin: 0; padding: 0;
+}
+
+div.wGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 6em;
+	color: #a24c4c;
+	margin: 0; padding: 0;
+}
+
+#wInterlinear td.wGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: larger;
+	color: #a24c4c;
+	padding: 0;
+}
+
+#wInterlinear td.wGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	color: #a24c4c;
+	padding: 0;
+}
+
+#wInterlinear td.wGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+	color: #a24c4c;
+	padding: 0;
+}
+
+span.wGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: larger;
+	color: #a24c4c;
+	padding: 0;
+}
+
+span.wGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	color: #a24c4c;
+	padding: 0;
+}
+
+span.wGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+	color: #a24c4c;
+	padding: 0;
+}
+
+span.neighborSep{
+	color: #c8ced3;
+}
+
+b.segBlue{
+	color: #257e9c;
+}
+b.segBrown{
+	color: #bf9f3e;
+}
+b.segGold{
+	color: #817418;
+}
+b.segGreen{
+	color: #1d6914;
+}
+b.segNavy{
+	color: #1301b8;
+}
+b.segOrange{
+	color: #e37010;
+}
+b.segPink{
+	color: #a8017b;
+}
+b.segPurple{
+	color: #9a3cd9;
+}
+b.segRose{
+	color: #fd5162;
+}
+b.segRust{
+	color: #ad2323;
+}
+b.segSeagreen{
+	color: #3ece39;
+}
+b.segSky{
+	color: #548dd4;
+}
+b.segMetal{
+	color: #5c7085;
+}
+b.segTurquoise{
+    color: #29d0d0;
+}
+div.arabicGrammar{
+    color: #a24c4c;
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+	margin: 0;
+	padding: 0;
+}
+span.at{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+}
+span.Hb{
+	font-size: larger;
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+}
+span.Gk{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+}
+
+/* ------------------------- Root --------------------------------------------------- */
+
+#rOuterTable{
+	width: 100%;
+	border: 1px solid #c8ced3;
+}
+
+#rOuterTable td{
+	border: 1px solid #c8ced3;
+	padding: .5em .4em .3em .4em; 
+}
+
+#rOuterTable td.rRootsCell{
+	text-align: center;
+	border: 1px solid #c8ced3;
+	padding: 1em;
+}
+
+#rOuterTable table.rOneRoot{
+	vertical-align: top;
+	display: inline-block;
+	border: none;
+	margin: 0 1em 0 0; 
+}
+
+#rOuterTable table.rOneRoot td{
+	border: none;
+	text-align: center;
+	margin: 0; 
+	margin: 0; padding: 0;
+}
+
+#rOuterTable table.rOneRoot td.rTranslit{
+	font-style: italic;
+}
+
+#rOuterTable table.rOneRoot td.rRootCount{
+	font-size: smaller;
+	color: #a24c4c;
+}
+
+#rOuterTable table.rOneRoot td.rGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: 3em;
+	color: #a24c4c;
+	margin: 0; padding: 0;
+	border: none;
+}
+
+#rOuterTable table.rOneRoot td.rGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	font-size: 3em;
+	color: #a24c4c;
+	margin: 0; padding: 0;
+	border: none;
+}
+
+#rOuterTable table.rOneRoot td.rGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 6em;
+	color: #a24c4c;
+	margin: 0; padding: 0;
+	border: none;
+}
+
+span.rGroundHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	margin: 0; padding: 0;
+	font-size: larger;
+}
+
+span.rGroundGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	margin: 0; padding: 0;
+}
+
+span.rGroundArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+	margin: 0; padding: 0;
+}
+
+/* ------------------------- Search --------------------------------------------------- */
+
+span.sHebrew{
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	margin: 0; padding: 0;
+	font-size: larger;
+}
+
+span.sGreek{
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	margin: 0; padding: 0;
+}
+
+span.sArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+	margin: 0; padding: 0;
+}
+
+div.sFloatingVerse{
+	float: right;
+	margin-left: .5em;
+}
+
+span.sCounter{
+	color: #a24c4c;
+	font-size: smaller;
+}
+
+p.ResultBox{
+	margin: 0;
+	color: #a24c4c;
+	font-size: smaller;
+	margin-bottom: 1em;
+}
+
+p.sLimitMessage{
+	margin: 0;
+	margin-bottom: 1em;
+	color: #a24c4c;
+	font-size: smaller;
+}
+

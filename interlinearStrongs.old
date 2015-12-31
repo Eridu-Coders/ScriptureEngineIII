@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+import sys
+import json
+import mysql.connector
+
+from ec_app_params import *
+
+__author__ = 'fi11222'
+
+l_connector = mysql.connector.connect(
+                user=g_dbUser, password=g_dbPassword,
+                host=g_dbServer,
+                database=g_dbDatabase)
+
+l_connectorWrite = mysql.connector.connect(
+                user=g_dbUser, password=g_dbPassword,
+                host=g_dbServer,
+                database=g_dbDatabase)
+
+l_connectorWrite2 = mysql.connector.connect(
+                user=g_dbUser, password=g_dbPassword,
+                host=g_dbServer,
+                database=g_dbDatabase)
+
+l_query = """
+    select
+        TX_STRONGS_LIST
+        , ID_WORD
+        , ID_INTERL
+        , ID_BOOK
+        , N_CHAPTER
+        , N_VERSE
+        , N_WORD
+        , ST_GROUND
+    from TB_INTERLINEAR
+;"""
+
+l_cursor = l_connector.cursor(buffered=True)
+l_cursor.execute(l_query)
+
+l_fSQL = open('InterlinearUpdate.sql', 'w')
+for l_strongsStore, l_wordId, l_interl, l_book, l_chapter, l_verse, l_wordNumber, l_ground in l_cursor:
+    l_newStrongs = []
+    l_newLinks = ''
+    # print(l_ground, l_wordId, '---------------------------------------------------------------------')
+    for l_strongsId in json.loads(l_strongsStore):
+        if l_strongsId != 'NoStrong' and len(l_strongsId) == 5:
+            # print(l_wordId, '-->', l_strongsId)
+            l_newStrongs.append(l_strongsId)
+            l_newLinks += ('<a href="" class="GoOneWord" p_book="{1}" p_chapter="{2}" p_verse="{3}" ' +
+                           'p_wordid="{4}">{0}</a>').format(
+                l_ground, l_book, l_chapter, l_verse, str(l_wordNumber) + '-' + l_interl + '-' + l_strongsId)
+
+        l_queryLink = """
+            insert into TB_WORD_LEXICON(ID_WORD, ID_STRONGS)
+            values ({0}, '{1}')
+            on duplicate key update ID_STRONGS = ID_STRONGS
+        ;""".format(l_wordId, l_strongsId)
+
+        # print(l_queryLink)
+        l_cursorWrite = l_connectorWrite.cursor()
+        l_cursorWrite.execute(l_queryLink)
+        l_connectorWrite.commit()
+        l_cursorWrite.close()
+
+    # print(l_wordId, '-->', l_newStrongs)
+    # print(l_wordId, '-->', l_newLinks)
+
+    l_queryInterlinear = """
+        update TB_INTERLINEAR
+        set TX_STRONGS_LIST = '{0}'
+            , TX_STRONGS_LINKS = '{1}'
+        where ID_WORD = {2};""".format(
+            json.dumps(l_newStrongs).replace("'", "''"),
+            l_newLinks.replace("'", "''"),
+            l_wordId)
+
+    l_fSQL.write(l_queryInterlinear)
+    # print(l_queryInterlinear)
+    # l_cursorWrite2 = l_connectorWrite2.cursor()
+    # l_cursorWrite2.execute(l_queryInterlinear)
+    # l_connectorWrite2.commit()
+    # l_cursorWrite2.close()
+
+    print(l_wordId, '      ', end='\r')
+
+print()
+l_cursor.close()
+
+l_connector.close()
