@@ -108,14 +108,21 @@ __author__ = 'fi11222'
 # y
 # z - UI language                                   All
 
-# NOTE: Adding french spell-check dictionary to pycharm
+# NOTE - Adding french spell-check dictionary to pyCharm:
 # sudo apt-get install aspell-fr
 # aspell --lang fr_FR dump master | aspell --lang fr expand | tr ' ' '\n' > french.dic
 # french.dic must be in a dir by itself
+# then add the french.dic dictionary to pyCharm settings
 
-# TODO Verse ref display in single verse (box on the upper-right quadrant like in QuranSE II)
+# TODO Verse ref display in single verse (box on the upper-left quadrant like in QuranSE II)
 
 # TODO title display (for browser title bar) in all modules
+
+# TODO why does bold not appear in search results when printing ?
+
+# TODO blocking request from non-compliant browsers and maybe robots (at least some of them)
+
+# TODO Testing for JS availability and cookies
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
@@ -360,10 +367,25 @@ def internal_get_labels(p_context):
     return l_substituteVar
 
 
+# Most of the CSS code is located in basic.css and print.css
+# However, some CSS definitions are located within the index.html template file
+# They are those which include dimension items which are set at template substitution time based on the
+# variables below.
+
+# Some HTML tags in the template need to have CSS coming both from basic.css/print.css (for different behavior
+# on screen and in print) and from the template (for dimensions). In these cases, the tags have both an id (located
+# in basic.css/print.css, for precedence sake) and a class located in the template.
+# When the id is of the form Xxx, the class is of the form XxxProxy
+# The tags involved are:
+# <header>
+# <nav>
+# <div id="Content">
+# <div id="RestOfPage">
 def internal_get_dimensions():
     # all values in em
 
     l_dimensions = dict()
+
     # width of the left panel (search controls, TOC, ...)
     l_dimensions['NavWidth'] = 12
     # width of the show/hide control for the left panel
