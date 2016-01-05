@@ -131,6 +131,8 @@ __author__ = 'fi11222'
 
 # TODO Arab search without vowels (and for Hebrew ...)
 
+# TODO first verse of a word in single verse / interlinear cannot be viewed in word display (incorrect word ID Err)
+
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
 if g_verboseModeOn:

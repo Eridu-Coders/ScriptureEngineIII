@@ -28,7 +28,7 @@ random.seed()
 EcLogger.logInit()
 
 # browscap init
-ec_browscap.Browscap.initBrowscap(p_skip=False)
+ec_browscap.Browscap.initBrowscap(p_skip=True)
 
 # custom handler + app init
 EcRequestHandler.initClass(
