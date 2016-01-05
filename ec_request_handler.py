@@ -100,8 +100,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.m_logger.info('Context Dict.    : {0}'.format(self.m_contextDict))
 
         # pyCharm complains but this is perfectly ok
+        self.m_logger.info('Raw headers      : {0}'.format(l_headers))
         self.m_headersDict = dict(re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers))
-        self.m_logger.info('Raw headers      : {0}'.format(self.m_headersDict))
+        self.m_logger.info('Headers dict.    : {0}'.format(self.m_headersDict))
 
         l_userAgent = ''
 
