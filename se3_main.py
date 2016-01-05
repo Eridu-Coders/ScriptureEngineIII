@@ -133,6 +133,8 @@ __author__ = 'fi11222'
 
 # TODO first verse of a word in single verse / interlinear cannot be viewed in word display (incorrect word ID Err)
 
+# TODO bad ground text format in passage stacked
+
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
 if g_verboseModeOn:

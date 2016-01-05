@@ -337,7 +337,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             l_expire = (datetime.datetime.now(tz=pytz.utc) +
                         datetime.timedelta(g_cookiePersistence)).strftime('%a, %d %b %Y %H:%M:%S %Z')
 
-            l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
+            # l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
+            l_cookieString = '{0}={1}; Domain={2}; Expires={3};'\
                 .format(g_sessionName, self.m_terminalID, g_appDomain, l_expire)
 
             self.send_header('Set-Cookie', l_cookieString)
