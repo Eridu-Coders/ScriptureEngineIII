@@ -17,7 +17,7 @@ g_cookiePersistence = 365*100
 g_sessionName = 'ECTerminalID_{0}'.format(g_appName)
 
 # Database parameters
-g_dbServer = '192.168.0.51'
+g_dbServer = 'localhost'
 g_dbDatabase = 'ScriptureEngineIII'
 g_dbUser = 'root'
 g_dbPassword = 'murugan!'
@@ -34,7 +34,7 @@ g_logFile = './Log/ec_log.csv'
 # Browscap
 g_browscapUrl = 'http://browscap.org/stream?q=BrowsCapCSV'
 g_browscapLatestVersionUrl = 'http://browscap.org/version-number'
-g_browscapLocalFile = '/home/fi11222/browscap_latest.csv'
+g_browscapLocalFile = '../browscap_latest.csv'
 
 # Verse display limits
 g_softLimit = 200

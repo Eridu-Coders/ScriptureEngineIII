@@ -298,7 +298,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
-            super().path = 'static/images/favicon.ico'
+            self.path = 'static/images/favicon.ico'
             super().do_GET()
         elif self.path == '/' or re.match('/\?', self.path):
             # this is the application call
