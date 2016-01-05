@@ -100,8 +100,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.m_logger.info('Context Dict.    : {0}'.format(self.m_contextDict))
 
         # pyCharm complains but this is perfectly ok
-        self.m_logger.info('Raw headers      : {0}'.format(l_headers))
-        self.m_headersDict = dict(re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers))
+        self.m_logger.debug('Raw headers      : {0}'.format(l_headers))
+        self.m_headersDict = dict(re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers + '\n'))
         self.m_logger.info('Headers dict.    : {0}'.format(self.m_headersDict))
 
         l_userAgent = ''
@@ -338,8 +338,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             l_expire = (datetime.datetime.now(tz=pytz.utc) +
                         datetime.timedelta(g_cookiePersistence)).strftime('%a, %d %b %Y %H:%M:%S %Z')
 
-            # l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
-            l_cookieString = '{0}={1}; Domain={2}; Expires={3};'\
+            l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
                 .format(g_sessionName, self.m_terminalID, g_appDomain, l_expire)
 
             self.send_header('Set-Cookie', l_cookieString)
