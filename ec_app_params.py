@@ -8,8 +8,9 @@ g_appVersion = '3.0.9'
 g_appTitle = 'Followup on QuranSE 1.0 and 2.0'
 
 # HTTP server parameters
-g_appDomain = 'localhost'
-g_httpPort = 8000
+# g_appDomain = 'localhost'
+g_appDomain = '54.175.105.121'
+g_httpPort = 80
 # in days
 g_cookiePersistence = 365*100
 

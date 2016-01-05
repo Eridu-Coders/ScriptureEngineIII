@@ -345,8 +345,8 @@ def preprocess_context(p_context, p_previousContext):
         l_context['w'] = '1'
     if l_context['p'] == '':
         l_context['p'] = '0'
-    if l_context['o'] == '':
-        l_context['o'] = '0'
+    if l_context['e'] == '':
+        l_context['e'] = '0'
     if l_context['h'] == '':
         l_context['h'] = '0'
     if l_context['i'] == '':

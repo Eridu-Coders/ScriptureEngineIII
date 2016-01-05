@@ -121,12 +121,15 @@ __author__ = 'fi11222'
 # TODO why does bold not appear in search results when printing ?
 
 # TODO blocking request from non-compliant browsers and maybe robots (at least some of them)
+# TODO Handle robots and traffic limitation
 
-# TODO Testing for JS availability and cookies
+# TODO Testing for JS availability and cookies. Avoid creating a terminal ID each time.
 
 # TODO Open/close for each root in root display (on screen only)
 
 # TODO dictionary text (BDB, Gesenius, ...) for Bible words
+
+# TODO Arab search without vowels (and for Hebrew ...)
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
