@@ -43,5 +43,6 @@ EcLogger.cm_logger.info('g_appVersion     : ' + g_appVersion)
 EcLogger.cm_logger.info('g_appTitle       : ' + g_appTitle)
 
 EcLogger.cm_logger.info('Serving at port  : ' + str(g_httpPort))
+
 # server main loop
 l_httpd.serve_forever()

@@ -148,6 +148,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_contextDict['z'] = 'fr'
             else:
                 self.m_contextDict['z'] = 'en'
+        else:
+            self.m_contextDict['z'] = 'en'
 
         # ------------------------------------- Cookies ----------------------------------------------------------------
         if 'Cookie' in self.m_headersDict.keys():

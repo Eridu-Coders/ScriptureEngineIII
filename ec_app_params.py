@@ -17,6 +17,7 @@ g_cookiePersistence = 365*100
 g_sessionName = 'ECTerminalID_{0}'.format(g_appName)
 
 # Database parameters
+# g_dbServer = '192.168.0.51'
 g_dbServer = 'localhost'
 g_dbDatabase = 'ScriptureEngineIII'
 g_dbUser = 'root'

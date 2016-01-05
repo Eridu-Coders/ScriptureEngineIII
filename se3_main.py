@@ -124,6 +124,10 @@ __author__ = 'fi11222'
 
 # TODO Testing for JS availability and cookies
 
+# TODO Open/close for each root in root display (on screen only)
+
+# TODO dictionary text (BDB, Gesenius, ...) for Bible words
+
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
 if g_verboseModeOn:

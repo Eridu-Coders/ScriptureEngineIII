@@ -35,7 +35,7 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
         l_oneRootId = None
 
     l_rootSelector = '"' + '","'.join(l_rootIdList) + '"'
-    l_rootCount = dict((l_rootId, 0) for l_rootId in l_rootIdList)
+    l_rootCountDict = dict((l_rootId, 0) for l_rootId in l_rootIdList)
 
     # list of root info
     l_query = """
@@ -53,14 +53,12 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
             ID_ROOT
         ;""".format(l_rootSelector)
 
-    g_loggerRoot.info('l_query {0}'.format(l_query))
+    g_loggerRoot.debug('l_query {0}'.format(l_query))
     try:
         l_cursor = l_dbConnection.cursor(buffered=True)
         l_cursor.execute(l_query)
 
-        l_rootCount = l_cursor.rowcount
-
-        if l_rootCount.rowcount == 0:
+        if l_cursor.rowcount == 0:
             return get_user_string(p_context, 'e_noRoot').format(p_context['d']), p_context
         else:
             # response start
@@ -188,9 +186,9 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
 
             l_occuVersion, l_occuCount, l_occuString = getOccurences(p_context, l_dbConnection, l_idStrongs)
 
-            l_rootCount[l_idRoot] += l_occuCount
+            l_rootCountDict[l_idRoot] += l_occuCount
 
-            g_loggerRoot.debug('l_rootCount[{0}]: {1}'.format(l_idRoot, l_rootCount[l_idRoot]))
+            g_loggerRoot.debug('l_rootCount[{0}]: {1}'.format(l_idRoot, l_rootCountDict[l_idRoot]))
             if l_occuCount > 0:
                 # top title box with gray background
                 l_response += ('<tr><td colspan="4" class="wOccurencesTitle">' +
@@ -210,7 +208,7 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
     except Exception as l_exception:
         g_loggerRoot.warning('Something went wrong {0}'.format(l_exception.args))
 
-    for l_rootId, l_count in l_rootCount.items():
+    for l_rootId, l_count in l_rootCountDict.items():
         l_response = re.sub('__' + sanitize_for_re(l_rootId) + '-Count__',
                             str(l_count) + ' ' + get_user_string(p_context, 'w_OccurencesTitle'),
                             l_response)
