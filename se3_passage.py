@@ -212,7 +212,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
             order by N.N_VERSE, N.N_ORDER
             ;""".format(l_pcBookId, l_pcChapter, l_pcVerseStart, l_pcVerseEnd, l_versionVector)
 
-        g_loggerPassage.info('l_query {0}'.format(l_query))
+        g_loggerPassage.debug('l_query {0}'.format(l_query))
         try:
             l_cursor = l_dbConnection.cursor(buffered=True)
             l_cursor.execute(l_query)
@@ -284,7 +284,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                 order by N_VERSE
                 ;""".format(l_pcBookId, l_pcChapter, l_pcVerseStart, l_pcVerseEnd, l_versionId)
 
-            g_loggerPassage.info('l_query {0}'.format(l_query))
+            g_loggerPassage.debug('l_query {0}'.format(l_query))
             try:
                 l_cursor = l_dbConnection.cursor(buffered=True)
                 l_cursor.execute(l_query)
@@ -327,7 +327,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                 order by N_VERSE
                 ;""".format(l_pcBookId, l_pcChapter, l_pcVerseStart, l_pcVerseEnd)
 
-            g_loggerPassage.info('l_query {0}'.format(l_query))
+            g_loggerPassage.debug('l_query {0}'.format(l_query))
             try:
                 l_cursor = l_dbConnection.cursor(buffered=True)
                 l_cursor.execute(l_query)

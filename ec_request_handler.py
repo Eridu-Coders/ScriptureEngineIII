@@ -101,6 +101,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # pyCharm complains but this is perfectly ok
         self.m_headersDict = dict(re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers))
+        self.m_logger.info('Raw headers      : {0}'.format(self.m_headersDict))
 
         l_userAgent = ''
 
@@ -141,6 +142,15 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # ------------------------------------- Language ---------------------------------------------------------------
         if 'Accept-Language' in self.m_headersDict.keys():
             l_acceptLanguage = self.m_headersDict['Accept-Language']
+            self.m_logger.info('Accept Language  : {0}'.format(l_acceptLanguage))
+
+            # only recognizes French. Otherwise, English
+            if re.search('fr', l_acceptLanguage) is not None:
+                self.m_contextDict['z'] = 'fr'
+            else:
+                self.m_contextDict['z'] = 'en'
+        elif 'Accept Language' in self.m_headersDict.keys():
+            l_acceptLanguage = self.m_headersDict['Accept Language']
             self.m_logger.info('Accept Language  : {0}'.format(l_acceptLanguage))
 
             # only recognizes French. Otherwise, English
