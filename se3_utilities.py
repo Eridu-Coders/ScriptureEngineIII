@@ -334,6 +334,27 @@ def preprocess_context(p_context, p_previousContext):
                 l_context[l_paramName] = ''
 
     # Minimal parameter presence ------------------
+    # specific values
+    if l_context['b'] == '':
+        l_context['b'] = 'Gen'
+    if l_context['c'] == '':
+        l_context['c'] = '1'
+    if l_context['v'] == '':
+        l_context['v'] = '1'
+    if l_context['w'] == '':
+        l_context['w'] = '1'
+    if l_context['p'] == '':
+        l_context['p'] = '0'
+    if l_context['o'] == '':
+        l_context['o'] = '0'
+    if l_context['h'] == '':
+        l_context['h'] = '0'
+    if l_context['i'] == '':
+        l_context['i'] = '0'
+    if l_context['j'] == '':
+        l_context['j'] = '0'
+
+    # Minimal parameter presence ------------------
     # special checkbox case
     l_flagVector = ['t', 'u']
     for l_flagName in l_flagVector:
