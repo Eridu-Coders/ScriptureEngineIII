@@ -151,6 +151,7 @@
 				// common routine used by all links which need to set a parameter flag 
 				// (accessible through p_context['p'] within the app code and in the hidden input NavControl_p below)
 				$( "a.SetParameterLink" ).on( "click", function(l){
+					l.preventDefault();
 					// the bit mask value is transmitted through the 'param' attr of the <a> tag
 					// the operation here is a bitwise OR
 					// the 16 parameter passed to ParseInt() and val() is for reading and writing hexa
