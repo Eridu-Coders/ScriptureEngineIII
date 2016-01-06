@@ -167,4 +167,4 @@ class EcConnector(mysql.connector.MySQLConnection):
         super().__init__(**kwargs)
 
     def isStale(self):
-        return self.m_expirationDate > datetime.datetime.now(tz=pytz.utc)
+        return self.m_expirationDate < datetime.datetime.now(tz=pytz.utc)
