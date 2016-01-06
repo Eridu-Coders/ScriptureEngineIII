@@ -29,6 +29,8 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_pcChapter = p_context['c']
     l_pcVerse = p_context['v']
 
+    g_loggerSingleVerse.debug('l_pcBookId: {0}'.format(l_pcBookId))
+
     l_dbConnection = p_dbConnectionPool.getConnection()
 
     # get all attributes of the book the verse belongs to

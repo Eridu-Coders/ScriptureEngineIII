@@ -77,38 +77,35 @@ def init_versions():
         ;"""
 
     g_loggerUtilities.debug('l_query: {0}'.format(l_query))
-    try:
-        l_cursor = l_connector.cursor(buffered=True)
-        l_cursor.execute(l_query)
 
-        # binary mask variables used to set the value of g_defaultBibleId and g_defaultQuranId
-        # they are multiplied by 2 (i.e. set to next bit) each time a Bible (resp. Quran) verse is encountered
-        l_maskBible = 1
-        l_maskQuran = 1
+    l_cursor = l_connector.cursor(buffered=True)
+    l_cursor.execute(l_query)
 
-        # cursor iteration
-        for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny in l_cursor:
-            if l_bq == 'B':
-                g_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
+    # binary mask variables used to set the value of g_defaultBibleId and g_defaultQuranId
+    # they are multiplied by 2 (i.e. set to next bit) each time a Bible (resp. Quran) verse is encountered
+    l_maskBible = 1
+    l_maskQuran = 1
 
-                if l_default == 'Y':
-                    # the slice is necessary because the output of hex() starts with '0x'
-                    g_defaultBibleId = hex(l_maskBible)[2:].upper()
+    # cursor iteration
+    for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny in l_cursor:
+        if l_bq == 'B':
+            g_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
 
-                l_maskBible *= 2
-            else:
-                g_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
+            if l_default == 'Y':
+                # the slice is necessary because the output of hex() starts with '0x'
+                g_defaultBibleId = hex(l_maskBible)[2:].upper()
 
-                if l_default == 'Y':
-                    # the slice is necessary because the output of hex() starts with '0x'
-                    g_defaultQuranId = hex(l_maskQuran)[2:].upper()
+            l_maskBible *= 2
+        else:
+            g_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
 
-                l_maskQuran *= 2
+            if l_default == 'Y':
+                # the slice is necessary because the output of hex() starts with '0x'
+                g_defaultQuranId = hex(l_maskQuran)[2:].upper()
 
-        l_cursor.close()
+            l_maskQuran *= 2
 
-    except Exception as l_exception:
-        g_loggerUtilities.warning('Something went wrong {0}'.format(l_exception.args))
+    l_cursor.close()
 
     g_loggerUtilities.debug('g_bibleVersionId: {0}'.format(g_bibleVersionId))
     g_loggerUtilities.debug('g_quranVersionId: {0}'.format(g_quranVersionId))
@@ -153,19 +150,16 @@ def init_book_chapter():
         ;"""
 
     g_loggerUtilities.debug('l_query: {0}'.format(l_query))
-    try:
-        l_cursor = l_connector.cursor(buffered=True)
-        l_cursor.execute(l_query)
 
-        # loads the first term of each g_bookChapter['id']
-        for l_bookId, l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr in l_cursor:
-            g_bookChapter[l_bookId] = \
-                [(l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr)]
+    l_cursor = l_connector.cursor(buffered=True)
+    l_cursor.execute(l_query)
 
-        l_cursor.close()
+    # loads the first term of each g_bookChapter['id']
+    for l_bookId, l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr in l_cursor:
+        g_bookChapter[l_bookId] = \
+            [(l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr)]
 
-    except Exception as l_exception:
-        g_loggerUtilities.warning('Something went wrong {0}'.format(l_exception.args))
+    l_cursor.close()
 
     # All chapters
     l_query = """
@@ -175,18 +169,15 @@ def init_book_chapter():
         ;"""
 
     g_loggerUtilities.debug('l_query: {0}'.format(l_query))
-    try:
-        l_cursor = l_connector.cursor(buffered=True)
-        l_cursor.execute(l_query)
 
-        # loads the chapter verse count terms of each g_bookChapter['id'] (from position 1 in the list onwards)
-        for l_bookId, l_verseCount in l_cursor:
-            g_bookChapter[l_bookId].append(l_verseCount)
+    l_cursor = l_connector.cursor(buffered=True)
+    l_cursor.execute(l_query)
 
-        l_cursor.close()
+    # loads the chapter verse count terms of each g_bookChapter['id'] (from position 1 in the list onwards)
+    for l_bookId, l_verseCount in l_cursor:
+        g_bookChapter[l_bookId].append(l_verseCount)
 
-    except mysql.connector.Error as l_exception:
-        g_loggerUtilities.warning('Something went wrong {0}'.format(l_exception.args))
+    l_cursor.close()
 
     l_connector.close()
 
@@ -213,18 +204,17 @@ def init_book_alias():
         ;"""
 
     g_loggerUtilities.debug('l_query: {0}'.format(l_query))
-    try:
-        l_cursor = l_connector.cursor(buffered=True)
-        l_cursor.execute(l_query)
 
-        for l_bookId, l_bookAliasBytes in l_cursor:
-            l_bookAlias = l_bookAliasBytes.decode('utf-8')
-            g_bookAlias[l_bookAlias] = l_bookId
+    l_cursor = l_connector.cursor(buffered=True)
+    l_cursor.execute(l_query)
 
-        l_cursor.close()
+    for l_bookId, l_bookAliasBytes in l_cursor:
+        l_bookAlias = l_bookAliasBytes.decode('utf-8')
+        g_bookAlias[l_bookAlias] = l_bookId
 
-    except Exception as l_exception:
-        g_loggerUtilities.warning('Something went wrong {0}'.format(l_exception.args))
+    l_cursor.close()
+
+    g_loggerUtilities.info('g_bookAlias loaded. Size: {0}'.format(len(g_bookAlias)))
 
 
 # ------------------------- Version vector------------------------------------------------------------------------------

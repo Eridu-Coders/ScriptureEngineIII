@@ -42,13 +42,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         try:
             with open(p_templatePath, 'r') as l_fTemplate:
-                cls.cm_templateFile = l_fTemplate.read()
+                cls.cm_templateString = l_fTemplate.read()
         except OSError as e:
             g_loggerHandler.critical('Could not open template file [{0}]. Aborting.'.format(p_templatePath))
             g_loggerHandler.critical('Exception: {0}'.format(str(e)))
             sys.exit()
 
-        g_loggerHandler.info('Loaded template file [{0}].'.format(g_loggerHandler))
+        g_loggerHandler.info('Loaded template file [{0}].'.format(p_templatePath))
 
     def __init__(self, p_request, p_client_address, p_server):
         # each instance has its own logger with a name that includes the thread it is riding on
