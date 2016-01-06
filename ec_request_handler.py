@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 
 import http.server
-import datetime
-import pytz
 import sys
 import json
-import random
 import urllib.parse
 import hashlib
 
 from ec_utilities import *
 
 __author__ = 'fi11222'
+
+
+g_loggerHandler = logging.getLogger(g_appName + '.rq_handler')
+if g_verboseModeOn:
+    g_loggerHandler.setLevel(logging.INFO)
+if g_debugModeOn:
+    g_loggerHandler.setLevel(logging.DEBUG)
 
 
 # ----------------------------------------- New Request Handler --------------------------------------------------------
@@ -29,12 +33,22 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
     cm_connectionPool = None
 
     @classmethod
-    def initClass(cls, p_browscap, p_appCore):
+    def initClass(cls, p_browscap, p_appCore, p_templatePath):
         cls.cm_termIDCreationLock = threading.Lock()
         cls.cm_browscap = p_browscap
         cls.cm_appCore = p_appCore
 
         cls.cm_connectionPool = EcConnectionPool()
+
+        try:
+            with open(p_templatePath, 'r') as l_fTemplate:
+                cls.cm_templateFile = l_fTemplate.read()
+        except OSError as e:
+            g_loggerHandler.critical('Could not open template file [{0}]. Aborting.'.format(p_templatePath))
+            g_loggerHandler.critical('Exception: {0}'.format(str(e)))
+            sys.exit()
+
+        g_loggerHandler.info('Loaded template file [{0}].'.format(g_loggerHandler))
 
     def __init__(self, p_request, p_client_address, p_server):
         # each instance has its own logger with a name that includes the thread it is riding on
@@ -46,6 +60,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # the unique identifier of the browser (called here a "terminal")
         self.m_terminalID = None
+
+        # flag indicating that the terminal has the required cookies & JavaScript capabilities
+        self.m_validatedTerminal = False
 
         # flag indicating that the cookie is to be destroyed when the headers are generated
         self.m_delCookie = None
@@ -182,15 +199,17 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_logger.info('Terminal ID (old): {0}'.format(l_cookieValue))
                 self.m_terminalID = l_cookieValue
 
+        # ------------------------------------- Previous Context -------------------------------------------------------
         # Retrieves previous context if any and cancels Terminal ID if none found
         if self.m_terminalID is not None:
             self.m_logger.debug('Attempting to recover previous context')
             l_query = """
-                select TX_CONTEXT
+                select TX_CONTEXT, F_VALIDATED
                 from TB_TERMINAL
                 where TERMINAL_ID = '{0}'
                 ;""".format(self.m_terminalID)
 
+            self.m_logger.debug('l_query: {0}'.format(l_query))
             try:
                 l_cursor = l_dbConnection.cursor(buffered=True)
                 l_cursor.execute(l_query)
@@ -199,17 +218,21 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 # if no rows were found, it means that the terminal ID is absent from the table --> create a new one
                 if l_cursor.rowcount == 0:
                     self.m_terminalID = None
+                    self.m_validatedTerminal = False
                 else:
                     # retrieve former context
-                    for l_context, in l_cursor:
+                    for l_context, l_validated in l_cursor:
                         self.m_logger.info('Previous context : {0}'.format(l_context))
                         self.m_previousContext = json.loads(l_context)
+                        self.m_validatedTerminal = (l_validated == 'YES')
 
                 l_cursor.close()
             except Exception as l_exception:
                 self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
                 self.m_terminalID = None
+                self.m_validatedTerminal = False
 
+        # ------------------------------------- New Terminal ID --------------------------------------------------------
         # create new terminal ID if required
         if self.m_terminalID is None or self.m_terminalID == '':
             self.m_logger.debug('Thread [{0}] before lock'.format(threading.currentThread().getName()))
@@ -239,6 +262,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                                            ensure_ascii=False).replace("'", "''").replace("\\", "\\\\"))
 
                 self.m_logger.debug('l_query: {0}'.format(l_query))
+
+                # just crated so not yet validated
+                self.m_validatedTerminal = False
+
                 # assume it will work but can revert to False if failure
                 l_created = True
                 try:
@@ -296,6 +323,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_devMaker.replace("'", "''"),
                 self.path,
                 json.dumps(self.m_contextDict).replace("'", "''"))
+
+        self.m_logger.debug('l_query: {0}'.format(l_query))
         try:
             l_cursor = l_dbConnection.cursor()
             l_cursor.execute(l_query)
@@ -312,6 +341,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
             self.path = 'static/images/favicon.ico'
+            # PyCharm should not complain, Goddammit
             super().do_GET()
         elif self.path == '/' or re.match('/\?', self.path):
             # this is the application call
@@ -361,12 +391,14 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             update TB_TERMINAL
             set
                 DT_LAST_UPDATE = NOW(),
-                TX_CONTEXT = '{0}'
+                TX_CONTEXT = '{0}',
+                F_VALIDATED = 'YES'
             where TERMINAL_ID = '{1}'
             ;""".format(json.dumps(self.m_contextDict,
                                    ensure_ascii=False).replace("'", "''").replace("\\", "\\\\"),
                         self.m_terminalID)
 
+        self.m_logger.debug('l_query: {0}'.format(l_query))
         try:
             l_cursor = p_dbConnection.cursor()
             l_cursor.execute(l_query)
