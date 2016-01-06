@@ -2,9 +2,12 @@
 
 import logging
 import re
-import threading
 import mysql.connector
 import time
+import datetime
+import pytz
+import random
+import threading
 
 from ec_app_params import *
 
@@ -67,8 +70,10 @@ if g_debugModeOn:
 
 
 # ----------------- Database connection pool ------------------------------------------------------
-class EcConnectionPool:
+class EcConnectionPool(threading.Thread):
     def __init__(self):
+        super().__init__()
+
         # lock to protect the connection pool critical sections (pick-up and release)
         self.m_connectionPoolLock = threading.Lock()
         self.m_connectionPool = set()
@@ -76,16 +81,19 @@ class EcConnectionPool:
         # fill the connection pool
         for i in range(g_connectionPoolCount):
             self.m_connectionPool.add(
-                mysql.connector.connect(
+                # mysql.connector.connect(
+                EcConnector(
                     user=g_dbUser, password=g_dbPassword,
                     host=g_dbServer,
                     database=g_dbDatabase)
             )
 
+        self.start()
+
     def getConnection(self):
         l_connection = None
         while l_connection is None:
-            # only access this CRITICAL section one thread at a time
+            # only access to this CRITICAL section one thread at a time
             self.m_connectionPoolLock.acquire()
             if len(self.m_connectionPool) > 0:
                 l_connection = self.m_connectionPool.pop()
@@ -110,3 +118,53 @@ class EcConnectionPool:
         g_loggerUtilities.info('Connections left: {0}'.format(len(self.m_connectionPool)))
         # end of CRITICAL section
         self.m_connectionPoolLock.release()
+
+    def run(self):
+        g_loggerUtilities.info('Connection refresh thread started ...')
+        while True:
+            # sleeps for 15 minutes
+            time.sleep(15*60)
+            g_loggerUtilities.info('Starting refresh cycle')
+
+            l_tmpSet = set()
+            while True:
+                # only access to this CRITICAL section one thread at a time
+                # no one can get or release a connection while those in the pool are refreshed
+                self.m_connectionPoolLock.acquire()
+                if len(self.m_connectionPool) == 0:
+                    break
+
+                l_connection = self.m_connectionPool.pop()
+                # end of CRITICAL section before rest of loop
+                self.m_connectionPoolLock.release()
+
+                if l_connection.isStale():
+                    g_loggerUtilities.info('Stale connection found')
+                    l_connection = EcConnector(
+                        user=g_dbUser, password=g_dbPassword,
+                        host=g_dbServer,
+                        database=g_dbDatabase)
+
+                l_tmpSet.add(l_connection)
+
+            # when this point is reach the critical section is still in effect
+            self.m_connectionPool = l_tmpSet
+
+            # end of CRITICAL section before sleep
+            self.m_connectionPoolLock.release()
+            g_loggerUtilities.info('End of refresh cycle')
+
+
+class EcConnector(mysql.connector.MySQLConnection):
+    def __init__(self, **kwargs):
+        # life span = g_dbcLifeAverage +- 1/2 (in hours)
+        l_lifespan = g_dbcLifeAverage + (.5 - random.random())
+        self.m_expirationDate = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(hours=l_lifespan)
+
+        g_loggerUtilities.info('EcConnector created. Life span = {0:.2f} hours. Expiry: {1}'.format(
+            l_lifespan, self.m_expirationDate))
+
+        super().__init__(**kwargs)
+
+    def isStale(self):
+        return self.m_expirationDate > datetime.datetime.now(tz=pytz.utc)

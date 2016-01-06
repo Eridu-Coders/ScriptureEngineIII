@@ -10,7 +10,7 @@ g_appTitle = 'Followup on QuranSE 1.0 and 2.0'
 # HTTP server parameters
 # g_appDomain = 'localhost'
 g_appDomain = 'scripture-search.org'
-g_httpPort = 80
+g_httpPort = 8000
 # in days
 g_cookiePersistence = 365*100
 
@@ -27,8 +27,11 @@ g_dbPassword = 'murugan!'
 # size of DB connection pool
 g_connectionPoolCount = 50
 
+# average db connection life span (in hours)
+g_dbcLifeAverage = 2
+
 # Logging
-g_debugModeOn = False
+g_debugModeOn = True
 g_verboseModeOn = True
 
 g_logFile = './Log/ec_log.csv'

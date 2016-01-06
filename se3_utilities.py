@@ -674,54 +674,52 @@ def word_control(p_context):
     l_interlinearId = p_context['d'].split('-')[1]
     l_idStrongs = p_context['d'].split('-')[2]
 
-    # book must be in the alias table
-    if l_book.lower().strip() not in g_bookAlias.keys():
-        return get_user_string(p_context, 'e_wrongBookWord').format(
-            l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
-    else:
-        # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
-        l_pcBookId = g_bookAlias[l_book.lower().strip()]
-
-        # chapter must be a valid number
-        try:
-            l_intChapter = int(l_chapter)
-        except ValueError:
-            return get_user_string(p_context, 'e_wrongChapterWord').format(
-                l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
-
-        # chapter must be in the right range based on the book table
-        if l_intChapter < 1 or l_intChapter > len(g_bookChapter[l_pcBookId]) - 1:
-            return get_user_string(p_context, 'e_wrongChapterWord').format(
+    # if both the word ID and the interlinear ID are '_' then there is no further test to perform
+    # otherwise, all the tests below apply
+    if not(l_wordId == '_' and l_interlinearId == '_'):
+        # book must be in the alias table
+        if l_book.lower().strip() not in g_bookAlias.keys():
+            return get_user_string(p_context, 'e_wrongBookWord').format(
                 l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
         else:
-            # verse must be a valid number
+            # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
+            l_pcBookId = g_bookAlias[l_book.lower().strip()]
+
+            # chapter must be a valid number
             try:
-                l_intVerse = int(l_verse)
+                l_intChapter = int(l_chapter)
             except ValueError:
-                return get_user_string(p_context, 'e_wrongVWord').format(
+                return get_user_string(p_context, 'e_wrongChapterWord').format(
                     l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
-            # verse must be in the right range as determined based on the chapter and book
-            if l_intVerse < 1 or l_intVerse > g_bookChapter[l_pcBookId][l_intChapter]:
-                return get_user_string(p_context, 'e_wrongVWord').format(
+            # chapter must be in the right range based on the book table
+            if l_intChapter < 1 or l_intChapter > len(g_bookChapter[l_pcBookId]) - 1:
+                return get_user_string(p_context, 'e_wrongChapterWord').format(
                     l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
-            # both word ID and Interlinear ID must be '_' or none
-            elif (l_wordId == '_' and l_interlinearId != '_') or \
-                    (l_wordId != '_' and l_interlinearId == '_'):
-                return get_user_string(p_context, 'e_wrongIdWord').format(
-                    l_book, l_chapter, l_verse, p_context['d'])
             else:
-                # word ID must be a valid number
+                # verse must be a valid number
                 try:
-                    l_intWord = int(l_wordId)
+                    l_intVerse = int(l_verse)
                 except ValueError:
-                    return get_user_string(p_context, 'e_wrongWordWord').format(
+                    return get_user_string(p_context, 'e_wrongVWord').format(
                         l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
-                # word number must be in a "reasonable" range
-                if l_intWord < 1 or l_intWord > 500:
-                    return get_user_string(p_context, 'e_wrongWordWord').format(
+                # verse must be in the right range as determined based on the chapter and book
+                if l_intVerse < 1 or l_intVerse > g_bookChapter[l_pcBookId][l_intChapter]:
+                    return get_user_string(p_context, 'e_wrongVWord').format(
                         l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+                else:
+                    # word ID must be a valid number
+                    try:
+                        l_intWord = int(l_wordId)
+                    except ValueError:
+                        return get_user_string(p_context, 'e_wrongWordWord').format(
+                            l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+
+                    # word number must be in a "reasonable" range
+                    if l_intWord < 1 or l_intWord > 500:
+                        return get_user_string(p_context, 'e_wrongWordWord').format(
+                            l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
     return ''
 
