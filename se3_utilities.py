@@ -707,7 +707,7 @@ def word_control(p_context):
                             l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
                     # word number must be in a "reasonable" range
-                    if l_intWord < 1 or l_intWord > 500:
+                    if l_intWord < 0 or l_intWord > 500:
                         return get_user_string(p_context, 'e_wrongWordWord').format(
                             l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
