@@ -462,8 +462,11 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_previousContext,
                 self.m_contextDict,
                 EcRequestHandler.cm_connectionPool,
-                re.sub('&y=.*$', '', self.path)
+                re.sub('[&?]y=.*$', '', self.path)
             )
+        # the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
+        # It handles both the case where y is at the end of several parameters (&y=) and
+        # the case where y is directly located after / (/?y=)
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
