@@ -418,12 +418,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # construct the browser capabilities test page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_templateString)
         l_response = l_pageTemplate.substitute(
-            NewTarget='.' + self.path + '&y={0}'.format(self.m_terminalID),
+            NewTarget=re.sub('/&y', '/?y', '.' + self.path + '&y={0}'.format(self.m_terminalID)),
             LinkRestart='.' + self.path,
             TestingBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
             GainAccess1Msg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccess1Msg'),
             ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
         )
+        # the re.sub above is there to handle the case where the path is a bare "/"
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
