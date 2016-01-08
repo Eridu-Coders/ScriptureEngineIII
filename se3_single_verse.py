@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from se3_utilities import *
+import ec_utilities
 
 __author__ = 'fi11222'
 
@@ -49,7 +50,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
         </div>
     """
 
-    l_topBannerTemplate = EcTemplate(l_topBannerTemplateString)
+    l_topBannerTemplate = ec_utilities.EcTemplate(l_topBannerTemplateString)
 
     # in all 4 links below, the HTML attribute param="" is a bit mask which will be set or unset by a
     # javascript jQuery function upon a click on the link

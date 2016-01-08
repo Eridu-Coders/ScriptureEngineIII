@@ -3,7 +3,6 @@
 import logging
 import mysql.connector
 import re
-from string import Template
 
 from ec_app_params import *
 
@@ -27,10 +26,6 @@ g_svDisplayNasb = 0x008      # Display NASB interlinear (1) for OT & NT verses o
 g_pDisplayGround = 0x010     # Display ground text (1) or not (0)
 g_pParallel = 0x020          # Display versions in parallel (1) or in succession (0)
 
-
-# ------------------------- Customized template class ------------------------------------------------------------------
-class EcTemplate(Template):
-    delimiter = '§'
 
 # ------------------------- Version ID lists (Called at App Init) ------------------------------------------------------
 g_bibleVersionId = []       # l_versionId, l_language, l_default, l_labelShort, l_labelTiny for Bible versions

@@ -8,6 +8,7 @@ import datetime
 import pytz
 import random
 import threading
+from string import Template
 
 from ec_app_params import *
 
@@ -35,7 +36,20 @@ class EcLogger:
         # Custom Formatter for the CSV file --> eliminates multiple spaces (and \r\n)
         class EcCsvFormatter(logging.Formatter):
             def format(self, p_record):
-                return re.sub('\s+', ' ', super().format(p_record))
+                l_record = logging.LogRecord(
+                    p_record.name,
+                    p_record.levelno,
+                    p_record.pathname,
+                    p_record.lineno,
+                    re.sub('"', '""', p_record.msg),
+                    # message arguments are not allowed here
+                    None,
+                    # p_record.args,
+                    p_record.exc_info,
+                    p_record.funcName,
+                    p_record.stack_info,
+                )
+                return re.sub('\s+', ' ', super().format(l_record))
 
         # Install formatters
         l_handlerConsole.setFormatter(logging.Formatter('ECL:%(levelname)s:%(name)s:%(message)s'))
@@ -69,6 +83,11 @@ if g_debugModeOn:
     g_loggerUtilities.setLevel(logging.DEBUG)
 
 
+# ------------------------- Customized template class ------------------------------------------------------------------
+class EcTemplate(Template):
+    delimiter = '§'
+
+
 # ----------------- Database connection pool ------------------------------------------------------
 class EcConnectionPool(threading.Thread):
     def __init__(self):
@@ -88,6 +107,7 @@ class EcConnectionPool(threading.Thread):
                     database=g_dbDatabase)
             )
 
+        # starts the refresh thread
         self.start()
 
     def getConnection(self):
@@ -119,6 +139,7 @@ class EcConnectionPool(threading.Thread):
         # end of CRITICAL section
         self.m_connectionPoolLock.release()
 
+    # refresher thread
     def run(self):
         g_loggerUtilities.info('Connection refresh thread started ...')
         while True:
@@ -139,7 +160,7 @@ class EcConnectionPool(threading.Thread):
                 self.m_connectionPoolLock.release()
 
                 if l_connection.isStale():
-                    g_loggerUtilities.info('Stale connection found')
+                    g_loggerUtilities.debug('Stale connection found')
                     l_connection = EcConnector(
                         user=g_dbUser, password=g_dbPassword,
                         host=g_dbServer,
@@ -155,6 +176,7 @@ class EcConnectionPool(threading.Thread):
             g_loggerUtilities.info('End of refresh cycle')
 
 
+# custom DB connector class incorporating expiration date
 class EcConnector(mysql.connector.MySQLConnection):
     def __init__(self, **kwargs):
         # life span = g_dbcLifeAverage +- 1/2 (in hours)

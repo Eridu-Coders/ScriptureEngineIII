@@ -34,7 +34,8 @@ ec_browscap.Browscap.initBrowscap(p_skip=True)
 EcRequestHandler.initClass(
     ec_browscap.Browscap.cm_browscap,
     ec_app_core.EcAppCore('./Templates/index.html'),
-    './Templates/browser_test.html')
+    './Templates/browser_test.html',
+    './Templates/bad_browser.html')
 
 # python http server init
 l_httpd = ThreadedHTTPServer(("", g_httpPort), EcRequestHandler)

@@ -11,6 +11,7 @@ import se3_word
 import se3_root
 import se3_search
 import se3_utilities
+import ec_utilities
 
 __author__ = 'fi11222'
 
@@ -105,7 +106,7 @@ __author__ = 'fi11222'
 # v - verse (or v1)                                 V/P
 # w - verse 2 (passage)                             P
 # x - (p) Display LXX interlinear                   P
-# y
+# y - browser capabilities test                     Request Handler
 # z - UI language                                   All
 
 # NOTE - Adding french spell-check dictionary to pyCharm:
@@ -125,15 +126,15 @@ __author__ = 'fi11222'
 
 # TODO Testing for JS availability and cookies. Avoid creating a terminal ID each time.
 
-# TODO Open/close for each root in root display (on screen only)
+# TODO Open/close for each word in root/word display (on screen only)
 
 # TODO dictionary text (BDB, Gesenius, ...) for Bible words
 
 # TODO Arab search without vowels (and for Hebrew ...)
 
-# TODO first verse of a word in single verse / interlinear cannot be viewed in word display (incorrect word ID Err)
-
 # TODO bad ground text format in passage stacked
+
+# TODO E-mail error reporting: failure to start & warning-level messages
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
@@ -179,7 +180,7 @@ def init(p_templatePath):
 
 
 # ---------------------- Application entry point -------------------------------------------------------------------
-def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool):
+def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath):
     global g_homePageTemplatePath
     global g_homePageTemplate
 
@@ -284,8 +285,9 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool):
     g_loggerSE3.debug('l_substituteVar: {0}'.format(l_substituteVar))
 
     # +++++++++++++++++ C) final substitution ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    l_pageTemplate = se3_utilities.EcTemplate(g_homePageTemplate)
+    l_pageTemplate = ec_utilities.EcTemplate(g_homePageTemplate)
     l_response = l_pageTemplate.substitute(l_substituteVar,
+                                           UrlPath=p_urlPath,
                                            HiddenFieldsStyle=l_hiddenFieldsStyle,
                                            HiddenFieldsType=l_hiddenFieldsType,
                                            StatusLine=l_statusDisplay,

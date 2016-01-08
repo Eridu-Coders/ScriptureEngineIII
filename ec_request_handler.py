@@ -32,8 +32,14 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
     # database connection pool
     cm_connectionPool = None
 
+    # Template string for the browser test page
+    cm_templateString = ''
+
+    # Template string for the bad browser message page
+    cm_badBrowserPage = ''
+
     @classmethod
-    def initClass(cls, p_browscap, p_appCore, p_templatePath):
+    def initClass(cls, p_browscap, p_appCore, p_templatePath, p_badBroserPath):
         cls.cm_termIDCreationLock = threading.Lock()
         cls.cm_browscap = p_browscap
         cls.cm_appCore = p_appCore
@@ -50,6 +56,16 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         g_loggerHandler.info('Loaded template file [{0}].'.format(p_templatePath))
 
+        try:
+            with open(p_badBroserPath, 'r') as l_fTemplate:
+                cls.cm_badBrowserPage = l_fTemplate.read()
+        except OSError as e:
+            g_loggerHandler.critical('Could not open bad browser file [{0}]. Aborting.'.format(p_badBroserPath))
+            g_loggerHandler.critical('Exception: {0}'.format(str(e)))
+            sys.exit()
+
+        g_loggerHandler.info('Loaded bad browser file [{0}].'.format(p_badBroserPath))
+
     def __init__(self, p_request, p_client_address, p_server):
         # each instance has its own logger with a name that includes the thread it is riding on
         self.m_logger = logging.getLogger(g_appName + '.HR-' + threading.current_thread().name)
@@ -63,6 +79,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # flag indicating that the terminal has the required cookies & JavaScript capabilities
         self.m_validatedTerminal = False
+
+        # flag indicating that the terminal does not have the required capabilities (cookies, JS)
+        self.m_badTerminal = False
 
         # flag indicating that the cookie is to be destroyed when the headers are generated
         self.m_delCookie = None
@@ -199,9 +218,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_logger.info('Terminal ID (old): {0}'.format(l_cookieValue))
                 self.m_terminalID = l_cookieValue
 
+        # ---------------------------------- Detection of invalid browsers ---------------------------------------------
+        if 'y' in self.m_contextDict.keys():
+            self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
+
         # ------------------------------------- Previous Context -------------------------------------------------------
         # Retrieves previous context if any and cancels Terminal ID if none found
-        if self.m_terminalID is not None:
+        if self.m_terminalID is not None and not self.m_badTerminal:
             self.m_logger.debug('Attempting to recover previous context')
             l_query = """
                 select TX_CONTEXT, F_VALIDATED
@@ -220,11 +243,11 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.m_terminalID = None
                     self.m_validatedTerminal = False
                 else:
+                    self.m_validatedTerminal = True
                     # retrieve former context
                     for l_context, l_validated in l_cursor:
                         self.m_logger.info('Previous context : {0}'.format(l_context))
                         self.m_previousContext = json.loads(l_context)
-                        self.m_validatedTerminal = (l_validated == 'YES')
 
                 l_cursor.close()
             except Exception as l_exception:
@@ -299,6 +322,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 `TERMINAL_ID`
                 , `ST_IP`
                 , `N_PORT`
+                , `F_BAD`
+                , `TX_USER_AGENT`
                 , `ST_BROWSER`
                 , `ST_BRW_VERSION`
                 , `ST_RENDERING_ENGINE`
@@ -309,11 +334,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 , `TX_PATH`
                 , `TX_CONTEXT`
             )
-            values('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}')
+            values('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}', '{12}', '{13}')
             ;""".format(
                 self.m_terminalID,
                 self.client_address[0],
                 self.client_address[1],
+                'Y' if self.m_badTerminal else 'N',
+                l_userAgent,
                 self.m_browser.replace("'", "''"),
                 self.m_browserVersion.replace("'", "''"),
                 self.m_renderingEngine.replace("'", "''"),
@@ -341,17 +368,52 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
             self.path = 'static/images/favicon.ico'
-            # PyCharm should not complain, Goddammit
+            # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
             super().do_GET()
         elif self.path == '/' or re.match('/\?', self.path):
-            # this is the application call
-            self.buildResponse(l_dbConnection)
+            if self.m_badTerminal:
+                # the terminal does not have the required JS/cookie capabilities
+                self.badBrowserMessage()
+            elif self.m_validatedTerminal:
+                # this is where the rest of the application is called
+                self.buildResponse(l_dbConnection)
+            else:
+                # sends the browser test page
+                self.testBrowser()
         else:
             # anything else is an error
             super().send_error(404, 'Only valid path starts with /static/')
 
         # ---------------------------------- Release DB connection -----------------------------------------------------
         EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)
+
+    def badBrowserMessage(self):
+        self.m_logger.info('Sending bad browser message')
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+
+        # construct the browser capabilities test page
+        l_pageTemplate = EcTemplate(EcRequestHandler.cm_templateString)
+        l_response = l_pageTemplate.substitute(NewTarget='.' + self.path + '&y={0}'.format(self.m_terminalID))
+
+        # and send it
+        self.wfile.write(bytes(l_response, 'utf-8'))
+
+    def testBrowser(self):
+        self.m_logger.info('Testing browser capabilities')
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+
+        # construct the browser capabilities test page
+        l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
+        l_response = l_pageTemplate.substitute()
+
+        # and send it
+        self.wfile.write(bytes(l_response, 'utf-8'))
 
     def end_headers(self):
         # cookie destruction if necessary
@@ -383,7 +445,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # call the rest of the app to get the appropriate response
         l_response, l_newDict = \
             EcRequestHandler.cm_appCore.getResponse(
-                self.m_previousContext, self.m_contextDict, EcRequestHandler.cm_connectionPool)
+                self.m_previousContext,
+                self.m_contextDict,
+                EcRequestHandler.cm_connectionPool,
+                re.sub('&y=.*$', '', self.path)
+            )
+
+        # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
 
         # store the final context (possibly modified by the app)
