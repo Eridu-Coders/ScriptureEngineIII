@@ -7,11 +7,9 @@
         <title>ScriptureEngineIII</title>
         <link rel="shortcut icon" type="./static/images" href="favicon.ico"/>     
 
-		<script src="./static/javascript/jquery.js"></script>
-		
 		<script>
 			$( document ).ready(function() {
-				window.location.href = "§{NewTarget}";
+				window.history.pushState("", "", "§{LinkRestart}")
 			});
 		</script>
 		<style media="screen" type="text/css">
@@ -54,14 +52,14 @@
 			span.ErrHigh{
 				font-weight: bold;
 				color: #a24c4c;
-			}			
+			}		
 		</style>
 	</head>
     <body>
 		<div id="PageOuterContainer">
 			<div id="ErrorBox">
-				<p>§{TestingBrowserMsg}</p>
-				<p style="font-size: smaller;">§{GainAccess1Msg} <a href="§{LinkRestart}">§{ThisLinkMsg}</a></p>
+				<p>§{BadBrowserMsg}</p>
+				<p style="font-size: smaller;">§{GainAccessMsg} <a href="§{LinkRestart}">§{ThisLinkMsg}</a></p>
 			</div>
 		</div>
     </body>

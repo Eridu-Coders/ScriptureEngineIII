@@ -469,4 +469,36 @@ g_userStrings = {
             à cet identifiant: <b>{0}</b>
         </p>
     """,
+
+    'en-TestingBrowserMsg': """
+        The application is testing the capabilities of your browser ...
+    """,
+    'fr-TestingBrowserMsg': """
+        L'application teste les caractéristiques de votre navigateur ...
+    """,
+    'en-GainAccess1Msg': """
+        If you are not redirected within 30 seconds, please enable JavaScript and Cookies then click on
+    """,
+    'fr-GainAccess1Msg': """
+        Si vous n'êtes pas redirigé dans les 30 secondes, merci d'activer JavaScript et les cookies puis cliquer
+    """,
+
+    'en-BadBrowserMsg': """
+        <span class="ErrHigh">Incompatible Browser</span>: Your browser does not currently have
+        the required capabilities to use Scripture Search Engine III.
+    """,
+    'fr-BadBrowserMsg': """
+        <span class="ErrHigh">Navigateur incompatible</span>: Votre navigateur ne possède pas les caractéristiques
+        requises pour utiliser Scripture Search Engine III
+    """,
+    'en-GainAccessMsg': """
+        In order to gain access to the application, please enable JavaScript and Cookies then click on
+    """,
+    'fr-GainAccessMsg': """
+        Pour accéder à l'application, merci d'activer JavaScript et les cookies puis cliquer
+    """,
+
+    'en-ThisLinkMsg': 'This Link',
+    'fr-ThisLinkMsg': 'ce lien'
 }
+#

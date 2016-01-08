@@ -8,6 +8,8 @@ import hashlib
 
 from ec_utilities import *
 
+import se3_utilities
+
 __author__ = 'fi11222'
 
 
@@ -394,9 +396,14 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-        # construct the browser capabilities test page
-        l_pageTemplate = EcTemplate(EcRequestHandler.cm_templateString)
-        l_response = l_pageTemplate.substitute(NewTarget='.' + self.path + '&y={0}'.format(self.m_terminalID))
+        # construct the bad browser page
+        l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
+        l_response = l_pageTemplate.substitute(
+            LinkRestart='.' + re.sub('&y=.*$', '', self.path),
+            BadBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'BadBrowserMsg'),
+            GainAccessMsg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccessMsg'),
+            ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
+        )
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
@@ -409,8 +416,14 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
         # construct the browser capabilities test page
-        l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
-        l_response = l_pageTemplate.substitute()
+        l_pageTemplate = EcTemplate(EcRequestHandler.cm_templateString)
+        l_response = l_pageTemplate.substitute(
+            NewTarget='.' + self.path + '&y={0}'.format(self.m_terminalID),
+            LinkRestart='.' + self.path,
+            TestingBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
+            GainAccess1Msg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccess1Msg'),
+            ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
+        )
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
