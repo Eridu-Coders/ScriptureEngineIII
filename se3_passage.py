@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from se3_utilities import *
+import ec_utilities
 
 __author__ = 'fi11222'
 
@@ -62,7 +63,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
         </div>
     """
 
-    l_topBannerTemplate = EcTemplate(l_topBannerTemplateString)
+    l_topBannerTemplate = ec_utilities.EcTemplate(l_topBannerTemplateString)
 
     # link for toggling between ground text display or not
     if p_context['g']:
