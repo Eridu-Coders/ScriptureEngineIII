@@ -121,10 +121,7 @@ __author__ = 'fi11222'
 
 # TODO why does bold not appear in search results when printing ?
 
-# TODO blocking request from non-compliant browsers and maybe robots (at least some of them)
-# TODO Handle robots and traffic limitation
-
-# TODO Testing for JS availability and cookies. Avoid creating a terminal ID each time.
+# TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
 
 # TODO Open/close for each word in root/word display (on screen only)
 

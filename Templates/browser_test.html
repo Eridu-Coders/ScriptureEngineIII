@@ -13,10 +13,6 @@
 			$( document ).ready(function() {
 				window.location.href = "§{NewTarget}";
 			});
-			
-			function goNewTarget(){
-				window.location.href = "§{NewTarget}";
-			}
 		</script>
 		<style media="screen" type="text/css">
 			html{
@@ -65,8 +61,7 @@
 		<div id="PageOuterContainer">
 			<div id="ErrorBox">
 				<p>§{TestingBrowserMsg}</p>
-				<p style="font-size: smaller;">§{GainAccess1Msg} 
-				<a href="" onclick="goNewTarget()">§{ThisLinkMsg}</a></p>
+				<p style="font-size: smaller;">§{GainAccess1Msg} <a href="§{NewTargetRestart}">§{ThisLinkMsg}</a></p>
 			</div>
 		</div>
     </body>

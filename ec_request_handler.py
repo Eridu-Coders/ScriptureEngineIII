@@ -56,7 +56,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             g_loggerHandler.critical('Exception: {0}'.format(str(e)))
             sys.exit()
 
-        g_loggerHandler.info('Loaded template file [{0}].'.format(p_templatePath))
+        g_loggerHandler.info('Loaded template file [{0}]. Len = {1}'.format(
+            p_templatePath, len(cls.cm_templateString)))
 
         try:
             with open(p_badBroserPath, 'r') as l_fTemplate:
@@ -66,7 +67,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             g_loggerHandler.critical('Exception: {0}'.format(str(e)))
             sys.exit()
 
-        g_loggerHandler.info('Loaded bad browser file [{0}].'.format(p_badBroserPath))
+        g_loggerHandler.info('Loaded bad browser file [{0}]. Len = {1}'.format(
+            p_badBroserPath, len(cls.cm_badBrowserPage)))
 
     def __init__(self, p_request, p_client_address, p_server):
         # each instance has its own logger with a name that includes the thread it is riding on
@@ -175,6 +177,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.m_logger.info('Platform Desc.   : {0}'.format(self.m_platformDesc))
                     self.m_logger.info('Platform Version : {0}'.format(l_browscap.platform_version()))
 
+                    if not l_browscap.supports_cookies() or not l_browscap.supports_javascript():
+                        self.m_badTerminal = True
+
         else:
             self.m_logger.warning('No User-Agent in : {0}'.format(repr(l_headers)))
 
@@ -221,8 +226,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_terminalID = l_cookieValue
 
         # ---------------------------------- Detection of invalid browsers ---------------------------------------------
-        if 'y' in self.m_contextDict.keys():
-            self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
+        if 'y' in self.m_contextDict.keys() and not self.m_badTerminal:
+            if self.m_contextDict['y'] == 'restart':
+                self.m_validatedTerminal = False
+                self.m_terminalID = None
+            else:
+                self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
+                self.m_validatedTerminal = not self.m_badTerminal
 
         # ------------------------------------- Previous Context -------------------------------------------------------
         # Retrieves previous context if any and cancels Terminal ID if none found
@@ -245,11 +255,21 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.m_terminalID = None
                     self.m_validatedTerminal = False
                 else:
-                    self.m_validatedTerminal = True
+
                     # retrieve former context
                     for l_context, l_validated in l_cursor:
                         self.m_logger.info('Previous context : {0}'.format(l_context))
                         self.m_previousContext = json.loads(l_context)
+
+                        if l_validated == 'YES':
+                            # most common case: terminal already validated before
+                            self.m_validatedTerminal = True
+                        else:
+                            # if not, the only allowed case is if this is the request triggered by the browser
+                            # validation page and the terminal has been successfully validated just before
+                            # in "Detection of invalid browsers" section
+                            if not self.m_validatedTerminal:
+                                self.m_badTerminal = True
 
                 l_cursor.close()
             except Exception as l_exception:
@@ -380,6 +400,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 # this is where the rest of the application is called
                 self.buildResponse(l_dbConnection)
             else:
+                # not necessarily bad but not yet validated
                 # sends the browser test page
                 self.testBrowser()
         else:
@@ -398,12 +419,26 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # construct the bad browser page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
+
+        l_oldPath = self.path
+        while re.search('&y=.*&', l_oldPath):
+            l_oldPath = re.sub('&y=.*&', '&', self.path)
+        while re.search('\?y=.*&', l_oldPath):
+            l_oldPath = re.sub('\?y=.*&', '?', self.path)
+        l_oldPath = re.sub('[&\?]y=.*$', '', l_oldPath)
+
         l_response = l_pageTemplate.substitute(
-            LinkRestart='.' + re.sub('&y=.*$', '', self.path),
+            LinkPrevious='.' + l_oldPath,
+            NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
             BadBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'BadBrowserMsg'),
             GainAccessMsg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccessMsg'),
             ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
         )
+        # In NewTarget the re.sub above is there to handle the case where the path is a bare "/"
+
+        # In LinkRestart the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
+        # It handles both the case where y is at the end of several parameters (&y=) and
+        # the case where y is directly located after / (/?y=)
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
@@ -417,17 +452,30 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # construct the browser capabilities test page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_templateString)
+
+        l_oldPath = self.path
+        while re.search('&y=.*&', l_oldPath):
+            l_oldPath = re.sub('&y=.*&', '&', self.path)
+        while re.search('\?y=.*&', l_oldPath):
+            l_oldPath = re.sub('\?y=.*&', '?', self.path)
+        l_oldPath = re.sub('[&\?]y=.*$', '', l_oldPath)
+
         l_response = l_pageTemplate.substitute(
-            NewTarget=re.sub('/&y', '/?y', '.' + self.path + '&y={0}'.format(self.m_terminalID)),
-            LinkRestart='.' + self.path,
+            NewTarget=re.sub('/&y', '/?y', '.' + l_oldPath + '&y={0}'.format(self.m_terminalID)),
+            NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
             TestingBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
             GainAccess1Msg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccess1Msg'),
             ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
         )
-        # the re.sub above is there to handle the case where the path is a bare "/"
+        # In NewTarget the re.sub above is there to handle the case where the path is a bare "/"
+
+        self.m_logger.info('l_response: {0}'.format(l_response))
+
+        l_bytes = bytes(l_response, 'utf-8')
+        self.m_logger.info('Bytes to send: {0}'.format(len(l_bytes)))
 
         # and send it
-        self.wfile.write(bytes(l_response, 'utf-8'))
+        self.wfile.write(l_bytes)
 
     def end_headers(self):
         # cookie destruction if necessary
@@ -462,7 +510,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_previousContext,
                 self.m_contextDict,
                 EcRequestHandler.cm_connectionPool,
-                re.sub('[&?]y=.*$', '', self.path)
+                re.sub('[&\?]y=.*$', '', self.path)
             )
         # the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
         # It handles both the case where y is at the end of several parameters (&y=) and

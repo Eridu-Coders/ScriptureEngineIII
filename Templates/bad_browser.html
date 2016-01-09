@@ -7,9 +7,10 @@
         <title>ScriptureEngineIII</title>
         <link rel="shortcut icon" type="./static/images" href="favicon.ico"/>     
 
+		<script src="./static/javascript/jquery.js"></script>
 		<script>
 			$( document ).ready(function() {
-				window.history.pushState("", "", "§{LinkRestart}")
+				window.history.pushState("", "", "§{LinkPrevious}");
 			});
 		</script>
 		<style media="screen" type="text/css">
@@ -59,7 +60,7 @@
 		<div id="PageOuterContainer">
 			<div id="ErrorBox">
 				<p>§{BadBrowserMsg}</p>
-				<p style="font-size: smaller;">§{GainAccessMsg} <a href="§{LinkRestart}">§{ThisLinkMsg}</a></p>
+				<p style="font-size: smaller;">§{GainAccessMsg} <a href="§{NewTargetRestart}">§{ThisLinkMsg}</a></p>
 			</div>
 		</div>
     </body>
