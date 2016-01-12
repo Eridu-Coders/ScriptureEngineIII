@@ -115,8 +115,6 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO use <noscript> to detect disabled JS
-
 # TODO Arab search without vowels (and for Hebrew ...)
 
 # TODO E-mail error reporting: failure to start & warning-level messages
@@ -126,6 +124,8 @@ __author__ = 'fi11222'
 # TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
 
 # TODO dictionary text (BDB, Gesenius, ...) for Bible words
+
+# TODO Arab <---> Hebrew roots correspondence
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
@@ -171,7 +171,7 @@ def init(p_templatePath):
 
 
 # ---------------------- Application entry point -------------------------------------------------------------------
-def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath):
+def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath):
     global g_homePageTemplatePath
     global g_homePageTemplate
 
@@ -283,6 +283,7 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath):
     l_response = l_pageTemplate.substitute(l_substituteVar,
                                            WindowTitle=l_title,
                                            UrlPath=p_urlPath,
+                                           NoJSPath=p_noJSPath,
                                            HiddenFieldsStyle=l_hiddenFieldsStyle,
                                            HiddenFieldsType=l_hiddenFieldsType,
                                            StatusLine=l_statusDisplay,

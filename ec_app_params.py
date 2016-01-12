@@ -45,6 +45,10 @@ g_browscapLocalFile = '../browscap_latest.csv'
 g_softLimit = 200
 g_hardLimit = 10000
 
+# character classes
+g_hebrewConsonants = '[\u05D0-\u05EF\u200D]'
+g_hebrewVowels = '[\u0590-\u05CF\u05F0-\u05FF]'
+
 # Multi Language
 g_userStrings = {
     'en-m_tocAllTitle': 'Table of Contents - All Scripture',

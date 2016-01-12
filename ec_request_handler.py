@@ -436,8 +436,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         )
         # In NewTarget the re.sub above is there to handle the case where the path is a bare "/"
 
-        # In LinkRestart the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
-        # It handles both the case where y is at the end of several parameters (&y=) and
+        # In NewTargetRestart the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser
+        # capabilities). It handles both the case where y is at the end of several parameters (&y=) and
         # the case where y is directly located after / (/?y=)
 
         # and send it
@@ -469,10 +469,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         )
         # In NewTarget the re.sub above is there to handle the case where the path is a bare "/"
 
-        self.m_logger.info('l_response: {0}'.format(l_response))
+        self.m_logger.debug('l_response: {0}'.format(l_response))
 
         l_bytes = bytes(l_response, 'utf-8')
-        self.m_logger.info('Bytes to send: {0}'.format(len(l_bytes)))
+        self.m_logger.debug('Bytes to send: {0}'.format(len(l_bytes)))
 
         # and send it
         self.wfile.write(l_bytes)
@@ -504,17 +504,23 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
+        l_barePath = re.sub('[&\?]y=.*$', '', self.path)
+        # the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
+        # It handles both the case where y is at the end of several parameters (&y=) and
+        # the case where y is directly located after / (/?y=)
+
+        l_noJSPath = re.sub('/&y=', '/?y=', l_barePath + '&y=bad_browser')
+        # the re.sub() handles the case where y is directly located after / (/?y=)
+
         # call the rest of the app to get the appropriate response
         l_response, l_newDict = \
             EcRequestHandler.cm_appCore.getResponse(
                 self.m_previousContext,
                 self.m_contextDict,
                 EcRequestHandler.cm_connectionPool,
-                re.sub('[&\?]y=.*$', '', self.path)
+                l_barePath,
+                l_noJSPath
             )
-        # the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
-        # It handles both the case where y is at the end of several parameters (&y=) and
-        # the case where y is directly located after / (/?y=)
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))

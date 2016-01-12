@@ -19,7 +19,7 @@ class EcAppCore:
         se3_main.init(p_templatePath)
 
     @staticmethod
-    def getResponse(p_previousContext, p_context, p_dbConnectionPool, p_urlPath):
+    def getResponse(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath):
         g_loggerAppCore.info('Getting response from App Core')
 
-        return se3_main.se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath)
+        return se3_main.se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath)
