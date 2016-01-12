@@ -115,12 +115,6 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO Verse ref display in single verse (box on the upper-left quadrant like in QuranSE II)
-
-# TODO why does bold not appear in search results when printing ?
-
-# TODO bad ground text format in passage stacked
-
 # TODO use <noscript> to detect disabled JS
 
 # TODO Arab search without vowels (and for Hebrew ...)

@@ -88,7 +88,8 @@ def get_search(p_previousContext, p_context, p_dbConnectionPool):
                                     p_rightToLeft=is_Hebrew(l_text) or is_Arabic(l_text),
                                     p_highlightList=l_wordList,
                                     p_highlightCaseSensitive=l_pcCaseSensitive,
-                                    p_counter=l_verseIndex + 1)
+                                    p_counter=l_verseIndex + 1,
+                                    p_versionLabel=l_versionLabel)
 
             l_verseIndex += 1
             # stop if limit reached

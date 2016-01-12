@@ -3,6 +3,7 @@
 import logging
 import mysql.connector
 import re
+import html.parser
 
 from ec_app_params import *
 
@@ -737,7 +738,7 @@ def get_chapter_names(p_context, p_dbConnection):
             and N_CHAPTER = {1}
         ;""".format(l_pcBookId, p_context['c'])
 
-    g_loggerUtilities.debug('l_query {0}'.format(l_query))
+    g_loggerUtilities.debug('l_query: {0}'.format(l_query))
     l_chapterEn, l_chapterFr = '', ''
     try:
         l_cursor = p_dbConnection.cursor(buffered=True)
@@ -761,9 +762,12 @@ def get_chapter_names(p_context, p_dbConnection):
 # p_highlightCaseSensitive: highlight take case into account ? (search output only)
 # p_counter: number to display btw [] to the left of the verse ref (search output only)
 def makeVerse(p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort, p_rightToLeft=False,
-              p_highlightList=None, p_highlightCaseSensitive=False, p_counter=None):
+              p_highlightList=None, p_highlightCaseSensitive=False, p_counter=None, p_versionLabel=None):
 
     l_verseText = p_verseText
+
+    l_parser = html.parser.HTMLParser()
+    l_verseText = l_parser.unescape(l_verseText)
 
     # in order for highlighting to work properly, the words must have been ordered LONGEST FIRST so that the
     # 'willingly unwillingly problem does not arise'. This is done when processing the search parameters
@@ -787,20 +791,22 @@ def makeVerse(p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort
     if p_rightToLeft:
         # for right to left display, the verse reference is put into a <div> that the CSS floats rightwards.
         # That way, the text floats around it as it should
-        return ('<div class="sFloatingVerse">' +
+        return ('<div class="sFloatingVerse">{5}' +
                 '<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}">' +
                 '{3} {1}:{2}</a>' +
                 (' <span class="sCounter">[{0}]</span>'.format(p_counter) if p_counter is not None else '') +
                 '</div>' +
                 '<p class="OneVerseTranslationRL">{4}</p>').format(
-                    p_bookId, p_chapterNumber, p_verseNumber, p_bookShort, l_verseText
+                    p_bookId, p_chapterNumber, p_verseNumber, p_bookShort, l_verseText,
+                    ' <span class="sCounter">[{0}]</span>'.format(p_versionLabel) if p_versionLabel is not None else ''
                 )
     else:
         return ('<p class="OneVerseTranslation">' +
                 ('<span class="sCounter">[{0}]</span> '.format(p_counter) if p_counter is not None else '') +
                 '<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}">' +
-                '{3} {1}:{2}</a> <span class="TranslationText">{4}</span></p>').format(
-                    p_bookId, p_chapterNumber, p_verseNumber, p_bookShort, l_verseText
+                '{3} {1}:{2}</a> <span class="TranslationText">{4}</span>{5}</p>').format(
+                    p_bookId, p_chapterNumber, p_verseNumber, p_bookShort, l_verseText,
+                    ' <span class="sCounter">[{0}]</span>'.format(p_versionLabel) if p_versionLabel is not None else ''
                 )
     # In both cases, the verse reference is put into a link with a GoOneVerse class (+ book/chapter/verse params.)
 

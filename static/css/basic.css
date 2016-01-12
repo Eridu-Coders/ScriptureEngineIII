@@ -463,6 +463,12 @@ span.pMessage{
 	text-align: right;
 }
 
+#ParallelTable td.pVerseRef{
+	white-space: nowrap;
+	font-size: smaller;
+	padding-top: .5em;
+}
+
 p.pChapterNameParallel{
 	text-align: center;
 	margin: 0;
@@ -474,11 +480,6 @@ p.pVersionNameParallel{
 	text-align: center;
 	margin: 0;
 	color: #a24c4c;
-	font-size: smaller;
-}
-
-td.pVerseRef{
-	white-space: nowrap;
 	font-size: smaller;
 }
 
@@ -845,6 +846,7 @@ span.sArabic{
 div.sFloatingVerse{
 	float: right;
 	margin-left: .5em;
+	margin-top: .3em;
 }
 
 span.sCounter{
