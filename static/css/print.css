@@ -383,6 +383,13 @@ div.svCenterLinks{
 	text-align: center;
 }
 
+td.vVerseRef{
+	font-size: 1.5em;
+	font-weight: bold;
+	text-align: center;
+	color: #a24c4c;
+}
+
 #svOuterTable table.svInterlinearWord{
 	display: inline-block;
 	margin: 0 .5em 0 0;

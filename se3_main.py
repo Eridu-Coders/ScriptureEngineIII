@@ -121,6 +121,8 @@ __author__ = 'fi11222'
 
 # TODO bad ground text format in passage stacked
 
+# TODO use <noscript> to detect disabled JS
+
 # TODO Arab search without vowels (and for Hebrew ...)
 
 # TODO E-mail error reporting: failure to start & warning-level messages
@@ -139,7 +141,7 @@ if g_debugModeOn:
     g_loggerSE3.setLevel(logging.DEBUG)
 
 # ---------------------- Templates--------------------------------------------------------------------------------------
-# there could be several templates but here there is only one
+# there could be several templates but here there is only one (there are 2 others for the req. handler)
 g_homePageTemplatePath = ''
 g_homePageTemplate = ''
 
