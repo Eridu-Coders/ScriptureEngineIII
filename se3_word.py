@@ -47,6 +47,9 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
     elif l_idGroup0 == 'FT':
         l_groundStyle = 'wGroundArabic'
 
+    # window title
+    l_title = g_appTitle
+
     # response start
     l_response = '<table id="wOuterTable">'
 
@@ -130,6 +133,12 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
                 l_translation, l_grammar, l_grammarLong, l_wordImg in l_cursor:
 
             l_idRoot = l_idRootByte.decode('utf-8') if l_idRootByte is not None else None
+
+            # window title
+            l_title = '{0}[{1}]-{2}'.format(
+                l_translit,
+                'Hb' if is_Hebrew(l_ground) else 'Gr' if is_Greek(l_ground) else 'Ar',
+                g_appTitle)
 
             # create links from ground text words inside derivation field, e.g.: אָבִיב (H24)
             l_derivation = re.sub(r'([\u0590-\u05FF\u200D][\s\u0590-\u05FF\u200D]+)\s+\((H[0-9]+)\)',
@@ -271,7 +280,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context
+    return l_response, p_context, l_title
 
 
 # List of Occurences ---------------------------------------------------------------------------------------------------

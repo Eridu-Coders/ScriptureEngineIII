@@ -29,6 +29,9 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
     # split components of the root id field
     l_rootIdList = p_context['d'].split('|')
 
+    # window title
+    l_title = g_appTitle
+
     if len(l_rootIdList) == 1:
         l_oneRootId = l_rootIdList[0]
     else:
@@ -68,6 +71,9 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
             for l_ground, l_translit, l_idGroup0, l_def, l_idRootByte in l_cursor:
 
                 l_idRoot = l_idRootByte.decode('utf-8') if l_idRootByte is not None else None
+
+                # window title
+                l_title = l_ground + '-' + l_title
 
                 # ground text style based on book collection
                 l_groundStyle = 'rGroundHebrew'
@@ -218,7 +224,7 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context
+    return l_response, p_context, l_title
 
 
 # helper function replacing characters which would interfere with re matching

@@ -35,6 +35,9 @@ def get_search(p_previousContext, p_context, p_dbConnectionPool):
     l_pcScopeNT = p_context['i']
     l_pcScopeOT = p_context['j']
 
+    # window title
+    l_title = l_pcSearchQuery + '-' + g_appTitle
+
     # limit on the number of verses displayed
     # Command = 'S' ---> soft (small) limit
     # Command = 'Sa' ---> hard (absolute maximum, large) limit
@@ -98,7 +101,7 @@ def get_search(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context
+    return l_response, p_context, l_title
 
 
 def internal_get_report(p_context, p_wordList, l_mode, p_caseSensitive, p_wholeWords, p_excludedSet,

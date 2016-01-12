@@ -117,21 +117,19 @@ __author__ = 'fi11222'
 
 # TODO Verse ref display in single verse (box on the upper-left quadrant like in QuranSE II)
 
-# TODO title display (for browser title bar) in all modules
-
 # TODO why does bold not appear in search results when printing ?
-
-# TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
-
-# TODO Open/close for each word in root/word display (on screen only)
-
-# TODO dictionary text (BDB, Gesenius, ...) for Bible words
-
-# TODO Arab search without vowels (and for Hebrew ...)
 
 # TODO bad ground text format in passage stacked
 
+# TODO Arab search without vowels (and for Hebrew ...)
+
 # TODO E-mail error reporting: failure to start & warning-level messages
+
+# TODO Open/close for each word in root/word display (on screen only)
+
+# TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
+
+# TODO dictionary text (BDB, Gesenius, ...) for Bible words
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
@@ -197,24 +195,27 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath):
     # gets the proper response depending on the command parameter (l_context['K'])
     # this is not yet the whole page but only the part which goes in the main content area
 
+    l_title = g_appTitle
+
     # sigle verse
     if l_context['K'] == 'V':
-        l_response, l_context = se3_single_verse.get_single_verse(p_previousContext, l_context, p_dbConnectionPool)
+        l_response, l_context, l_title = \
+            se3_single_verse.get_single_verse(p_previousContext, l_context, p_dbConnectionPool)
     # passage
     elif l_context['K'] == 'P':
-        l_response, l_context = se3_passage.get_passage(p_previousContext, l_context, p_dbConnectionPool)
+        l_response, l_context, l_title = se3_passage.get_passage(p_previousContext, l_context, p_dbConnectionPool)
     # word (lexicon)
     elif l_context['K'][0] == 'W':
-        l_response, l_context = se3_word.get_word(p_previousContext, l_context, p_dbConnectionPool)
+        l_response, l_context, l_title = se3_word.get_word(p_previousContext, l_context, p_dbConnectionPool)
     # root
     elif l_context['K'][0] == 'R':
-        l_response, l_context = se3_root.get_root(p_previousContext, l_context, p_dbConnectionPool)
+        l_response, l_context, l_title = se3_root.get_root(p_previousContext, l_context, p_dbConnectionPool)
     # search
     elif l_context['K'][0] == 'S':
-        l_response, l_context = se3_search.get_search(p_previousContext, l_context, p_dbConnectionPool)
+        l_response, l_context, l_title = se3_search.get_search(p_previousContext, l_context, p_dbConnectionPool)
     # table of contents
     elif l_context['K'][0] == 'T':
-        l_response, l_context = get_toc(p_previousContext, l_context, p_dbConnectionPool)
+        l_response, l_context, l_title = get_toc(p_previousContext, l_context, p_dbConnectionPool)
     else:
         l_response = '<p>No Response (You should not be seeing this!)</p>'
 
@@ -284,6 +285,7 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath):
     # +++++++++++++++++ C) final substitution ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     l_pageTemplate = ec_utilities.EcTemplate(g_homePageTemplate)
     l_response = l_pageTemplate.substitute(l_substituteVar,
+                                           WindowTitle=l_title,
                                            UrlPath=p_urlPath,
                                            HiddenFieldsStyle=l_hiddenFieldsStyle,
                                            HiddenFieldsType=l_hiddenFieldsType,
@@ -706,4 +708,4 @@ def get_toc(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context
+    return l_response, p_context, ''

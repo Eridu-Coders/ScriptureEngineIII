@@ -4,7 +4,7 @@
         <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
         <meta name="robots" content="index, follow" />
         
-        <title>ScriptureEngineIII</title>
+        <title>§{WindowTitle}</title>
         <link rel="shortcut icon" type="./static/images" href="favicon.ico"/>     
 
 		<link rel="stylesheet" type="text/css" href="./static/css/basic.css" media="screen">
@@ -26,7 +26,7 @@
 			
 			// sets up event listeners
 			$( document ).ready(function() {
-				window.history.pushState("", "", "§{UrlPath}");
+				window.history.pushState("", "§{WindowTitle}", "§{UrlPath}");
 				updateNavHeight();
 				
 				// Hide/Show left panel

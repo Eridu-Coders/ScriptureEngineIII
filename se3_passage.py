@@ -45,6 +45,20 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
     l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_chapterShortEn, l_chapterShortFr = \
         g_bookChapter[l_pcBookId][0]
 
+    # window title
+    if l_wholeChapter:
+        l_title = '{0} {1} {2}'.format(
+            l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
+            l_pcChapter,
+            g_appTitle)
+    else:
+        l_title = '{0} {1}:{2}-{3} {4}'.format(
+            l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
+            l_pcChapter,
+            l_pcVerseStart,
+            l_pcVerseEnd,
+            g_appTitle)
+
     # get chapter info
     l_chapterEn, l_chapterFr = get_chapter_names(p_context, l_dbConnection)
 
@@ -355,4 +369,4 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context
+    return l_response, p_context, l_title

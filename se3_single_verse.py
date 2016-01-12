@@ -38,6 +38,13 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr = \
         g_bookChapter[l_pcBookId][0]
 
+    # window title
+    l_title = '{0} {1}:{2}-{3}'.format(
+        l_nameFr if l_uiLanguage == 'fr' else l_nameEn,
+        l_pcChapter,
+        l_pcVerse,
+        g_appTitle)
+
     # start of response string
     l_response = '<table id="svOuterTable">\n'
 
@@ -295,7 +302,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
                 l_translation = '&nbsp;' if len(l_translation.strip()) == 0 else l_translation.strip()
 
                 # remove lint from the LXX translation text
-                # TODO clean that up in the SGBD
+                # TODO clean that up in the DB
                 l_translation = re.sub('<[^>]+>', '', l_translation)
                 l_translation = re.sub('[0-9]', '', l_translation)
                 l_translation = re.sub('[][]', '', l_translation)
@@ -428,4 +435,4 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context
+    return l_response, p_context, l_title
