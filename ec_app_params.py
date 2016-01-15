@@ -29,7 +29,8 @@ g_connectionPoolCount = 50
 g_dbcLifeAverage = 2
 
 # Logging
-g_mailSender = 'SSEIII@scripture-search.org'
+# g_mailSender = 'SSEIII@scripture-search.org'
+g_mailSender = 'nrtmp@free.fr'
 g_mailRecipients = ['nicolas.reimen@gmail.com', 'nrtmp@free.fr']
 
 g_logFile = './Log/ec_log.csv'
