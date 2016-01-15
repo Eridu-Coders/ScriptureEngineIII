@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import http.server
+import smtplib
+
 from socketserver import ThreadingMixIn
 
 from ec_request_handler import *
@@ -28,7 +30,7 @@ random.seed()
 EcLogger.logInit()
 
 # browscap init
-ec_browscap.Browscap.initBrowscap(p_skip=True)
+ec_browscap.Browscap.initBrowscap(p_skip=g_skipBrowscap)
 
 # custom handler + app init
 EcRequestHandler.initClass(
@@ -45,6 +47,23 @@ EcLogger.cm_logger.info('g_appVersion     : ' + g_appVersion)
 EcLogger.cm_logger.info('g_appTitle       : ' + g_appTitle)
 
 EcLogger.cm_logger.info('Serving at port  : ' + str(g_httpPort))
+
+sender = g_mailSender
+receivers = g_mailRecipients
+
+message = """From: {0}
+To: {1}
+Subject: SMTP e-mail test
+
+This is a test e-mail message.
+""".format(g_mailSender, g_mailRecipients[0])
+
+try:
+   smtpObj = smtplib.SMTP('smtp.free.fr')
+   smtpObj.sendmail(sender, receivers, message)
+   print("Successfully sent email")
+except smtplib.SMTPException:
+   print("Error: unable to send email")
 
 # server main loop
 l_httpd.serve_forever()

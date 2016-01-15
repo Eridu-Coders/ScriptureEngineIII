@@ -2,15 +2,15 @@
 
 __author__ = 'fi11222'
 
+from ec_local_param import *
+
 # general parameters
 g_appName = 'ScriptureEngineIII'
 g_appVersion = '3.0.9'
 g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
-# g_appDomain = 'localhost'
-g_appDomain = 'scripture-search.org'
-g_httpPort = 8000
+
 # in days
 g_cookiePersistence = 365*100
 
@@ -18,8 +18,6 @@ g_cookiePersistence = 365*100
 g_sessionName = 'ECTerminalID_{0}'.format(g_appName)
 
 # Database parameters
-# g_dbServer = '192.168.0.51'
-g_dbServer = 'localhost'
 g_dbDatabase = 'ScriptureEngineIII'
 g_dbUser = 'root'
 g_dbPassword = 'murugan!'
@@ -31,8 +29,8 @@ g_connectionPoolCount = 50
 g_dbcLifeAverage = 2
 
 # Logging
-g_debugModeOn = True
-g_verboseModeOn = True
+g_mailSender = 'SSEIII@scripture-search.org'
+g_mailRecipients = ['nicolas.reimen@gmail.com']
 
 g_logFile = './Log/ec_log.csv'
 

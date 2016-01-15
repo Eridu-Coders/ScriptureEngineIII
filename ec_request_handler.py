@@ -110,6 +110,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(p_request, p_client_address, p_server)
         self.m_logger.info('------------ request handler created ------------------------------------')
 
+    # disable logging to std output
+    def log_message(self, *args):
+        pass
+
     def do_GET(self):
         # pick a DB connection from the pool
         l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
