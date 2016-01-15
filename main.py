@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import http.server
-import smtplib
 
 from socketserver import ThreadingMixIn
 
@@ -26,44 +25,38 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
 # ----------------------------------------- main() ---------------------------------------------------------------------
 random.seed()
 
-# logger init
-EcLogger.logInit()
+try:
+    # logger init
+    EcLogger.logInit()
 
-# browscap init
-ec_browscap.Browscap.initBrowscap(p_skip=g_skipBrowscap)
+    # browscap init
+    ec_browscap.Browscap.initBrowscap(p_skip=g_skipBrowscap)
 
-# custom handler + app init
-EcRequestHandler.initClass(
-    ec_browscap.Browscap.cm_browscap,
-    ec_app_core.EcAppCore('./Templates/index.html'),
-    './Templates/browser_test.html',
-    './Templates/bad_browser.html')
+    # custom handler + app init
+    EcRequestHandler.initClass(
+        ec_browscap.Browscap.cm_browscap,
+        ec_app_core.EcAppCore('./Templates/index.html'),
+        './Templates/browser_test.html',
+        './Templates/bad_browser.html')
 
-# python http server init
-l_httpd = ThreadedHTTPServer(("", g_httpPort), EcRequestHandler)
+    # python http server init
+    l_httpd = ThreadedHTTPServer(("", g_httpPort), EcRequestHandler)
 
-EcLogger.cm_logger.info('g_appName        : ' + g_appName)
-EcLogger.cm_logger.info('g_appVersion     : ' + g_appVersion)
-EcLogger.cm_logger.info('g_appTitle       : ' + g_appTitle)
+    EcLogger.cm_logger.info('g_appName        : ' + g_appName)
+    EcLogger.cm_logger.info('g_appVersion     : ' + g_appVersion)
+    EcLogger.cm_logger.info('g_appTitle       : ' + g_appTitle)
 
-EcLogger.cm_logger.info('Serving at port  : ' + str(g_httpPort))
-
-sender = g_mailSender
-receivers = g_mailRecipients
-
-message = """From: {0}
-To: {1}
-Subject: SMTP e-mail test
-
-This is a test e-mail message.
-""".format(g_mailSender, g_mailRecipients[0])
+    EcLogger.cm_logger.warning('Server up and running at [{0}:{1}]'.format(g_appDomain, str(g_httpPort)))
+except Exception as e:
+    EcLogger.cm_logger.critical('Cannot start server at [{0}:{1}]. Error: {2}'.format(
+        g_appDomain,
+        str(g_httpPort),
+        str(e)
+    ))
+    sys.exit(0)
 
 try:
-   smtpObj = smtplib.SMTP('smtp.free.fr')
-   smtpObj.sendmail(sender, receivers, message)
-   print("Successfully sent email")
-except smtplib.SMTPException:
-   print("Error: unable to send email")
-
-# server main loop
-l_httpd.serve_forever()
+    # server main loop
+    l_httpd.serve_forever()
+except Exception as e:
+    EcLogger.cm_logger.critical('App crashed. Error: {2}'.format(str(e)))

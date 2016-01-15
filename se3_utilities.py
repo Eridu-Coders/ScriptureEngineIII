@@ -52,61 +52,69 @@ def init_versions():
     global g_defaultBibleId
     global g_defaultQuranId
 
-    # this is necessary because the connection pool has not yet been initialized
-    l_connector = mysql.connector.connect(
-                    user=g_dbUser, password=g_dbPassword,
-                    host=g_dbServer,
-                    database=g_dbDatabase)
+    try:
+        # this is necessary because the connection pool has not yet been initialized
+        l_connector = mysql.connector.connect(
+                        user=g_dbUser, password=g_dbPassword,
+                        host=g_dbServer,
+                        database=g_dbDatabase)
+    except mysql.connector.Error as l_exception:
+        g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+        raise
 
-    # all versions except ground text
-    l_query = """
-        select
-            ID_VERSION
-            , FL_BIBLE_QURAN
-            , ID_LANGUAGE
-            , FL_DEFAULT
-            , ST_LABEL_SHORT
-            , ST_LABEL_TINY
-        from TB_VERSION
-        where ID_VERSION <> '_gr'
-        order by N_ORDER
-        ;"""
+    try:
+        # all versions except ground text
+        l_query = """
+            select
+                ID_VERSION
+                , FL_BIBLE_QURAN
+                , ID_LANGUAGE
+                , FL_DEFAULT
+                , ST_LABEL_SHORT
+                , ST_LABEL_TINY
+            from TB_VERSION
+            where ID_VERSION <> '_gr'
+            order by N_ORDER
+            ;"""
 
-    g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+        g_loggerUtilities.debug('l_query: {0}'.format(l_query))
 
-    l_cursor = l_connector.cursor(buffered=True)
-    l_cursor.execute(l_query)
+        l_cursor = l_connector.cursor(buffered=True)
+        l_cursor.execute(l_query)
 
-    # binary mask variables used to set the value of g_defaultBibleId and g_defaultQuranId
-    # they are multiplied by 2 (i.e. set to next bit) each time a Bible (resp. Quran) verse is encountered
-    l_maskBible = 1
-    l_maskQuran = 1
+        # binary mask variables used to set the value of g_defaultBibleId and g_defaultQuranId
+        # they are multiplied by 2 (i.e. set to next bit) each time a Bible (resp. Quran) verse is encountered
+        l_maskBible = 1
+        l_maskQuran = 1
 
-    # cursor iteration
-    for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny in l_cursor:
-        if l_bq == 'B':
-            g_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
+        # cursor iteration
+        for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny in l_cursor:
+            if l_bq == 'B':
+                g_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
 
-            if l_default == 'Y':
-                # the slice is necessary because the output of hex() starts with '0x'
-                g_defaultBibleId = hex(l_maskBible)[2:].upper()
+                if l_default == 'Y':
+                    # the slice is necessary because the output of hex() starts with '0x'
+                    g_defaultBibleId = hex(l_maskBible)[2:].upper()
 
-            l_maskBible *= 2
-        else:
-            g_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
+                l_maskBible *= 2
+            else:
+                g_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
 
-            if l_default == 'Y':
-                # the slice is necessary because the output of hex() starts with '0x'
-                g_defaultQuranId = hex(l_maskQuran)[2:].upper()
+                if l_default == 'Y':
+                    # the slice is necessary because the output of hex() starts with '0x'
+                    g_defaultQuranId = hex(l_maskQuran)[2:].upper()
 
-            l_maskQuran *= 2
+                l_maskQuran *= 2
 
-    l_cursor.close()
+        l_cursor.close()
 
-    g_loggerUtilities.debug('g_bibleVersionId: {0}'.format(g_bibleVersionId))
-    g_loggerUtilities.debug('g_quranVersionId: {0}'.format(g_quranVersionId))
+        g_loggerUtilities.debug('g_bibleVersionId: {0}'.format(g_bibleVersionId))
+        g_loggerUtilities.debug('g_quranVersionId: {0}'.format(g_quranVersionId))
 
-    l_connector.close()
+        l_connector.close()
+    except mysql.connector.Error as l_exception:
+        g_loggerUtilities.critical('Cannot load versions. Exception [{0}]. Aborting.'.format(l_exception))
+        raise
 
 # ------------------------- Book/Chapter data (Called at App Init) -----------------------------------------------------
 g_bookChapter = {}
@@ -124,60 +132,68 @@ g_bookChapter = {}
 def init_book_chapter():
     global g_bookChapter
 
-    # this is necessary because the connection pool has not yet been initialized
-    l_connector = mysql.connector.connect(
-                    user=g_dbUser, password=g_dbPassword,
-                    host=g_dbServer,
-                    database=g_dbDatabase)
+    try:
+        # this is necessary because the connection pool has not yet been initialized
+        l_connector = mysql.connector.connect(
+                        user=g_dbUser, password=g_dbPassword,
+                        host=g_dbServer,
+                        database=g_dbDatabase)
+    except mysql.connector.Error as l_exception:
+        g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+        raise
 
-    # All books
-    l_query = """
-        select
-            ID_BOOK
-            , FL_BIBLE_QURAN
-            , ID_GROUP_0
-            , ID_GROUP_1
-            , ID_BOOK_PREV
-            , ID_BOOK_NEXT
-            , ST_NAME_EN_SHORT2
-            , ST_NAME_FR_SHORT2
-        from TB_BOOK
-        order by N_ORDER
-        ;"""
+    try:
+        # All books
+        l_query = """
+            select
+                ID_BOOK
+                , FL_BIBLE_QURAN
+                , ID_GROUP_0
+                , ID_GROUP_1
+                , ID_BOOK_PREV
+                , ID_BOOK_NEXT
+                , ST_NAME_EN_SHORT2
+                , ST_NAME_FR_SHORT2
+            from TB_BOOK
+            order by N_ORDER
+            ;"""
 
-    g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+        g_loggerUtilities.debug('l_query: {0}'.format(l_query))
 
-    l_cursor = l_connector.cursor(buffered=True)
-    l_cursor.execute(l_query)
+        l_cursor = l_connector.cursor(buffered=True)
+        l_cursor.execute(l_query)
 
-    # loads the first term of each g_bookChapter['id']
-    for l_bookId, l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr in l_cursor:
-        g_bookChapter[l_bookId] = \
-            [(l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr)]
+        # loads the first term of each g_bookChapter['id']
+        for l_bookId, l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr in l_cursor:
+            g_bookChapter[l_bookId] = \
+                [(l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr)]
 
-    l_cursor.close()
+        l_cursor.close()
 
-    # All chapters
-    l_query = """
-        select ID_BOOK, N_VERSE_COUNT
-        from TB_CHAPTER
-        order by ST_ORDER
-        ;"""
+        # All chapters
+        l_query = """
+            select ID_BOOK, N_VERSE_COUNT
+            from TB_CHAPTER
+            order by ST_ORDER
+            ;"""
 
-    g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+        g_loggerUtilities.debug('l_query: {0}'.format(l_query))
 
-    l_cursor = l_connector.cursor(buffered=True)
-    l_cursor.execute(l_query)
+        l_cursor = l_connector.cursor(buffered=True)
+        l_cursor.execute(l_query)
 
-    # loads the chapter verse count terms of each g_bookChapter['id'] (from position 1 in the list onwards)
-    for l_bookId, l_verseCount in l_cursor:
-        g_bookChapter[l_bookId].append(l_verseCount)
+        # loads the chapter verse count terms of each g_bookChapter['id'] (from position 1 in the list onwards)
+        for l_bookId, l_verseCount in l_cursor:
+            g_bookChapter[l_bookId].append(l_verseCount)
 
-    l_cursor.close()
+        l_cursor.close()
 
-    l_connector.close()
+        l_connector.close()
 
-    g_loggerUtilities.debug('g_bookChapter: {0}'.format(g_bookChapter))
+        g_loggerUtilities.debug('g_bookChapter: {0}'.format(g_bookChapter))
+    except mysql.connector.Error as l_exception:
+        g_loggerUtilities.critical('Cannot load Books/Chapters. Exception [{0}]. Aborting.'.format(l_exception))
+        raise
 
 
 # ------------------------- Book Aliases table (Called at App Init) ----------------------------------------------------
@@ -187,30 +203,38 @@ g_bookAlias = {}    # Dictionary giving the correct book ID from one of its allo
 def init_book_alias():
     global g_bookAlias
 
-    l_connector = mysql.connector.connect(
-                    user=g_dbUser, password=g_dbPassword,
-                    host=g_dbServer,
-                    database=g_dbDatabase)
+    try:
+        l_connector = mysql.connector.connect(
+            user=g_dbUser, password=g_dbPassword,
+            host=g_dbServer,
+            database=g_dbDatabase)
+    except mysql.connector.Error as l_exception:
+        g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+        raise
 
-    l_query = """
-        select
-            ID_BOOK
-            , ID_BOOK_ALIAS
-        from TB_BOOKS_ALIAS
-        ;"""
+    try:
+        l_query = """
+            select
+                ID_BOOK
+                , ID_BOOK_ALIAS
+            from TB_BOOKS_ALIAS
+            ;"""
 
-    g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+        g_loggerUtilities.debug('l_query: {0}'.format(l_query))
 
-    l_cursor = l_connector.cursor(buffered=True)
-    l_cursor.execute(l_query)
+        l_cursor = l_connector.cursor(buffered=True)
+        l_cursor.execute(l_query)
 
-    for l_bookId, l_bookAliasBytes in l_cursor:
-        l_bookAlias = l_bookAliasBytes.decode('utf-8')
-        g_bookAlias[l_bookAlias] = l_bookId
+        for l_bookId, l_bookAliasBytes in l_cursor:
+            l_bookAlias = l_bookAliasBytes.decode('utf-8')
+            g_bookAlias[l_bookAlias] = l_bookId
 
-    l_cursor.close()
+        l_cursor.close()
 
-    g_loggerUtilities.info('g_bookAlias loaded. Size: {0}'.format(len(g_bookAlias)))
+        g_loggerUtilities.info('g_bookAlias loaded. Size: {0}'.format(len(g_bookAlias)))
+    except mysql.connector.Error as l_exception:
+        g_loggerUtilities.critical('Cannot load book aliases. Exception [{0}]. Aborting.'.format(l_exception))
+        raise
 
 
 # ------------------------- Version vector------------------------------------------------------------------------------

@@ -115,9 +115,14 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO Arab search without vowels (and for Hebrew ...)
-
 # TODO E-mail error reporting: failure to start & warning-level messages
+
+# TODO ? duplicate in:
+# http://scripture-search.org:8000/?K=W&b=Eze&c=1&v=25&w=x&q=1&l=40061&p=33&d=1-H-H6963&s=&o=&e=0&h=0&i=0&j=0
+
+# TODO app startup on server boot
+
+# TODO Arab search without vowels (and for Hebrew ...)
 
 # TODO Open/close for each word in root/word display (on screen only)
 
@@ -148,9 +153,10 @@ def loadTemplates():
         with open(g_homePageTemplatePath, 'r') as l_fTemplate:
             g_homePageTemplate = l_fTemplate.read()
     except OSError as e:
-        g_loggerSE3.critical('Could not open template file [{0}]. Aborting.'.format(g_homePageTemplatePath))
-        g_loggerSE3.critical('Exception: {0}'.format(str(e)))
-        sys.exit()
+        g_loggerSE3.critical(
+            'Could not open template file [{0}]. Exception: [{1}]. Aborting.'.format(
+                g_homePageTemplatePath, str(e)))
+        raise
 
     g_loggerSE3.info('Loaded template file [{0}].'.format(g_homePageTemplatePath))
 

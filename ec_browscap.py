@@ -377,7 +377,6 @@ class Downloader(object):
         except FileNotFoundError:
             log.warning('No existing Browscap file for this path: {0}'.format(save_to_file_path))
 
-        contents_file = None
         try:
             # --------------------- Getting latest version number from Browscap site -----------------------------------
             # url downloader set-up
@@ -415,14 +414,14 @@ class Downloader(object):
             contents_file = response_file.read()
             response_file.close()
 
-        except ValueError:
-            log.exception('Url to browscap file is probably invalid')
+        except urllib.error.HTTPError:
+            log.exception('Something went wrong while downloading browscap file')
             raise
         except urllib.error.URLError:
             log.exception('Something went wrong while processing urllib handlers')
             raise
-        except urllib.error.HTTPError:
-            log.exception('Something went wrong while downloading browscap file')
+        except ValueError:
+            log.exception('Url to browscap file is probably invalid')
             raise
 
         # save file contents to the local far if we got thus far

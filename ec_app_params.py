@@ -30,7 +30,7 @@ g_dbcLifeAverage = 2
 
 # Logging
 g_mailSender = 'SSEIII@scripture-search.org'
-g_mailRecipients = ['nicolas.reimen@gmail.com']
+g_mailRecipients = ['nicolas.reimen@gmail.com', 'nrtmp@free.fr']
 
 g_logFile = './Log/ec_log.csv'
 

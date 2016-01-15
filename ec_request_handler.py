@@ -52,9 +52,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             with open(p_templatePath, 'r') as l_fTemplate:
                 cls.cm_templateString = l_fTemplate.read()
         except OSError as e:
-            g_loggerHandler.critical('Could not open template file [{0}]. Aborting.'.format(p_templatePath))
-            g_loggerHandler.critical('Exception: {0}'.format(str(e)))
-            sys.exit()
+            g_loggerHandler.critical(
+                'Could not open template file [{0}]. Exception: [{1}]. Aborting.'.format(
+                    p_templatePath, str(e)))
+            raise
 
         g_loggerHandler.info('Loaded template file [{0}]. Len = {1}'.format(
             p_templatePath, len(cls.cm_templateString)))
@@ -63,9 +64,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             with open(p_badBroserPath, 'r') as l_fTemplate:
                 cls.cm_badBrowserPage = l_fTemplate.read()
         except OSError as e:
-            g_loggerHandler.critical('Could not open bad browser file [{0}]. Aborting.'.format(p_badBroserPath))
-            g_loggerHandler.critical('Exception: {0}'.format(str(e)))
-            sys.exit()
+            g_loggerHandler.critical(
+                'Could not open bad browser file [{0}]. Exception: [{1}]. Aborting.'.format(
+                    p_badBroserPath, str(e)))
+            raise
 
         g_loggerHandler.info('Loaded bad browser file [{0}]. Len = {1}'.format(
             p_badBroserPath, len(cls.cm_badBrowserPage)))
