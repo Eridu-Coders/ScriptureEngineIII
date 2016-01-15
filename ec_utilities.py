@@ -123,10 +123,23 @@ def sendMail(p_subject, p_message):
 
     try:
         # smtp client init
-        l_smtpObj = smtplib.SMTP(g_smtpServer)
+        if g_amazonSmtp:
+            l_smtpObj = smtplib.SMTP(
+                host=g_smtpServer,
+                port=587,
+                timeout=10)
+            l_smtpObj.starttls()
+            l_smtpObj.ehlo()
+            l_smtpObj.login(g_sesUserName, g_sesPassword)
+        else:
+            l_smtpObj = smtplib.SMTP(g_smtpServer)
 
         # sending message
         l_smtpObj.sendmail(g_mailSender, g_mailRecipients, l_message)
+
+        # end tls session (Amazon SES only)
+        if g_amazonSmtp:
+            l_smtpObj.quit()
     except smtplib.SMTPException as l_eception:
         # if failure, stores the message in a separate file
         l_fLog = open(g_logFile + '.msg', 'a')
