@@ -115,12 +115,16 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO E-mail error reporting: failure to start & warning-level messages
+# TODO app startup on server boot
 
 # TODO ? duplicate in:
 # http://scripture-search.org:8000/?K=W&b=Eze&c=1&v=25&w=x&q=1&l=40061&p=33&d=1-H-H6963&s=&o=&e=0&h=0&i=0&j=0
 
-# TODO app startup on server boot
+# TODO Check warning messages all over the application
+
+# TODO Convert Hebrew from HTML entities to Unicode (for search)
+
+# TODO Lexicon (like Quran Corpus)
 
 # TODO Arab search without vowels (and for Hebrew ...)
 

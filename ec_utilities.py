@@ -104,6 +104,8 @@ if g_debugModeOn:
 
 
 # sends an e-mail through smtp
+# For Amazon SES howto, see:
+# http://blog.noenieto.com/blog/html/2012/06/18/using_amazon_ses_with_your_python_applications.html
 def sendMail(p_subject, p_message):
     # message context with headers and body
     l_message = """From: {0}
