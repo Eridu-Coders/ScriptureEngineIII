@@ -492,7 +492,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # send the cookie containing the terminal ID in the headers
         if self.m_terminalID is None:
-            self.m_logger.warning('Terminal ID undefined')
+            self.m_logger.warning('Terminal ID undefined - No cookie sent')
         else:
             # hundred year cookie (duration in g_cookiePersistence)
             l_expire = (datetime.datetime.now(tz=pytz.utc) +

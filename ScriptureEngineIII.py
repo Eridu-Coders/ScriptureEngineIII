@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import http.server
+import os
 
 from socketserver import ThreadingMixIn
 
@@ -24,6 +25,14 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
 
 # ----------------------------------------- main() ---------------------------------------------------------------------
 random.seed()
+
+for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
+    try:
+        l_cmd = open(os.path.join('/proc', l_pid, 'cmdline'), 'rb').read()
+        print('l_cmd : ' + l_cmd.decode())
+    except IOError:
+        # process has already terminated
+        continue
 
 try:
     # logger init

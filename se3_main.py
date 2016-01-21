@@ -117,14 +117,23 @@ __author__ = 'fi11222'
 
 # TODO app startup on server boot
 
+# TODO include local timestamp in warning message e-mails
+
 # TODO ? duplicate in:
 # http://scripture-search.org:8000/?K=W&b=Eze&c=1&v=25&w=x&q=1&l=40061&p=33&d=1-H-H6963&s=&o=&e=0&h=0&i=0&j=0
+
+# TODO ? No bold in neighborhood :
+# http://scripture-search.org:8000/?K=W&b=Qur&c=78&v=7&w=x&q=1&l=1&p=13&d=2-C-A4591&s=loop&o=&e=0&h=0&i=0&j=0
+
+# TODO Mot 'Apply' non traduit en Français
+
+# TODO Lexicon (like Quran Corpus)
 
 # TODO Check warning messages all over the application
 
 # TODO Convert Hebrew from HTML entities to Unicode (for search)
 
-# TODO Lexicon (like Quran Corpus)
+# TODO Avoid creating unnecessary terminal IDs for keep-alive requests
 
 # TODO Arab search without vowels (and for Hebrew ...)
 
