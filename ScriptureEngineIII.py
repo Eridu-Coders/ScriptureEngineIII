@@ -32,6 +32,7 @@ for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
     try:
         l_cmd = open(os.path.join('/proc', l_pid, 'cmdline'), 'rb').read().decode()
         if re.search('ScriptureEngineIII.py', l_cmd) is not None:
+            print('[{0}] l_cmd : {1}'.format(l_pid, l_cmd))
             l_countApp += 1
         # print('l_cmd : ' + l_cmd.decode())
     except IOError:
