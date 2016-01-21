@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import os
 from ec_local_param import *
 
 __author__ = 'fi11222'
 
+# Static files root
+g_staticRoot = g_appRoot
+
 # general parameters
 g_appName = 'ScriptureEngineIII'
-g_appVersion = '3.0.9'
+g_appVersion = '3.1.0'
 g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
@@ -30,10 +34,17 @@ g_dbcLifeAverage = 2
 
 # Logging
 g_mailRecipients = ['nicolas.reimen@gmail.com', 'nrtmp@free.fr']
+g_logFile = os.path.join(g_appRoot, 'Log/ec_log.csv')
+
+# Templates
+g_templateIndex = os.path.join(g_appRoot, 'Templates/index.html')
+g_templateBrowser = os.path.join(g_appRoot, 'Templates/browser_test.html')
+g_templateBad = os.path.join(g_appRoot, 'Templates/bad_browser.html')
 
 # Browscap
 g_browscapUrl = 'http://browscap.org/stream?q=BrowsCapCSV'
 g_browscapLatestVersionUrl = 'http://browscap.org/version-number'
+g_browscapLocalFile = os.path.join(g_appRoot, 'browscap_latest.csv')
 
 # Verse display limits
 g_softLimit = 200
