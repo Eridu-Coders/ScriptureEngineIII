@@ -429,7 +429,7 @@
 			<header class="HeaderProxy">
 				<div id="BigSmallHeader" class="BigSmallHeaderBasic"><div id="BigSmallInner">▼</div></div>
 				<div id="LogoPlace" class="LogoDecoration">
-					<div id="Logo">Scripture SE III</div>
+					<div id="Logo"><a href="" class="GoToc" command="T">Scripture SE III</a></div>
 				</div>
 				<div id="CenterHeader">
 					<div id="ApplyButton" class="ApplyButtonBasic"><div id="ApplyInner">Apply</div></div>
@@ -456,7 +456,7 @@
 							<div class="FormRow" style="§{HiddenFieldsStyle}">l: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_l" name="l" value="§{inputValue_l}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">p: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_p" name="p" value="§{inputValue_p}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">d: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_d" name="d" value="§{inputValue_d}"></div>
-							<div class="FormRow">§{label_search}: <input class="TextInput" type="text" id="NavControl_search" name="s" value="§{inputValue_s}"></div>
+							<div class="FormRow">§{label_search}: <input class="TextInput" type="text" id="NavControl_search" name="s" size="500" value="§{inputValue_s}"></div>
 							<div class="FormRow"><input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}> §{label_wholeWords}</div>
 							<div class="FormRow"><input type="checkbox" id="NavControl_caseSensitive" name="u" value="checked" §{inputValue_u}> §{label_caseSensitive}</div>
 							<div class="FormRow" id="ExcludeRow">§{label_exclude}: <input class="TextInput" type="text" id="NavControl_exclude" name="o" value="§{inputValue_o}"></div>
@@ -500,13 +500,19 @@
 							<div class="FormRow"><input class="SubmitButton" type="submit" value="go"></div>
 						</form>
 						<div id="TocLinks">
-							<p>§{toc_toc}:</p>
+							<p><b>§{toc_toc}:</b></p>
 							<ul>
 								<li><a href="" class="GoToc" command="T">§{toc_allScripture}</a></li>
 								<li><a href="" class="GoToc" command="Ta1">§{toc_Quran}</a></li>
 								<li><a href="" class="GoToc" command="Ta2">§{toc_QuranRev}</a></li>
 								<li><a href="" class="GoToc" command="Tb">§{toc_NT}</a></li>
 								<li><a href="" class="GoToc" command="Tc">§{toc_OT}</a></li>
+							</ul>
+							<p><b>§{lex_lex}:</b></p>
+							<ul>
+								<li><a href="" class="GoLex" command="Lh">§{lex_Hebrew}</a></li>
+								<li><a href="" class="GoLex" command="Lg">§{lex_Greek}</a></li>
+								<li><a href="" class="GoLex" command="La">§{lex_Arabic}</a></li>
 							</ul>
 						</div>
 					</div>
@@ -521,7 +527,7 @@
 						§{NewContextTable}
 						§{DimensionsTable}
 					</section>
-					<footer>Scripture Search Engine III</footer>
+					<footer>§{FooterText}</footer>
 				</div>
 			</div>
 		</div>

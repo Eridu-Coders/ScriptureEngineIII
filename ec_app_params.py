@@ -56,6 +56,14 @@ g_hebrewVowels = '[\u0590-\u05CF\u05F0-\u05FF]'
 
 # Multi Language
 g_userStrings = {
+    'en-m_lexLex': 'Lexicon',
+    'fr-m_lexLex': 'Lexique',
+    'en-m_lexArabic': 'Arabic',
+    'fr-m_lexArabic': 'Arabe',
+    'en-m_lexGreek': 'Greek',
+    'fr-m_lexGreek': 'Grec',
+    'en-m_lexHebrew': 'Hebrew',
+    'fr-m_lexHebrew': 'Hébreu',
     'en-m_tocAllTitle': 'Table of Contents - All Scripture',
     'fr-m_tocAllTitle': 'Table des matières - Toutes les écritures',
     'en-m_tocOTTitle': 'Table of Contents - Old Testament',

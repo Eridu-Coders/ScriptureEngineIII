@@ -115,8 +115,6 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO app startup on server boot
-
 # TODO include local timestamp in warning message e-mails
 
 # TODO ? duplicate in:
@@ -124,6 +122,8 @@ __author__ = 'fi11222'
 
 # TODO ? No bold in neighborhood :
 # http://scripture-search.org:8000/?K=W&b=Qur&c=78&v=7&w=x&q=1&l=1&p=13&d=2-C-A4591&s=loop&o=&e=0&h=0&i=0&j=0
+
+# TODO incorrect Surah names
 
 # TODO Mot 'Apply' non traduit en Français
 
@@ -303,6 +303,7 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
                                            WindowTitle=l_title,
                                            UrlPath=p_urlPath,
                                            NoJSPath=p_noJSPath,
+                                           FooterText='{0} v. {1}'.format(g_appTitle, g_appVersion),
                                            HiddenFieldsStyle=l_hiddenFieldsStyle,
                                            HiddenFieldsType=l_hiddenFieldsType,
                                            StatusLine=l_statusDisplay,
@@ -391,6 +392,12 @@ def internal_get_labels(p_context):
     l_substituteVar['toc_NT'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT')
     l_substituteVar['toc_OT'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT')
     l_substituteVar['toc_toc'] = se3_utilities.get_user_string(p_context, 'm_tocToc')
+
+    # Lexicon labels
+    l_substituteVar['lex_Arabic'] = se3_utilities.get_user_string(p_context, 'm_lexArabic')
+    l_substituteVar['lex_Greek'] = se3_utilities.get_user_string(p_context, 'm_lexGreek')
+    l_substituteVar['lex_Hebrew'] = se3_utilities.get_user_string(p_context, 'm_lexHebrew')
+    l_substituteVar['lex_lex'] = se3_utilities.get_user_string(p_context, 'm_lexLex')
 
     return l_substituteVar
 

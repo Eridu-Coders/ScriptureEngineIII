@@ -213,6 +213,7 @@ input, select{
 
 input.SubmitButton{
 	margin-top: 1em;
+	padding: .2em .5em .2em .5em;
 }
 
 #NavControl_wholeWords, #ExcludeRow{
@@ -274,13 +275,13 @@ span.ErrHigh{
 	color: #a24c4c;
 }
 
-#TocLinks a{
-	color: #93c7f3;
+#TocLinks a, #Logo a{
+	color: #e6ebf0;
 	text-decoration: none;
 }
 
-#TocLinks a:hover{
-	color: #93c7f3;
+#TocLinks a:hover, #Logo a:hover{
+	color: white;
 	text-decoration: underline;
 }
 
