@@ -13,6 +13,7 @@ import smtplib
 from string import Template
 
 from ec_app_params import *
+from ec_local_param import *
 
 __author__ = 'fi11222'
 

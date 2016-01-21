@@ -66,7 +66,10 @@ while True:
 try:
     # logger init
     EcLogger.logInit()
+except Exception as e:
+    sendMail('Failed to initialize EcLogger', str(e))
 
+try:
     # browscap init
     ec_browscap.Browscap.initBrowscap(p_skip=g_skipBrowscap)
 
