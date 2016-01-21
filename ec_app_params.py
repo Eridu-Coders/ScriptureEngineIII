@@ -34,7 +34,6 @@ g_mailRecipients = ['nicolas.reimen@gmail.com', 'nrtmp@free.fr']
 # Browscap
 g_browscapUrl = 'http://browscap.org/stream?q=BrowsCapCSV'
 g_browscapLatestVersionUrl = 'http://browscap.org/version-number'
-g_browscapLocalFile = '../browscap_latest.csv'
 
 # Verse display limits
 g_softLimit = 200
