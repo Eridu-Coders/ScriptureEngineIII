@@ -5,7 +5,6 @@ import sys
 import json
 import urllib.parse
 import hashlib
-import os
 
 from ec_utilities import *
 
@@ -344,8 +343,37 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         self.m_logger.info('Terminal ID      : {0}'.format(self.m_terminalID))
 
-        # -------------------------------- Log -------------------------------------------------------------------------
+        # ---------------------------------- Response ------------------------------------------------------------------
+        if re.match('/static/', self.path):
+            # fetching a static document --> rely on the base class functionality
+            # self.path = os.path.join(g_staticRoot, re.sub('^/', '', self.path))
+            # self.m_logger.info('g_staticRoot    : {0}'.format(g_staticRoot))
+            # self.m_logger.info('static self.path: {0}'.format(self.path))
+            super().do_GET()
+        elif re.match('/favicon.ico', self.path):
+            # redirect favicon fetch to the appropriate location
+            # self.path = os.path.join(g_staticRoot, 'static/images/favicon.ico')
+            # self.m_logger.info('g_staticRoot     : {0}'.format(g_staticRoot))
+            # self.m_logger.info('favicon self.path: {0}'.format(self.path))
+            self.path = '/static/images/favicon.ico'
+            # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
+            super().do_GET()
+        elif self.path == '/' or re.match('/\?', self.path):
+            if self.m_badTerminal:
+                # the terminal does not have the required JS/cookie capabilities
+                self.badBrowserMessage()
+            elif self.m_validatedTerminal:
+                # this is where the rest of the application is called
+                self.buildResponse(l_dbConnection)
+            else:
+                # not necessarily bad but not yet validated
+                # sends the browser test page
+                self.testBrowser()
+        else:
+            # anything else is an error
+            super().send_error(404, 'Only valid path starts with /static/')
 
+        # -------------------------------- Log -------------------------------------------------------------------------
         l_query = """
             insert into TB_LOG(
                 `TERMINAL_ID`
@@ -389,31 +417,6 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             l_cursor.close()
         except Exception as l_exception:
             self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
-
-        # ---------------------------------- Response ------------------------------------------------------------------
-        if re.match('/static/', self.path):
-            # fetching a static document --> rely on the base class functionality
-            self.path = os.path.join(g_staticRoot, self.path)
-            super().do_GET()
-        elif re.match('/favicon.ico', self.path):
-            # redirect favicon fetch to the appropriate location
-            self.path = os.path.join(g_staticRoot, 'static/images/favicon.ico')
-            # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
-            super().do_GET()
-        elif self.path == '/' or re.match('/\?', self.path):
-            if self.m_badTerminal:
-                # the terminal does not have the required JS/cookie capabilities
-                self.badBrowserMessage()
-            elif self.m_validatedTerminal:
-                # this is where the rest of the application is called
-                self.buildResponse(l_dbConnection)
-            else:
-                # not necessarily bad but not yet validated
-                # sends the browser test page
-                self.testBrowser()
-        else:
-            # anything else is an error
-            super().send_error(404, 'Only valid path starts with /static/')
 
         # ---------------------------------- Release DB connection -----------------------------------------------------
         EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)

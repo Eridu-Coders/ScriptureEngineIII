@@ -27,6 +27,9 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
 # ----------------------------------------- main() ---------------------------------------------------------------------
 random.seed()
 
+# set current working dir
+os.chdir(g_appRoot)
+
 # abort if already launched
 
 l_countApp = 0
