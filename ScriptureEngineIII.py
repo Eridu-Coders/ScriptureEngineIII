@@ -43,6 +43,21 @@ if l_countApp > 1:
     print('Already Running ...')
     sys.exit(0)
 
+# Make sure MySQL is running
+while True:
+    try:
+        # mysql.connector.connect(
+        l_connect = EcConnector(
+            user=g_dbUser, password=g_dbPassword,
+            host=g_dbServer,
+            database=g_dbDatabase)
+
+        l_connect.close()
+        print('MySQL ok')
+        break
+    except mysql.connector.Error:
+        continue
+
 try:
     # logger init
     EcLogger.logInit()
