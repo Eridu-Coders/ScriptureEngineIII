@@ -5,6 +5,7 @@ import sys
 import json
 import urllib.parse
 import hashlib
+import os
 
 from ec_utilities import *
 
@@ -392,10 +393,11 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # ---------------------------------- Response ------------------------------------------------------------------
         if re.match('/static/', self.path):
             # fetching a static document --> rely on the base class functionality
+            self.path = os.path.join(g_staticRoot, self.path)
             super().do_GET()
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
-            self.path = 'static/images/favicon.ico'
+            self.path = os.path.join(g_staticRoot, 'static/images/favicon.ico')
             # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
             super().do_GET()
         elif self.path == '/' or re.match('/\?', self.path):
