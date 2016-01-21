@@ -39,6 +39,7 @@ for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
         continue
 
 if l_countApp > 1:
+    print('Already Started')
     sys.exit(0)
 
 try:
