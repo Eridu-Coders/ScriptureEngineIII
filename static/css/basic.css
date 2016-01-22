@@ -110,6 +110,11 @@ nav{
 	/* display: none; */
 }
 
+p.FieldName{
+	margin: 0;
+	padding: 0;
+}
+
 #RestOfPage{
 	padding: 0; /*remove padding */
 	border: 0; /* remove borders */

@@ -392,13 +392,19 @@
 			}
 			
 			#NavForm{
+				border: 1px solid red;
 				margin-top: §{NavTopPadding}em;
 				margin-left: §{NavLeftPadding}em;
 				width: §{NavFormWidth}em;
 				padding: 0;
 			}
 			
-			input.TextInput, select.TextInput{
+			input.TextInput{
+				/* width: §{NavFormWidth}em; */
+				width: 9.6em;
+			}
+			
+			select.TextInput{
 				width: §{NavFormWidth}em;
 			}
 			
@@ -456,10 +462,10 @@
 							<div class="FormRow" style="§{HiddenFieldsStyle}">l: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_l" name="l" value="§{inputValue_l}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">p: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_p" name="p" value="§{inputValue_p}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">d: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_d" name="d" value="§{inputValue_d}"></div>
-							<div class="FormRow">§{label_search}: <input class="TextInput" type="text" id="NavControl_search" name="s" size="500" value="§{inputValue_s}"></div>
+							<div class="FormRow"><p class="FieldName">§{label_search}:</p><input class="TextInput" type="text" name="s" size="500" value="§{inputValue_s}"></div>
 							<div class="FormRow"><input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}> §{label_wholeWords}</div>
 							<div class="FormRow"><input type="checkbox" id="NavControl_caseSensitive" name="u" value="checked" §{inputValue_u}> §{label_caseSensitive}</div>
-							<div class="FormRow" id="ExcludeRow">§{label_exclude}: <input class="TextInput" type="text" id="NavControl_exclude" name="o" value="§{inputValue_o}"></div>
+							<div class="FormRow" id="ExcludeRow"><p class="FieldName">§{label_exclude}:</p><input class="TextInput" type="text" name="o" size="500" value="§{inputValue_o}"></div>
 							<div class="FormRow">
 								§{label_searchMode}: 
 								<select class="TextInput" id="NavControl_mode" name="e">
