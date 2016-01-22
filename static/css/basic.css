@@ -99,22 +99,6 @@ header{
 	/* display: none; */
 }
 
-nav{
-	padding: 0; /*remove padding */
-	margin: 0; /* remove margins */
-	border: 0; /* remove borders */
-	background-color: #444f58;
-	color: white;
-	position: fixed;
-	overflow: hidden; /* If content too big --> truncate */
-	/* display: none; */
-}
-
-p.FieldName{
-	margin: 0;
-	padding: 0;
-}
-
 #RestOfPage{
 	padding: 0; /*remove padding */
 	border: 0; /* remove borders */
@@ -202,6 +186,22 @@ div.ApplyButtonHigh{
 	border: 1px solid black;
 }
 
+nav{
+	padding: 0; /*remove padding */
+	margin: 0; /* remove margins */
+	border: 0; /* remove borders */
+	background-color: #444f58;
+	color: white;
+	position: fixed;
+	overflow: hidden; /* If content too big --> truncate */
+	/* display: none; */
+}
+
+p.FieldName{
+	margin: 0;
+	padding: 0;
+}
+
 div.FormRow{
 	margin: 0;
 	padding: 0;
@@ -236,6 +236,21 @@ div.ShowHideNavDecorationHigh{
 	color: black;
 	z-index: 10;
 	/*box-shadow: -3px 0 2px 2px rgba(0, 0, 0, 0.1);*/
+}
+
+#TocLinks a, #Logo a{
+	color: #e6ebf0;
+	text-decoration: none;
+}
+
+#TocLinks a:hover, #Logo a:hover{
+	color: white;
+	text-decoration: underline;
+}
+
+#TocLinks p{
+	margin-top: 1em;
+	margin-bottom: .5em;
 }
 
 section p{
@@ -278,21 +293,6 @@ a.TopLink{
 span.ErrHigh{
 	font-weight: bold;
 	color: #a24c4c;
-}
-
-#TocLinks a, #Logo a{
-	color: #e6ebf0;
-	text-decoration: none;
-}
-
-#TocLinks a:hover, #Logo a:hover{
-	color: white;
-	text-decoration: underline;
-}
-
-#TocLinks p{
-	margin-top: 1em;
-	margin-bottom: .5em;
 }
 
 p.TocBook{
