@@ -212,6 +212,10 @@ input, select{
 	padding: 0;
 }
 
+input.TextInput, select.TextInput{
+	width: 100%;
+}
+
 #SearchScope{
 	margin-top: .7em;
 }
