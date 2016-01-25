@@ -9,6 +9,7 @@ import pytz
 import random
 import threading
 import smtplib
+import email.utils
 
 from string import Template
 
@@ -111,12 +112,14 @@ def sendMail(p_subject, p_message):
     # message context with headers and body
     l_message = """From: {0}
         To: {1}
-        Subject: {2}
+        Date: {2}
+        Subject: {3}
 
-        {3}
+        {4}
     """.format(
         g_mailSender,
         ', '.join(g_mailRecipients),
+        email.utils.format_datetime(datetime.datetime.now(tz=pytz.utc)),
         p_subject,
         p_message
     )

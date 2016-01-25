@@ -116,7 +116,15 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
         l_interlinearId = 'H'
 
     l_query = """
-        select ST_GROUND, ST_PUNCT, ST_TRANSLIT, TX_TRANSLATION, TX_GRAMMAR, TX_STRONGS_LINKS, N_WORD, ID_STRONGS
+        select
+            ST_GROUND
+            , ST_PUNCT
+            , ST_TRANSLIT
+            , TX_TRANSLATION
+            , TX_GRAMMAR
+            , TX_STRONGS_LINKS
+            , N_WORD
+            , ID_STRONGS
         from TB_INTERLINEAR
         where
             ID_BOOK = '{0}'

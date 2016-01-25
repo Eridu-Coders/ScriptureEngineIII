@@ -16,9 +16,6 @@ __author__ = 'fi11222'
 
 # ################################ SEE se3.main.py for global intro ####################################################
 
-# required optional packages
-# pytz : sudo pip3 install pytz
-
 
 # Multithreaded HTTP server according to https://pymotw.com/2/BaseHTTPServer/index.html#module-BaseHTTPServer
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):

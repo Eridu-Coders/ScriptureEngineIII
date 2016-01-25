@@ -56,6 +56,8 @@ g_hebrewVowels = '[\u0590-\u05CF\u05F0-\u05FF]'
 
 # Multi Language
 g_userStrings = {
+    'en-m_ApplyLabel': 'Apply',
+    'fr-m_ApplyLabel': 'Appliquer',
     'en-m_lexLex': 'Lexicon',
     'fr-m_lexLex': 'Lexique',
     'en-m_lexArabic': 'Arabic',

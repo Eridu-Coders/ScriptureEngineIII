@@ -22,7 +22,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
     l_response = word_control(p_context)
 
     if len(l_response) > 0:
-        return l_response, p_context
+        return l_response, p_context, 'Error'
 
     l_uiLanguage = p_context['z']
     l_pcBookId = g_bookAlias[p_context['b'].lower().strip()]
@@ -118,7 +118,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
                 and L.ID_STRONGS = '{5}'
             ;""".format(l_pcBookId, l_pcChapter, l_pcVerse, l_pcWordId, l_pcInterlinearId, l_pcIdStrongs)
 
-    g_loggerWord.debug('l_query {0}'.format(l_query))
+    g_loggerWord.info('l_query {0}'.format(l_query))
     try:
         l_cursor = l_dbConnection.cursor(buffered=True)
         l_cursor.execute(l_query)
@@ -126,7 +126,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
         l_wordCount = l_cursor.rowcount
 
         if l_wordCount == 0:
-            return get_user_string(p_context, 'e_noWord').format(p_context['d']), p_context
+            return get_user_string(p_context, 'e_noWord').format(p_context['d']), p_context, 'Error'
 
         for l_groundRoot, l_translitRoot, l_idRootByte,  l_translit, l_ground, l_type, l_defShort, l_def, \
                 l_derivation, l_usage, l_freqA, l_freqB, l_dict, l_dictImage, l_groundWord, l_translitWord, \

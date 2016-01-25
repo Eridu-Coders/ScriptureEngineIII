@@ -109,23 +109,24 @@ __author__ = 'fi11222'
 # y - browser capabilities test                     Request Handler
 # z - UI language                                   All
 
+# required optional Python 3 packages
+# pytz : sudo pip3 install pytz
+# Mysql : sudo apt-get install python3-mysql.connector [Ubuntu >= 14.04]
+
 # NOTE - Adding french spell-check dictionary to pyCharm:
 # sudo apt-get install aspell-fr
 # aspell --lang fr_FR dump master | aspell --lang fr expand | tr ' ' '\n' > french.dic
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO include local timestamp in warning message e-mails
+# TODO examine ID_STRONGS with 2 roots in TB_ROOT_FORM (only admissible for proper nouns in Heb.)
 
-# TODO ? duplicate in:
-# http://scripture-search.org:8000/?K=W&b=Eze&c=1&v=25&w=x&q=1&l=40061&p=33&d=1-H-H6963&s=&o=&e=0&h=0&i=0&j=0
+# TODO check that all returns have the proper cardinality (including in error cases)
 
 # TODO ? No bold in neighborhood :
 # http://scripture-search.org:8000/?K=W&b=Qur&c=78&v=7&w=x&q=1&l=1&p=13&d=2-C-A4591&s=loop&o=&e=0&h=0&i=0&j=0
 
 # TODO incorrect Surah names
-
-# TODO Mot 'Apply' non traduit en Français
 
 # TODO Lexicon (like Quran Corpus)
 
@@ -398,6 +399,8 @@ def internal_get_labels(p_context):
     l_substituteVar['lex_Greek'] = se3_utilities.get_user_string(p_context, 'm_lexGreek')
     l_substituteVar['lex_Hebrew'] = se3_utilities.get_user_string(p_context, 'm_lexHebrew')
     l_substituteVar['lex_lex'] = se3_utilities.get_user_string(p_context, 'm_lexLex')
+
+    l_substituteVar['ApplyLabel'] = se3_utilities.get_user_string(p_context, 'm_ApplyLabel')
 
     return l_substituteVar
 
