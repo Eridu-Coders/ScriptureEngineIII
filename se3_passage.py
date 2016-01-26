@@ -6,10 +6,10 @@ import ec_utilities
 __author__ = 'fi11222'
 
 # -------------------------- Logger ------------------------------------------------------------------------------------
-g_loggerPassage = logging.getLogger(g_appName + '.passage')
-if g_verboseModeOn:
+g_loggerPassage = logging.getLogger(ec_app_params.g_appName + '.passage')
+if ec_app_params.g_verboseModeOn:
     g_loggerPassage.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerPassage.setLevel(logging.DEBUG)
 
 
@@ -50,14 +50,14 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
         l_title = '{0} {1} {2}'.format(
             l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
             l_pcChapter,
-            g_appTitle)
+            ec_app_params.g_appTitle)
     else:
         l_title = '{0} {1}:{2}-{3} {4}'.format(
             l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
             l_pcChapter,
             l_pcVerseStart,
             l_pcVerseEnd,
-            g_appTitle)
+            ec_app_params.g_appTitle)
 
     # get chapter info
     l_chapterEn, l_chapterFr = get_chapter_names(p_context, l_dbConnection)
@@ -169,9 +169,9 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
             l_chapterName = l_chapterFr if l_versionLanguage == 'fr' else l_chapterEn
             if not l_wholeChapter:
                 # not whole chapter
-                l_chapterName += ', ' + g_userStrings[l_versionLanguage + '-' + 'p_VerseWord'] \
+                l_chapterName += ', ' + ec_app_params.g_userStrings[l_versionLanguage + '-' + 'p_VerseWord'] \
                     + 's ' + l_pcVerseStart \
-                    + ' ' + g_userStrings[l_versionLanguage + '-' + 'p_VerseTo'] \
+                    + ' ' + ec_app_params.g_userStrings[l_versionLanguage + '-' + 'p_VerseTo'] \
                     + ' ' + l_pcVerseEnd
 
             # Display Chapter name (+ verses if applicable)
@@ -273,9 +273,9 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
             l_chapterName = l_chapterFr if l_versionLanguage == 'fr' else l_chapterEn
             if not l_wholeChapter:
                 # not whole chapter
-                l_chapterName += ', ' + g_userStrings[l_versionLanguage + '-' + 'p_VerseWord'] \
+                l_chapterName += ', ' + ec_app_params.g_userStrings[l_versionLanguage + '-' + 'p_VerseWord'] \
                     + 's ' + l_pcVerseStart \
-                    + ' ' + g_userStrings[l_versionLanguage + '-' + 'p_VerseTo'] \
+                    + ' ' + ec_app_params.g_userStrings[l_versionLanguage + '-' + 'p_VerseTo'] \
                     + ' ' + l_pcVerseEnd
 
             # Display Chapter name (+ verses if applicable)

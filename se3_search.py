@@ -5,10 +5,10 @@ from se3_utilities import *
 __author__ = 'fi11222'
 
 # -------------------------- Logger ------------------------------------------------------------------------------------
-g_loggerSearch = logging.getLogger(g_appName + '.search')
-if g_verboseModeOn:
+g_loggerSearch = logging.getLogger(ec_app_params.g_appName + '.search')
+if ec_app_params.g_verboseModeOn:
     g_loggerSearch.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerSearch.setLevel(logging.DEBUG)
 
 
@@ -36,15 +36,15 @@ def get_search(p_previousContext, p_context, p_dbConnectionPool):
     l_pcScopeOT = p_context['j']
 
     # window title
-    l_title = l_pcSearchQuery + '-' + g_appTitle
+    l_title = l_pcSearchQuery + '-' + ec_app_params.g_appTitle
 
     # limit on the number of verses displayed
     # Command = 'S' ---> soft (small) limit
     # Command = 'Sa' ---> hard (absolute maximum, large) limit
     if l_pcCommand == 'S':
-        l_verseLimit = g_softLimit
+        l_verseLimit = ec_app_params.g_softLimit
     else:
-        l_verseLimit = g_hardLimit
+        l_verseLimit = ec_app_params.g_hardLimit
 
     # construct SQL query based on parameters
     # + useful byproducts:
@@ -69,11 +69,12 @@ def get_search(p_previousContext, p_context, p_dbConnectionPool):
                                           l_excludedSet, l_pcScopeQuran, l_pcScopeNT, l_pcScopeOT, l_verseCount)
 
         # display of limit message, if necessary
-        if l_verseCount > g_softLimit and l_pcCommand == 'S':
+        if l_verseCount > ec_app_params.g_softLimit and l_pcCommand == 'S':
             # the DisplayAll link will trigger a 'Sa' command with otherwise the same parameters as the original
             # 'S' command
             l_response += '<p class="sLimitMessage">' + \
-                          get_user_string(p_context, 's_limitMessage').format(g_softLimit, g_hardLimit) + \
+                          get_user_string(p_context, 's_limitMessage').format(
+                              ec_app_params.g_softLimit, ec_app_params.g_hardLimit) + \
                           ' <a href="" class="DisplayAll">' + \
                           get_user_string(p_context, 's_displayAll') +\
                           '</a></p>'

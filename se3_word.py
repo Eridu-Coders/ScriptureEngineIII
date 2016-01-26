@@ -5,10 +5,10 @@ from se3_utilities import *
 __author__ = 'fi11222'
 
 # -------------------------- Logger ------------------------------------------------------------------------------------
-g_loggerWord = logging.getLogger(g_appName + '.word')
-if g_verboseModeOn:
+g_loggerWord = logging.getLogger(ec_app_params.g_appName + '.word')
+if ec_app_params.g_verboseModeOn:
     g_loggerWord.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerWord.setLevel(logging.DEBUG)
 
 
@@ -48,7 +48,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
         l_groundStyle = 'wGroundArabic'
 
     # window title
-    l_title = g_appTitle
+    l_title = ec_app_params.g_appTitle
 
     # response start
     l_response = '<table id="wOuterTable">'
@@ -138,7 +138,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
             l_title = '{0}[{1}]-{2}'.format(
                 l_translit,
                 'Hb' if is_Hebrew(l_ground) else 'Gr' if is_Greek(l_ground) else 'Ar',
-                g_appTitle)
+                ec_app_params.g_appTitle)
 
             # create links from ground text words inside derivation field, e.g.: אָבִיב (H24)
             l_derivation = re.sub(r'([\u0590-\u05FF\u200D][\s\u0590-\u05FF\u200D]+)\s+\((H[0-9]+)\)',
@@ -362,22 +362,23 @@ def getOccurences(p_context, p_dbConnection, p_idStrongs, p_wordId=None):
     # Command = 'W'/'R' ---> soft (small) limit
     # Command = 'Wa'/'Ra' ---> hard (absolute maximum, large) limit
     if p_context['K'] == 'W' or p_context['K'] == 'R':
-        l_occuLimit = g_softLimit
+        l_occuLimit = ec_app_params.g_softLimit
         # the wDisplayAll link will trigger a 'Wa'/'Ra' command with otherwise the same parameters as the original
         # 'W'/'R' command
         if l_occuCount > l_occuLimit:
             l_occuString += ('<tr><td colspan="4" class="wOccurencesMsg">' +
                              '<span class="wLimitMessage">' +
-                             get_user_string(p_context, 'w_limitMessage').format(g_softLimit, g_hardLimit) +
+                             get_user_string(p_context, 'w_limitMessage').format(
+                                 ec_app_params.g_softLimit, ec_app_params.g_hardLimit) +
                              '</span> <a href="" class="wDisplayAll" command="{0}a">'.format(p_context['K']) +
                              get_user_string(p_context, 'w_displayAll') +
                              '</a></td></tr>')
     else:
-        l_occuLimit = g_hardLimit
+        l_occuLimit = ec_app_params.g_hardLimit
         if l_occuCount > l_occuLimit:
             l_occuString += ('<tr><td colspan="4" class="wOccurencesMsg">' +
                              '<span class="wLimitMessage">' +
-                             get_user_string(p_context, 'w_hardLimitMessage').format(g_hardLimit) +
+                             get_user_string(p_context, 'w_hardLimitMessage').format(ec_app_params.g_hardLimit) +
                              '</span></td></tr>')
 
     # list of all occurences

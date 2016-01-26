@@ -10,7 +10,7 @@ g_staticRoot = g_appRoot
 
 # general parameters
 g_appName = 'ScriptureEngineIII'
-g_appVersion = '3.1.0'
+g_appVersion = '3.1.1'
 g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
@@ -54,7 +54,11 @@ g_hardLimit = 10000
 g_hebrewConsonants = '[\u05D0-\u05EF\u200D]'
 g_hebrewVowels = '[\u0590-\u05CF\u05F0-\u05FF]'
 
+
 # Multi Language
+def i18n(k):
+    return g_userStrings[k]
+
 g_userStrings = {
     'en-m_ApplyLabel': 'Apply',
     'fr-m_ApplyLabel': 'Appliquer',

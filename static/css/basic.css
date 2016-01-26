@@ -878,3 +878,119 @@ p.sLimitMessage{
 	font-size: smaller;
 }
 
+/* ------------------------- Lexicon --------------------------------------------------- */
+
+div.LexOuter{
+	text-align: center;
+}
+
+div.LexLeft{
+	text-align: center;
+	margin-right: 2em;
+	display: inline-block;
+}
+
+div.LexRight{
+	text-align: center;
+	display: inline-block;
+}
+
+table.ArabLex{
+	border: none;
+	display: inline-block;
+}
+
+table.ArabLex td{
+	border: none;
+}
+
+table.ArabLex td.LexLetter{
+	border: none;
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 4em;
+	margin: 0; 
+	padding: .5em 0 0 0;
+	text-align: center;
+	color: #a24c4c;
+}
+
+table.ArabLex td.LexGround{
+	border: none;
+	font-size: 1.5em;
+	font-family: arabtype, "Times New Roman", serif; 
+	text-align: center;
+}
+
+table.ArabLex td.LexTranslit{
+	text-align: left;
+}
+
+table.HebrewLex{
+	border: none;
+	display: inline-block;
+}
+
+table.HebrewLex td{
+	border: none;
+}
+
+table.HebrewLex td.LexLetter{
+	border: none;
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	font-size: 3em;
+	margin: 0; 
+	padding: .5em 0 0 0;
+	text-align: center;
+	color: #a24c4c;
+}
+
+table.HebrewLex td.LexGround{
+	border: none;
+	font-size: larger;
+	font-family: 'Tiberian Biblical Hebrew', "Times New Roman", serif; 
+	text-align: center;
+}
+
+table.HebrewLex td.LexTranslit{
+	text-align: left;
+	font-style: italic;
+}
+
+table.HebrewLex td.LexDef{
+	text-align: left;
+}
+
+table.GreekLex{
+	border: none;
+	display: inline-block;
+}
+
+table.GreekLex td{
+	border: none;
+}
+
+table.GreekLex td.LexLetter{
+	border: none;
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	font-size: 3em;
+	margin: 0; 
+	padding: .5em 0 0 0;
+	text-align: center;
+	color: #a24c4c;
+}
+
+table.GreekLex td.LexGround{
+	border: none;
+	font-size: larger;
+	font-family: 'Ionic Biblical Greek', "Times New Roman", serif; 
+	text-align: center;
+}
+
+table.GreekLex td.LexTranslit{
+	text-align: left;
+	font-style: italic;
+}
+
+table.GreekLex td.LexDef{
+	text-align: left;
+}

@@ -5,10 +5,10 @@ from se3_word import *
 __author__ = 'fi11222'
 
 # -------------------------- Logger ------------------------------------------------------------------------------------
-g_loggerRoot = logging.getLogger(g_appName + '.root')
-if g_verboseModeOn:
+g_loggerRoot = logging.getLogger(ec_app_params.g_appName + '.root')
+if ec_app_params.g_verboseModeOn:
     g_loggerRoot.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerRoot.setLevel(logging.DEBUG)
 
 
@@ -30,7 +30,7 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
     l_rootIdList = p_context['d'].split('|')
 
     # window title
-    l_title = g_appTitle
+    l_title = ec_app_params.g_appTitle
 
     if len(l_rootIdList) == 1:
         l_oneRootId = l_rootIdList[0]

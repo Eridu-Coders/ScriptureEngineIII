@@ -6,10 +6,10 @@ import ec_utilities
 __author__ = 'fi11222'
 
 # -------------------------- Logger ------------------------------------------------------------------------------------
-g_loggerSingleVerse = logging.getLogger(g_appName + '.singleVerse')
-if g_verboseModeOn:
+g_loggerSingleVerse = logging.getLogger(ec_app_params.g_appName + '.singleVerse')
+if ec_app_params.g_verboseModeOn:
     g_loggerSingleVerse.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerSingleVerse.setLevel(logging.DEBUG)
 
 
@@ -44,7 +44,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
         l_pcVerse)
 
     # window title
-    l_title = l_verseRef + '-' + g_appTitle
+    l_title = l_verseRef + '-' + ec_app_params.g_appTitle
 
     # start of response string
     l_response = '<table id="svOuterTable">\n'

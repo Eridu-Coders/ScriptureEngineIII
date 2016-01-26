@@ -286,6 +286,14 @@
 					$("#NavControl_K").val( $(this).attr("command") );
 					$("#NavForm").submit();
 				});
+
+				// links in the left panel to display the Lexicon
+				// the command can be La, Lg or Lh
+				$( "a.GoLex" ).on( "click", function(l){
+					l.preventDefault();
+					$("#NavControl_K").val( $(this).attr("command") );
+					$("#NavForm").submit();
+				});
 			});
 			
 			// sets up a nav panel resize listener both for the window and the header 

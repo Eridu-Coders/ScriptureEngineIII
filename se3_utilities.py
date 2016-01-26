@@ -3,17 +3,17 @@
 import logging
 import mysql.connector
 import re
-import html.parser
+import html
 
-from ec_app_params import *
+import ec_app_params
 
 __author__ = 'fi11222'
 
 # ------------------------- Logger -------------------------------------------------------------------------------------
-g_loggerUtilities = logging.getLogger(g_appName + '.utilities')
-if g_verboseModeOn:
+g_loggerUtilities = logging.getLogger(ec_app_params.g_appName + '.utilities')
+if ec_app_params.g_verboseModeOn:
     g_loggerUtilities.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerUtilities.setLevel(logging.DEBUG)
 
 # ------------------------- Parameters hexadecimal bit masks -----------------------------------------------------------
@@ -55,9 +55,9 @@ def init_versions():
     try:
         # this is necessary because the connection pool has not yet been initialized
         l_connector = mysql.connector.connect(
-                        user=g_dbUser, password=g_dbPassword,
-                        host=g_dbServer,
-                        database=g_dbDatabase)
+                        user=ec_app_params.g_dbUser, password=ec_app_params.g_dbPassword,
+                        host=ec_app_params.g_dbServer,
+                        database=ec_app_params.g_dbDatabase)
     except mysql.connector.Error as l_exception:
         g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
         raise
@@ -135,9 +135,9 @@ def init_book_chapter():
     try:
         # this is necessary because the connection pool has not yet been initialized
         l_connector = mysql.connector.connect(
-                        user=g_dbUser, password=g_dbPassword,
-                        host=g_dbServer,
-                        database=g_dbDatabase)
+                        user=ec_app_params.g_dbUser, password=ec_app_params.g_dbPassword,
+                        host=ec_app_params.g_dbServer,
+                        database=ec_app_params.g_dbDatabase)
     except mysql.connector.Error as l_exception:
         g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
         raise
@@ -205,9 +205,9 @@ def init_book_alias():
 
     try:
         l_connector = mysql.connector.connect(
-            user=g_dbUser, password=g_dbPassword,
-            host=g_dbServer,
-            database=g_dbDatabase)
+            user=ec_app_params.g_dbUser, password=ec_app_params.g_dbPassword,
+            host=ec_app_params.g_dbServer,
+            database=ec_app_params.g_dbDatabase)
     except mysql.connector.Error as l_exception:
         g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
         raise
@@ -327,7 +327,7 @@ def get_vl_internal(p_versionList, p_versionWordStr):
 def get_user_string(p_context, p_stringId):
     # p_context['z'] = UI language
     # g_userStrings = dict of strings defined in ec_app_params.py.
-    return g_userStrings[p_context['z'] + '-' + p_stringId]
+    return ec_app_params.i18n(p_context['z'] + '-' + p_stringId)
 
 
 # ------------------------- Context preprocessing ----------------------------------------------------------------------
@@ -790,8 +790,7 @@ def makeVerse(p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort
 
     l_verseText = p_verseText
 
-    l_parser = html.parser.HTMLParser()
-    l_verseText = l_parser.unescape(l_verseText)
+    l_verseText = html.unescape(l_verseText)
 
     # in order for highlighting to work properly, the words must have been ordered LONGEST FIRST so that the
     # 'willingly unwillingly problem does not arise'. This is done when processing the search parameters

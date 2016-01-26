@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import re
 import logging
 
-from ec_app_params import *
+import ec_app_params
 import se3_single_verse
 import se3_passage
 import se3_word
@@ -12,6 +11,7 @@ import se3_root
 import se3_search
 import se3_utilities
 import ec_utilities
+import se3_lexicon
 
 __author__ = 'fi11222'
 
@@ -123,12 +123,11 @@ __author__ = 'fi11222'
 
 # TODO check that all returns have the proper cardinality (including in error cases)
 
-# TODO ? No bold in neighborhood :
-# http://scripture-search.org:8000/?K=W&b=Qur&c=78&v=7&w=x&q=1&l=1&p=13&d=2-C-A4591&s=loop&o=&e=0&h=0&i=0&j=0
-
 # TODO incorrect Surah names
 
-# TODO Lexicon (like Quran Corpus)
+# TODO "In the Name of God the Merciful the Compassionate" in the beginning of each Surah
+
+# TODO Buttons to unclick all versions (Bible & Coran)
 
 # TODO Check warning messages all over the application
 
@@ -136,7 +135,7 @@ __author__ = 'fi11222'
 
 # TODO Avoid creating unnecessary terminal IDs for keep-alive requests
 
-# TODO Arab search without vowels (and for Hebrew ...)
+# TODO Arab search without vowels (and for Hebrew as well ...)
 
 # TODO Open/close for each word in root/word display (on screen only)
 
@@ -146,11 +145,14 @@ __author__ = 'fi11222'
 
 # TODO Arab <---> Hebrew roots correspondence
 
+# TODO Racine pointant sur un mot inexistant :
+# http://scripture-search.org:8000/?K=R&b=Eze&c=34&v=25&w=x&q=1&l=1&p=31&d=X-FFA&s=&o=2+15&e=0&h=0&i=0&j=0
+
 # ---------------------- Logging ---------------------------------------------------------------------------------------
-g_loggerSE3 = logging.getLogger(g_appName + '.se3_main')
-if g_verboseModeOn:
+g_loggerSE3 = logging.getLogger(ec_app_params.g_appName + '.se3_main')
+if ec_app_params.g_verboseModeOn:
     g_loggerSE3.setLevel(logging.INFO)
-if g_debugModeOn:
+if ec_app_params.g_debugModeOn:
     g_loggerSE3.setLevel(logging.DEBUG)
 
 # ---------------------- Templates--------------------------------------------------------------------------------------
@@ -198,7 +200,7 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
     g_loggerSE3.info('Entering SE3')
 
     # if debugging, reload template for each request
-    if g_debugModeOn:
+    if ec_app_params.g_debugModeOn:
         loadTemplates()
 
     # default values, certain common controls, parameter expansion, ...
@@ -211,7 +213,7 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
     # gets the proper response depending on the command parameter (l_context['K'])
     # this is not yet the whole page but only the part which goes in the main content area
 
-    l_title = g_appTitle
+    l_title = ec_app_params.g_appTitle
 
     # sigle verse
     if l_context['K'] == 'V':
@@ -232,6 +234,15 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
     # table of contents
     elif l_context['K'][0] == 'T':
         l_response, l_context, l_title = get_toc(p_previousContext, l_context, p_dbConnectionPool)
+    # Arabic Lexicon
+    elif l_context['K'] == 'La':
+        l_response, l_context, l_title = se3_lexicon.lexicon_arabic(p_previousContext, l_context, p_dbConnectionPool)
+    # Hebrew Lexicon
+    elif l_context['K'] == 'Lh':
+        l_response, l_context, l_title = se3_lexicon.lexicon_hebrew(p_previousContext, l_context, p_dbConnectionPool)
+    # Greek Lexicon
+    elif l_context['K'] == 'Lg':
+        l_response, l_context, l_title = se3_lexicon.lexicon_greek(p_previousContext, l_context, p_dbConnectionPool)
     else:
         l_response = '<p>No Response (You should not be seeing this!)</p>'
 
@@ -254,7 +265,7 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
     l_oldContextTable = ''
     l_newContextTable = ''
 
-    if g_debugModeOn:
+    if ec_app_params.g_debugModeOn:
         l_hiddenFieldsType = 'text'
         l_hiddenFieldsStyle = ''
 
@@ -304,7 +315,8 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
                                            WindowTitle=l_title,
                                            UrlPath=p_urlPath,
                                            NoJSPath=p_noJSPath,
-                                           FooterText='{0} v. {1}'.format(g_appTitle, g_appVersion),
+                                           FooterText='{0} v. {1}'.format(
+                                               ec_app_params.g_appTitle, ec_app_params.g_appVersion),
                                            HiddenFieldsStyle=l_hiddenFieldsStyle,
                                            HiddenFieldsType=l_hiddenFieldsType,
                                            StatusLine=l_statusDisplay,
