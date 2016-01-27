@@ -180,19 +180,27 @@ def init_book_chapter():
         g_loggerUtilities.debug('l_query: {0}'.format(l_query))
 
         l_cursor = l_connector.cursor(buffered=True)
+        g_loggerUtilities.debug('Cursor Created')
         l_cursor.execute(l_query)
+        g_loggerUtilities.debug('Cursor Executed')
 
         # loads the chapter verse count terms of each g_bookChapter['id'] (from position 1 in the list onwards)
         for l_bookId, l_verseCount in l_cursor:
             g_bookChapter[l_bookId].append(l_verseCount)
 
+        g_loggerUtilities.debug('g_bookChapter: {0}'.format(g_bookChapter))
+
         l_cursor.close()
+        g_loggerUtilities.debug('Cursor Closed')
 
         l_connector.close()
+        g_loggerUtilities.debug('Connector Closed')
 
-        g_loggerUtilities.debug('g_bookChapter: {0}'.format(g_bookChapter))
     except mysql.connector.Error as l_exception:
-        g_loggerUtilities.critical('Cannot load Books/Chapters. Exception [{0}]. Aborting.'.format(l_exception))
+        g_loggerUtilities.critical('Cannot load Books/Chapters. Mysql Exception [{0}]. Aborting.'.format(l_exception))
+        raise
+    except Exception as l_exception:
+        g_loggerUtilities.critical('Cannot load Books/Chapters. General Exception [{0}]. Aborting.'.format(l_exception))
         raise
 
 
