@@ -714,7 +714,7 @@ def get_toc(p_previousContext, p_context, p_dbConnectionPool):
             l_chapterCount = 1
             for l_chapter, l_nameOr, l_nameOr2, l_nameEn, l_nameFr in l_cursor:
                 l_response += ('<p class="QuranSurah"><a href="" class="svGoPassage" newBook="Qur" ' +
-                               'newChapter="{0}" newVerse1="1" newVerse2="x">{0}</a>: {1} - {2}</p>\n').format(
+                               'newChapter="{0}" newVerse1="1" newVerse2="x"><b>{0}</b></a>: {1} - {2}</p>\n').format(
                     l_chapter,
                     l_nameFr if p_context['z'] == 'fr' else l_nameEn,
                     l_nameOr2

@@ -322,6 +322,17 @@ div.QuranTocCol2{
 h1.TocTitle{
 	text-align: center;
 }
+
+p.QuranSurah{
+	margin: 0;
+	padding: 0;
+}
+
+span.tocArabic{
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 2em;
+	color: #a24c4c;
+}
 /* ---------------------------------- Single Verse ------------------------------------- */
 
 div.svTopBottom{
