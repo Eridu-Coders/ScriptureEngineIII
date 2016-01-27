@@ -884,15 +884,22 @@ div.LexOuter{
 	text-align: center;
 }
 
-div.LexLeft{
-	text-align: center;
-	margin-right: 2em;
+table.LexInner{
+	border: none;
 	display: inline-block;
 }
 
-div.LexRight{
+table.LexInner td.LexLeft{
+	border: none;
 	text-align: center;
-	display: inline-block;
+	padding-right: 6em;
+	vertical-align: top;
+}
+
+table.LexInner td.LexRight{
+	border: none;
+	text-align: center;
+	vertical-align: top;
 }
 
 table.ArabLex{
@@ -902,13 +909,14 @@ table.ArabLex{
 
 table.ArabLex td{
 	border: none;
+	padding: 0;
+	margin: 0; 
 }
 
 table.ArabLex td.LexLetter{
 	border: none;
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 4em;
-	margin: 0; 
+	font-size: 5em;
 	padding: .5em 0 0 0;
 	text-align: center;
 	color: #a24c4c;
@@ -916,7 +924,8 @@ table.ArabLex td.LexLetter{
 
 table.ArabLex td.LexGround{
 	border: none;
-	font-size: 1.5em;
+	font-size: 2em;
+	padding-right: 1em;
 	font-family: arabtype, "Times New Roman", serif; 
 	text-align: center;
 }
