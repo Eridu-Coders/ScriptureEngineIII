@@ -376,7 +376,7 @@ div.svCenterLinks{
 
 #svOuterTable td.svGroundArabic{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 	text-align: center;
 }
 
@@ -512,7 +512,7 @@ span.pGroundGreek{
 
 span.pGroundArabic{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 }
 
 /* ------------------------- Word --------------------------------------------------- */
@@ -662,7 +662,7 @@ div.wGroundArabic{
 
 #wInterlinear td.wGroundArabic{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 	color: #a24c4c;
 	padding: 0;
 }
@@ -682,7 +682,7 @@ span.wGroundGreek{
 
 span.wGroundArabic{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 	color: #a24c4c;
 	padding: 0;
 }
@@ -736,13 +736,13 @@ b.segTurquoise{
 div.arabicGrammar{
     color: #a24c4c;
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 	margin: 0;
 	padding: 0;
 }
 span.at{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 }
 span.Hb{
 	font-size: larger;
@@ -830,7 +830,7 @@ span.rGroundGreek{
 
 span.rGroundArabic{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 	margin: 0; padding: 0;
 }
 
@@ -849,7 +849,7 @@ span.sGreek{
 
 span.sArabic{
 	font-family: arabtype, "Times New Roman", serif; 
-	font-size: 1.5em;
+	font-size: 2em;
 	margin: 0; padding: 0;
 }
 
