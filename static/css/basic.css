@@ -216,8 +216,31 @@ input.TextInput, select.TextInput{
 	width: 100%;
 }
 
+#SearchLabel, #TocLabel, #LexLabel{
+	margin: 0;
+	padding: 0;
+	margin-bottom: .5em;
+}
+#TocLabel, #LexLabel{
+	margin-top: 1em;
+}
+
+div.Collapsar{
+	float: right;
+	color: white;
+}
+div.CollapsarHigh{
+	float: right;
+	color: #c8ced3;
+}
+
 #SearchScope{
 	margin-top: .7em;
+}
+
+#RestOfSearch{
+	margin: 0;
+	padding: 0;
 }
 
 input.SubmitButton{
@@ -250,11 +273,6 @@ div.ShowHideNavDecorationHigh{
 #TocLinks a:hover, #Logo a:hover{
 	color: white;
 	text-decoration: underline;
-}
-
-#TocLinks p{
-	margin-top: 1em;
-	margin-bottom: .5em;
 }
 
 section p{
@@ -333,6 +351,11 @@ span.tocArabic{
 	font-size: 2em;
 	color: #a24c4c;
 }
+
+span.tocTranslit{
+	font-style: italic;
+}
+
 /* ---------------------------------- Single Verse ------------------------------------- */
 
 div.svTopBottom{

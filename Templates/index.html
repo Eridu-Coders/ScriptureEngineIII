@@ -294,8 +294,85 @@
 					$("#NavControl_K").val( $(this).attr("command") );
 					$("#NavForm").submit();
 				});
+
+				// action of the header apply button
+				$( "#ApplyButton" ).on( "click", function(l){
+					$("#NavForm").submit();
+				});
+
+				// makes the TOC collapsar button sensitive to mouse hover
+				$( "#TocCollapsar" ).mouseover( function(){
+					$(this).removeClass("Collapsar");
+					$(this).addClass("CollapsarHigh")
+					$(this).css('cursor', 'pointer');
+				});
+				$( "#TocCollapsar" ).mouseout( function(){
+					$(this).removeClass("CollapsarHigh");
+					$(this).addClass("Collapsar");
+					$(this).css('cursor', 'auto');
+				});
+				// TOC collapsar open/close
+				$( "#TocCollapsar" ).on( "click", function(){
+					if( $( "#TocCollapsar" ).text() == "▼"){
+						$( "#TocList" ).slideUp( 250 );
+						$( "#TocCollapsar" ).text("◄");
+					}
+					else {
+						// reverse of the above
+						$( "#TocList" ).slideDown( 250 );
+						$( "#TocCollapsar" ).text("▼");
+					}
+				});
+
+				// makes the Lexicon collapsar button sensitive to mouse hover
+				$( "#LexCollapsar" ).mouseover( function(){
+					$(this).removeClass("Collapsar");
+					$(this).addClass("CollapsarHigh")
+					$(this).css('cursor', 'pointer');
+				});
+				$( "#LexCollapsar" ).mouseout( function(){
+					$(this).removeClass("CollapsarHigh");
+					$(this).addClass("Collapsar");
+					$(this).css('cursor', 'auto');
+				});
+				// Lexicon collapsar open/close
+				$( "#LexCollapsar" ).on( "click", function(){
+					if( $( "#LexCollapsar" ).text() == "▼"){
+						$( "#LexList" ).slideUp( 250 );
+						$( "#LexCollapsar" ).text("◄");
+					}
+					else {
+						// reverse of the above
+						$( "#LexList" ).slideDown( 250 );
+						$( "#LexCollapsar" ).text("▼");
+					}
+				});
+
+				// makes the Search collapsar button sensitive to mouse hover
+				$( "#SearchCollapsar" ).mouseover( function(){
+					$(this).removeClass("Collapsar");
+					$(this).addClass("CollapsarHigh")
+					$(this).css('cursor', 'pointer');
+				});
+				$( "#SearchCollapsar" ).mouseout( function(){
+					$(this).removeClass("CollapsarHigh");
+					$(this).addClass("Collapsar");
+					$(this).css('cursor', 'auto');
+				});
+				// Lexicon collapsar open/close
+				$( "#SearchCollapsar" ).on( "click", function(){
+					if( $( "#SearchCollapsar" ).text() == "▼"){
+						$( "#RestOfSearch" ).slideUp( 250 );
+						$( "#SearchCollapsar" ).text("◄");
+					}
+					else {
+						// reverse of the above
+						$( "#RestOfSearch" ).slideDown( 250 );
+						$( "#SearchCollapsar" ).text("▼");
+					}
+				});
 			});
-			
+
 			// sets up a nav panel resize listener both for the window and the header 
 			$( window ).resize( updateNavHeight );
 			$( "header" ).resize( updateNavHeight );
@@ -460,64 +537,73 @@
 							<div class="FormRow" style="§{HiddenFieldsStyle}">l: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_l" name="l" value="§{inputValue_l}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">p: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_p" name="p" value="§{inputValue_p}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">d: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_d" name="d" value="§{inputValue_d}"></div>
-							<div class="FormRow"><p class="FieldName">§{label_search}:</p><input class="TextInput" type="text" name="s" size="500" value="§{inputValue_s}"></div>
-							<div class="FormRow"><input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}> §{label_wholeWords}</div>
-							<div class="FormRow"><input type="checkbox" id="NavControl_caseSensitive" name="u" value="checked" §{inputValue_u}> §{label_caseSensitive}</div>
-							<div class="FormRow" id="ExcludeRow"><p class="FieldName">§{label_exclude}:</p><input class="TextInput" type="text" name="o" size="500" value="§{inputValue_o}"></div>
 							<div class="FormRow">
-								§{label_searchMode}: 
-								<select class="TextInput" id="NavControl_mode" name="e">
-									<option value="0" §{inputValue_e0}>§{label_searchMode0}</option>
-									<option value="1" §{inputValue_e1}>§{label_searchMode1}</option>
-									<option value="2" §{inputValue_e2}>§{label_searchMode2}</option>
-								</select>
+								<div class="Collapsar" id="SearchCollapsar">▼</div><div id="SearchLabel"><b>§{label_search}:</b></div>
 							</div>
-							<div class="FormRow" id="SearchScope">§{label_searchScope}:</div>
-							<div class="FormRow">
-								§{label_searchScopeQ}: 
-								<select class="TextInput" id="NavControl_quranScope" name="h">
-									<option value="0" §{inputValue_h0}>§{label_searchScopeQ0}</option>
-									<option value="1" §{inputValue_h1}>§{label_searchScopeQ1}</option>
-								</select>
+							<div id="RestOfSearch">
+								<div class="FormRow">
+									<input class="TextInput" type="text" name="s" size="500" value="§{inputValue_s}">
+								</div>
+								<div class="FormRow"><input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}> §{label_wholeWords}</div>
+								<div class="FormRow"><input type="checkbox" id="NavControl_caseSensitive" name="u" value="checked" §{inputValue_u}> §{label_caseSensitive}</div>
+								<div class="FormRow" id="ExcludeRow"><p class="FieldName">§{label_exclude}:</p><input class="TextInput" type="text" name="o" size="500" value="§{inputValue_o}"></div>
+								<div class="FormRow">
+									§{label_searchMode}: 
+									<select class="TextInput" id="NavControl_mode" name="e">
+										<option value="0" §{inputValue_e0}>§{label_searchMode0}</option>
+										<option value="1" §{inputValue_e1}>§{label_searchMode1}</option>
+										<option value="2" §{inputValue_e2}>§{label_searchMode2}</option>
+									</select>
+								</div>
+								<div class="FormRow" id="SearchScope">§{label_searchScope}:</div>
+								<div class="FormRow">
+									§{label_searchScopeQ}: 
+									<select class="TextInput" id="NavControl_quranScope" name="h">
+										<option value="0" §{inputValue_h0}>§{label_searchScopeQ0}</option>
+										<option value="1" §{inputValue_h1}>§{label_searchScopeQ1}</option>
+									</select>
+								</div>
+								<div class="FormRow">
+									§{label_searchScopeNT}: 
+									<select class="TextInput" id="NavControl_ntScope" name="i">
+										<option value="0" §{inputValue_i0}>§{label_searchScopeNT0}</option>
+										<option value="1" §{inputValue_i1}>§{label_searchScopeNT1}</option>
+										<option value="2" §{inputValue_i2}>§{label_searchScopeNT2}</option>
+										<option value="3" §{inputValue_i3}>§{label_searchScopeNT3}</option>
+										<option value="4" §{inputValue_i4}>§{label_searchScopeNT4}</option>
+									</select>
+								</div>
+								<div class="FormRow">
+									§{label_searchScopeOT}: 
+									<select class="TextInput" id="NavControl_otScope" name="j">
+										<option value="0" §{inputValue_j0}>§{label_searchScopeOT0}</option>
+										<option value="1" §{inputValue_j1}>§{label_searchScopeOT1}</option>
+										<option value="2" §{inputValue_j2}>§{label_searchScopeOT2}</option>
+										<option value="3" §{inputValue_j3}>§{label_searchScopeOT3}</option>
+										<option value="4" §{inputValue_j4}>§{label_searchScopeOT4}</option>
+										<option value="5" §{inputValue_j5}>§{label_searchScopeOT5}</option>
+									</select>
+								</div>
+								<div class="FormRow"><input class="SubmitButton" type="submit" value="go"></div>
 							</div>
-							<div class="FormRow">
-								§{label_searchScopeNT}: 
-								<select class="TextInput" id="NavControl_ntScope" name="i">
-									<option value="0" §{inputValue_i0}>§{label_searchScopeNT0}</option>
-									<option value="1" §{inputValue_i1}>§{label_searchScopeNT1}</option>
-									<option value="2" §{inputValue_i2}>§{label_searchScopeNT2}</option>
-									<option value="3" §{inputValue_i3}>§{label_searchScopeNT3}</option>
-									<option value="4" §{inputValue_i4}>§{label_searchScopeNT4}</option>
-								</select>
-							</div>
-							<div class="FormRow">
-								§{label_searchScopeOT}: 
-								<select class="TextInput" id="NavControl_otScope" name="j">
-									<option value="0" §{inputValue_j0}>§{label_searchScopeOT0}</option>
-									<option value="1" §{inputValue_j1}>§{label_searchScopeOT1}</option>
-									<option value="2" §{inputValue_j2}>§{label_searchScopeOT2}</option>
-									<option value="3" §{inputValue_j3}>§{label_searchScopeOT3}</option>
-									<option value="4" §{inputValue_j4}>§{label_searchScopeOT4}</option>
-									<option value="5" §{inputValue_j5}>§{label_searchScopeOT5}</option>
-								</select>
-							</div>
-							<div class="FormRow"><input class="SubmitButton" type="submit" value="go"></div>
 						</form>
 						<div id="TocLinks">
-							<p><b>§{toc_toc}:</b></p>
-							<ul>
+							<div id="TocCollapsar" class="Collapsar">▼</div><div id="TocLabel"><b>§{toc_toc}:</b></div>
+							<ul id="TocList">
 								<li><a href="" class="GoToc" command="T">§{toc_allScripture}</a></li>
 								<li><a href="" class="GoToc" command="Ta1">§{toc_Quran}</a></li>
 								<li><a href="" class="GoToc" command="Ta2">§{toc_QuranRev}</a></li>
 								<li><a href="" class="GoToc" command="Tb">§{toc_NT}</a></li>
 								<li><a href="" class="GoToc" command="Tc">§{toc_OT}</a></li>
 							</ul>
-							<p><b>§{lex_lex}:</b></p>
-							<ul>
-								<li><a href="" class="GoLex" command="Lh">§{lex_Hebrew}</a></li>
-								<li><a href="" class="GoLex" command="Lg">§{lex_Greek}</a></li>
-								<li><a href="" class="GoLex" command="La">§{lex_Arabic}</a></li>
-							</ul>
+							<div>
+								<div id="LexCollapsar" class="Collapsar">▼</div><div id="LexLabel"><b>§{lex_lex}:</b></div>
+								<ul id="LexList">
+									<li><a href="" class="GoLex" command="Lh">§{lex_Hebrew}</a></li>
+									<li><a href="" class="GoLex" command="Lg">§{lex_Greek}</a></li>
+									<li><a href="" class="GoLex" command="La">§{lex_Arabic}</a></li>
+								</ul>
+							</div>
 						</div>
 					</div>
 					<div id="ShowHideNav" class="ShowHideNavDecoration">

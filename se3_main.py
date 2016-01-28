@@ -119,15 +119,15 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO examine ID_STRONGS with 2 roots in TB_ROOT_FORM (only admissible for proper nouns in Heb.)
-
-# TODO check that all returns have the proper cardinality (including in error cases)
-
-# TODO incorrect Surah names
+# TODO Collapsible left panel elements to make elements at the bottom visible on small screens
 
 # TODO "In the Name of God the Merciful the Compassionate" in the beginning of each Surah
 
 # TODO Buttons to unclick all versions (Bible & Coran)
+
+# TODO examine ID_STRONGS with 2 roots in TB_ROOT_FORM (only admissible for proper nouns in Heb.)
+
+# TODO check that all returns have the proper cardinality (including in error cases)
 
 # TODO Check warning messages all over the application
 
