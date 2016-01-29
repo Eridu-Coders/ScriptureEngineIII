@@ -105,6 +105,9 @@ if g_debugModeOn:
     g_loggerUtilities.setLevel(logging.DEBUG)
 
 
+g_sendMailGovernor = dict()
+
+
 # sends an e-mail through smtp
 # For Amazon SES howto, see:
 # http://blog.noenieto.com/blog/html/2012/06/18/using_amazon_ses_with_your_python_applications.html
@@ -126,6 +129,33 @@ def sendMail(p_subject, p_message):
 
     # removes spaces at the begining of lines
     l_message = re.sub('^[ \t\r\f\v]+', '', l_message, flags=re.MULTILINE)
+
+    # limitation of email sent
+    l_now = time.time()
+    try:
+        # the list of all UNIX timestamps when this subject was sent in the previous 5 min at least
+        l_thisSubjectHistory = g_sendMailGovernor[p_subject]
+    except KeyError:
+        l_thisSubjectHistory = [l_now]
+
+    l_thisSubjectHistory.append(l_now)
+
+    l_thisSubjectHistoryNew = list()
+    l_count = 0
+    for l_pastsend in l_thisSubjectHistory:
+        if l_now - l_pastsend < 5*60:
+            l_count += 1
+            l_thisSubjectHistoryNew.append(l_pastsend)
+
+    g_sendMailGovernor[p_subject] = l_thisSubjectHistoryNew
+
+    # maximum : 10 with the same subject every 5 minutes
+    if l_count > 10:
+        # overflow stored the message in a separate file
+        l_fLog = open(g_logFile + '.overflow', 'a')
+        l_fLog.write('>>>>>>>\n' + l_message)
+        l_fLog.close()
+        return
 
     try:
         # smtp client init
