@@ -92,6 +92,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # flag indicating that the cookie is to be destroyed when the headers are generated
         self.m_delCookie = None
 
+        # flag indicating that do_Get has been called (in case m_terminalID is found missing when needed)
+        self.m_doGetCalled = False
+
         # terminal (browser) characteristics
         self.m_browser = ''
         self.m_platform = ''
@@ -116,7 +119,31 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
+    def pack_massage(self, p_message):
+        l_message = p_message
+
+        l_message += '\n--------- Context ------------\n'
+        l_message += 'IP ---> [{0}]\n'.format(self.client_address[0])
+        l_message += 'Port ---> [{0}]\n'.format(self.client_address[1])
+
+        l_message += 'Browser ---> [{0}]\n'.format(self.m_browser)
+        l_message += 'Platform ---> [{0}]\n'.format(self.m_platform)
+        l_message += 'Rendering Eng ---> [{0}]\n'.format(self.m_renderingEngine)
+        l_message += 'Version ---> [{0}]\n'.format(self.m_browserVersion)
+        l_message += 'Platform Desc ---> [{0}]\n'.format(self.m_platformDesc)
+        l_message += 'Dev Maker ---> [{0}\n]'.format(self.m_devMaker)
+        l_message += 'Dev Name ---> [{0}\n]'.format(self.m_devName)
+
+        l_message += 'request line ---> [{0}]\n'.format(self.requestline)
+        l_message += 'raw context ---> [{0}]\n'.format(self.m_contextDict)
+        l_message += 'headers ---> [{0}]\n'.format(str(self.headers).strip())
+        l_message += 'headers dict ---> [{0}]\n'.format(self.m_headersDict)
+
+        return l_message
+
     def do_GET(self):
+        self.m_doGetCalled = True
+
         # pick a DB connection from the pool
         l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
 
@@ -187,7 +214,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                         self.m_badTerminal = True
 
         else:
-            self.m_logger.warning('No User-Agent in : {0}'.format(repr(l_headers)))
+            self.m_logger.warning(self.pack_massage('No User-Agent in : {0}'.format(repr(l_headers))))
 
         # ------------------------------------- Language ---------------------------------------------------------------
         if 'Accept-Language' in self.m_headersDict.keys():
@@ -251,11 +278,15 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 ;""".format(self.m_terminalID)
 
             self.m_logger.debug('l_query: {0}'.format(l_query))
+            l_rowcount = None
             try:
                 l_cursor = l_dbConnection.cursor(buffered=True)
+                l_rowcount = -2
                 l_cursor.execute(l_query)
+                l_rowcount = -1
                 self.m_logger.debug('Rowcount         : {0}'.format(l_cursor.rowcount))
 
+                l_rowcount = l_cursor.rowcount
                 # if no rows were found, it means that the terminal ID is absent from the table --> create a new one
                 if l_cursor.rowcount == 0:
                     self.m_terminalID = None
@@ -279,7 +310,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
                 l_cursor.close()
             except Exception as l_exception:
-                self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
+                self.m_logger.warning(self.pack_massage(
+                    'Something went wrong  while retrieving ' +
+                    'previous context: {0}. Rowcount: {1}'.format(l_exception, l_rowcount)))
                 self.m_terminalID = None
                 self.m_validatedTerminal = False
 
@@ -327,7 +360,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                     l_cursor.close()
                 except Exception as l_exception:
                     # will go here if the row could not be inserted because the ID already existed
-                    self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
+                    self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
+                                          'to create Terminal ID: {0}. Error: {1} '.format(
+                                              self.m_terminalID, l_exception)))
                     l_created = False
 
             self.m_logger.debug('Thread [{0}] waiting'.format(threading.currentThread().getName()))
@@ -338,7 +373,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         if self.m_terminalID is None or self.m_terminalID == '':
             # abort application if no Id could be created despite all that
-            self.m_logger.critical('Could not retrieve or create Terminal ID. Recovery impossible.')
+            self.m_logger.critical(self.pack_massage('Could not retrieve or create Terminal ID. Recovery impossible.'))
             sys.exit()
 
         self.m_logger.info('Terminal ID      : {0}'.format(self.m_terminalID))
@@ -416,7 +451,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             l_dbConnection.commit()
             l_cursor.close()
         except Exception as l_exception:
-            self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
+            self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
+                                  'to execute this logging query: {0} Error: {1}'.format(
+                                      l_query, l_exception.args)))
 
         # ---------------------------------- Release DB connection -----------------------------------------------------
         EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)
@@ -497,7 +534,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # send the cookie containing the terminal ID in the headers
         if self.m_terminalID is None:
-            self.m_logger.warning('Terminal ID undefined - No cookie sent')
+            self.m_logger.warning(self.pack_massage('Terminal ID undefined - No cookie sent ({0})'.format(
+                'do_GET was called' if self.m_doGetCalled else 'do_GET was NOT called')))
         else:
             # hundred year cookie (duration in g_cookiePersistence)
             l_expire = (datetime.datetime.now(tz=pytz.utc) +
@@ -556,4 +594,6 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             p_dbConnection.commit()
             l_cursor.close()
         except Exception as l_exception:
-            self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
+            self.m_logger.warning(self.pack_massage('Something went wrong while storing the ' +
+                                  'previous context: {0}. Error: {1}'.format(
+                                      l_query, l_exception.args)))

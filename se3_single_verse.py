@@ -23,7 +23,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_response = verse_control(p_context)
 
     if len(l_response) > 0:
-        return l_response, p_context
+        return l_response, p_context, 'Error'
 
     l_uiLanguage = p_context['z']
     l_pcBookId = g_bookAlias[p_context['b'].lower().strip()]

@@ -99,7 +99,7 @@ def load_browscap_file(browscap_file_path):
 
     try:
         with open(browscap_file_path, 'r') as csvfile:
-            log.info('Reading browscap source file %s', browscap_file_path)
+            log.warning('Loading Browscap local source file %s', browscap_file_path)
 
             # figures out the CSV parameters (field sep, string delimiter, ...) hopefully
             dialect = csv.Sniffer().sniff(csvfile.read(4096))
@@ -151,6 +151,9 @@ def load_browscap_file(browscap_file_path):
                     continue
 
                 line = replace_defaults(line, defaults)
+
+                if len(regex_cache) % 50000 == 0 and len(regex_cache) > 0:
+                    log.warning('50 000 rows loaded from Browscap local source file %s', browscap_file_path)
 
                 # Progress message in case verbose mode is on
                 if g_verboseModeOn:
@@ -407,7 +410,7 @@ class Downloader(object):
                 return
 
             # --------------------- Download file ----------------------------------------------------------------------
-            log.info('Downloading latest version of browscap file from %s', self.url_file)
+            log.warning('Downloading latest version of browscap file from %s', self.url_file)
 
             # download browscap file contents from file url
             response_file = opener.open(self.url_file, timeout=self.timeout)

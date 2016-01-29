@@ -10,7 +10,7 @@ g_staticRoot = g_appRoot
 
 # general parameters
 g_appName = 'ScriptureEngineIII'
-g_appVersion = '3.1.1'
+g_appVersion = '3.1.2'
 g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
@@ -60,6 +60,10 @@ def i18n(k):
     return g_userStrings[k]
 
 g_userStrings = {
+    'en-m_CollapsarShow': '⇣',
+    'fr-m_CollapsarShow': '⇣',
+    'en-m_CollapsarHide': '⇡',
+    'fr-m_CollapsarHide': '⇡',
     'en-m_ApplyLabel': 'Apply',
     'fr-m_ApplyLabel': 'Appliquer',
     'en-m_lexLex': 'Lexicon',
@@ -76,10 +80,10 @@ g_userStrings = {
     'fr-m_tocOTTitle': 'Table des matières - Ancien testament',
     'en-m_tocNTTitle': 'Table of Contents - New Testament',
     'fr-m_tocNTTitle': 'Table des matières - Nouveau Testament',
-    'en-m_tocQuranTitle': 'Table of Contents - Surah of the Qur\'an (Final Testament)',
+    'en-m_tocQuranTitle': 'Table of Contents - Surahs of the Qur\'an (Final Testament)',
     'fr-m_tocQuranTitle': 'Table des matières - Sourates du Coran (Testament final)',
     'en-m_tocQuranTitleRev': """
-        Table of Contents - Surah of the Qur\'an (Final Testament)<br/>
+        Table of Contents - Surahs of the Qur\'an (Final Testament)<br/>
         <span style="font-size: smaller;">Revelation Order</span>
         """,
     'fr-m_tocQuranTitleRev': """
@@ -490,6 +494,25 @@ g_userStrings = {
         <p>
             <span class="ErrHigh">Erreur</span>: Aucune entrée dans le lexique ne correspond
             à cet identifiant: <b>{0}</b>
+        </p>
+    """,
+
+    'en-e_noPassage': """
+        <p>
+            <span class="ErrHigh">Error</span>: No scripture passage corresponds to these Parameters:
+            <table>
+            <tr><td>Book:</td><td>{0}</td></tr>
+            <tr><td>Chapter:</td><td>{1}</td></tr>
+            </table>
+        </p>
+    """,
+    'fr-e_noPassage': """
+        <p>
+            <span class="ErrHigh">Error</span>: Aucun passage Ne correspond à ces paramètres:
+            <table>
+            <tr><td>Book:</td><td>{0}</td></tr>
+            <tr><td>Chapter:</td><td>{1}</td></tr>
+            </table>
         </p>
     """,
 

@@ -23,7 +23,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
     l_response = passage_control(p_context)
 
     if len(l_response) > 0:
-        return l_response, p_context
+        return l_response, p_context, 'Error'
 
     l_uiLanguage = p_context['z']
     l_pcBookId = g_bookAlias[p_context['b'].lower().strip()]
@@ -231,6 +231,11 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
         try:
             l_cursor = l_dbConnection.cursor(buffered=True)
             l_cursor.execute(l_query)
+
+            if l_cursor.rowcount == 0:
+                return get_user_string(p_context, 'e_noPassage').format(
+                    p_context['b'], l_pcChapter), \
+                       p_context, 'Error'
 
             # the version ID of the leftmost column
             l_versionLeft = l_versions[0][0]

@@ -313,14 +313,14 @@
 				});
 				// TOC collapsar open/close
 				$( "#TocCollapsar" ).on( "click", function(){
-					if( $( "#TocCollapsar" ).text() == "▼"){
+					if( $( "#TocCollapsar" ).text() == "§{CollapsarHide}"){
 						$( "#TocList" ).slideUp( 250 );
-						$( "#TocCollapsar" ).text("◄");
+						$( "#TocCollapsar" ).text("§{CollapsarShow}");
 					}
 					else {
 						// reverse of the above
 						$( "#TocList" ).slideDown( 250 );
-						$( "#TocCollapsar" ).text("▼");
+						$( "#TocCollapsar" ).text("§{CollapsarHide}");
 					}
 				});
 
@@ -337,14 +337,14 @@
 				});
 				// Lexicon collapsar open/close
 				$( "#LexCollapsar" ).on( "click", function(){
-					if( $( "#LexCollapsar" ).text() == "▼"){
+					if( $( "#LexCollapsar" ).text() == "§{CollapsarHide}"){
 						$( "#LexList" ).slideUp( 250 );
-						$( "#LexCollapsar" ).text("◄");
+						$( "#LexCollapsar" ).text("§{CollapsarShow}");
 					}
 					else {
 						// reverse of the above
 						$( "#LexList" ).slideDown( 250 );
-						$( "#LexCollapsar" ).text("▼");
+						$( "#LexCollapsar" ).text("§{CollapsarHide}");
 					}
 				});
 
@@ -361,14 +361,14 @@
 				});
 				// Lexicon collapsar open/close
 				$( "#SearchCollapsar" ).on( "click", function(){
-					if( $( "#SearchCollapsar" ).text() == "▼"){
+					if( $( "#SearchCollapsar" ).text() == "§{CollapsarHide}"){
 						$( "#RestOfSearch" ).slideUp( 250 );
-						$( "#SearchCollapsar" ).text("◄");
+						$( "#SearchCollapsar" ).text("§{CollapsarShow}");
 					}
 					else {
 						// reverse of the above
 						$( "#RestOfSearch" ).slideDown( 250 );
-						$( "#SearchCollapsar" ).text("▼");
+						$( "#SearchCollapsar" ).text("§{CollapsarHide}");
 					}
 				});
 			});
@@ -538,7 +538,7 @@
 							<div class="FormRow" style="§{HiddenFieldsStyle}">p: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_p" name="p" value="§{inputValue_p}"></div>
 							<div class="FormRow" style="§{HiddenFieldsStyle}">d: <input class="TextInput" type="§{HiddenFieldsType}" id="NavControl_d" name="d" value="§{inputValue_d}"></div>
 							<div class="FormRow">
-								<div class="Collapsar" id="SearchCollapsar">▼</div><div id="SearchLabel"><b>§{label_search}:</b></div>
+								<div class="Collapsar" id="SearchCollapsar">§{CollapsarHide}</div><div id="SearchLabel"><b>§{label_search}:</b></div>
 							</div>
 							<div id="RestOfSearch">
 								<div class="FormRow">
@@ -588,7 +588,7 @@
 							</div>
 						</form>
 						<div id="TocLinks">
-							<div id="TocCollapsar" class="Collapsar">▼</div><div id="TocLabel"><b>§{toc_toc}:</b></div>
+							<div id="TocCollapsar" class="Collapsar">§{CollapsarHide}</div><div id="TocLabel"><b>§{toc_toc}:</b></div>
 							<ul id="TocList">
 								<li><a href="" class="GoToc" command="T">§{toc_allScripture}</a></li>
 								<li><a href="" class="GoToc" command="Ta1">§{toc_Quran}</a></li>
@@ -597,7 +597,7 @@
 								<li><a href="" class="GoToc" command="Tc">§{toc_OT}</a></li>
 							</ul>
 							<div>
-								<div id="LexCollapsar" class="Collapsar">▼</div><div id="LexLabel"><b>§{lex_lex}:</b></div>
+								<div id="LexCollapsar" class="Collapsar">§{CollapsarHide}</div><div id="LexLabel"><b>§{lex_lex}:</b></div>
 								<ul id="LexList">
 									<li><a href="" class="GoLex" command="Lh">§{lex_Hebrew}</a></li>
 									<li><a href="" class="GoLex" command="Lg">§{lex_Greek}</a></li>

@@ -119,19 +119,17 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO Collapsible left panel elements to make elements at the bottom visible on small screens
+# TODO Check warning messages all over the application
+
+# TODO No Terminal ID sent ?
+
+# TODO Handling the absence of User Agent or malformed user Agents (like \n in front)
+
+# TODO Convert Hebrew from HTML entities to Unicode (for search)
 
 # TODO "In the Name of God the Merciful the Compassionate" in the beginning of each Surah
 
 # TODO Buttons to unclick all versions (Bible & Coran)
-
-# TODO examine ID_STRONGS with 2 roots in TB_ROOT_FORM (only admissible for proper nouns in Heb.)
-
-# TODO check that all returns have the proper cardinality (including in error cases)
-
-# TODO Check warning messages all over the application
-
-# TODO Convert Hebrew from HTML entities to Unicode (for search)
 
 # TODO Avoid creating unnecessary terminal IDs for keep-alive requests
 
@@ -147,6 +145,10 @@ __author__ = 'fi11222'
 
 # TODO Racine pointant sur un mot inexistant :
 # http://scripture-search.org:8000/?K=R&b=Eze&c=34&v=25&w=x&q=1&l=1&p=31&d=X-FFA&s=&o=2+15&e=0&h=0&i=0&j=0
+
+# TODO Crash on wrong root ID in url. Example (correct one below):
+# http://scripture-search.org/?K=R&b=Jos&c=9&v=10&w=x&q=1&l=1&p=33&d=Y-IWJ&s=loop&o=&e=0&h=0&i=0&j=0
+# http://scripture-search.org/?K=R&b=Jos&c=9&v=10&w=x&q=1&l=1&p=33&d=X-IWJ&s=loop&o=&e=0&h=0&i=0&j=0
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(ec_app_params.g_appName + '.se3_main')
@@ -412,7 +414,12 @@ def internal_get_labels(p_context):
     l_substituteVar['lex_Hebrew'] = se3_utilities.get_user_string(p_context, 'm_lexHebrew')
     l_substituteVar['lex_lex'] = se3_utilities.get_user_string(p_context, 'm_lexLex')
 
+    # Apply button label
     l_substituteVar['ApplyLabel'] = se3_utilities.get_user_string(p_context, 'm_ApplyLabel')
+
+    # Left panel section collapse buttons in open and closed positions
+    l_substituteVar['CollapsarShow'] = se3_utilities.get_user_string(p_context, 'm_CollapsarShow')
+    l_substituteVar['CollapsarHide'] = se3_utilities.get_user_string(p_context, 'm_CollapsarHide')
 
     return l_substituteVar
 

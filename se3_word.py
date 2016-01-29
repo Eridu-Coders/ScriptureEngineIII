@@ -118,7 +118,7 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
                 and L.ID_STRONGS = '{5}'
             ;""".format(l_pcBookId, l_pcChapter, l_pcVerse, l_pcWordId, l_pcInterlinearId, l_pcIdStrongs)
 
-    g_loggerWord.info('l_query {0}'.format(l_query))
+    g_loggerWord.debug('l_query {0}'.format(l_query))
     try:
         l_cursor = l_dbConnection.cursor(buffered=True)
         l_cursor.execute(l_query)
@@ -330,7 +330,7 @@ def getOccurences(p_context, p_dbConnection, p_idStrongs, p_wordId=None):
 
             if l_cursor.rowcount == 0:
                 l_interlList = re.sub('"H"', '"K"', l_interlList)
-                l_occuVersion = re.sub('Bible Hub', '"KJV"', l_interlList)
+                l_occuVersion = re.sub('Bible Hub', 'KJV/NASB', l_occuVersion)
                 l_HorK = 'K'
 
             l_cursor.close()

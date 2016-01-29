@@ -22,7 +22,7 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
     l_response = root_control(p_context)
 
     if len(l_response) > 0:
-        return l_response, p_context
+        return l_response, p_context, 'Error'
 
     l_dbConnection = p_dbConnectionPool.getConnection()
 
@@ -62,7 +62,7 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
         l_cursor.execute(l_query)
 
         if l_cursor.rowcount == 0:
-            return get_user_string(p_context, 'e_noRoot').format(p_context['d']), p_context
+            return get_user_string(p_context, 'e_noRoot').format(p_context['d']), p_context, 'Error'
         else:
             # response start
             l_response = '<table id="rOuterTable">'
