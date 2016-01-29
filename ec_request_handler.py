@@ -189,7 +189,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 l_browscap = EcRequestHandler.cm_browscap.search(self.m_headersDict['User-Agent'])
 
                 if l_browscap is None:
-                    self.m_logger.warning('No Browscap info found!')
+                    self.m_logger.warning(self.pack_massage('No Browscap info found!'))
                 else:
                     self.m_browser = l_browscap.name()
                     self.m_platform = l_browscap.platform()
@@ -249,8 +249,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             if l_cookieKey != g_sessionName:
                 # this can happen if there is a version change and old cookies remain at large
-                self.m_logger.warning('Cookie found but wrong name: "{0}" Should be "{1}"'.format(
-                    l_cookieKey, g_sessionName))
+                self.m_logger.warning(self.pack_massage('Cookie found but wrong name: "{0}" Should be "{1}"'.format(
+                    l_cookieKey, g_sessionName)))
                 # in this case, the cookie is to be destroyed, before a new one is created
                 self.m_delCookie = l_cookieKey
             else:
@@ -387,7 +387,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
         elif re.match('/test-error/', self.path):
             self.path = '/static/images/test.jpg'
+
             self.m_logger.warning(self.pack_massage('Error Email Test'))
+            
             super().do_GET()
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location

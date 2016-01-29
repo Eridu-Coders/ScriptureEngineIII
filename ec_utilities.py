@@ -152,10 +152,15 @@ def sendMail(p_subject, p_message):
     # maximum : 10 with the same subject every 5 minutes
     if l_count > 10:
         # overflow stored the message in a separate file
-        l_fLog = open(g_logFile + '.overflow', 'a')
+        l_fLog = open(re.sub('\.csv', '.overflow_msg', g_logFile), 'a')
         l_fLog.write('>>>>>>>\n' + l_message)
         l_fLog.close()
         return
+
+    # all messages
+    l_fLog = open(re.sub('\.csv', '.all_msg', g_logFile), 'a')
+    l_fLog.write('>>>>>>>\n' + l_message)
+    l_fLog.close()
 
     try:
         # smtp client init
@@ -178,12 +183,12 @@ def sendMail(p_subject, p_message):
             l_smtpObj.quit()
     except smtplib.SMTPException as l_eception:
         # if failure, stores the message in a separate file
-        l_fLog = open(g_logFile + '.msg', 'a')
+        l_fLog = open(re.sub('\.csv', '.rejected_msg', g_logFile), 'a')
         l_fLog.write('>>>>>>>\n' + l_message)
         l_fLog.close()
 
         # and create a log record in another separate file (distinct from the main log file)
-        l_fLog = open(g_logFile + '.nomail', 'a')
+        l_fLog = open(re.sub('\.csv', '.smtp_error', g_logFile), 'a')
         l_fLog.write(
             'Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;113;{1}\n'.format(
                 datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M.%S'),
