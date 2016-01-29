@@ -385,6 +385,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             # self.m_logger.info('g_staticRoot    : {0}'.format(g_staticRoot))
             # self.m_logger.info('static self.path: {0}'.format(self.path))
             super().do_GET()
+        elif re.match('/test-error/', self.path):
+            self.path = '/static/images/test.jpg'
+            self.m_logger.warning(self.pack_massage('Error Email Test'))
+            super().do_GET()
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
             # self.path = os.path.join(g_staticRoot, 'static/images/favicon.ico')
