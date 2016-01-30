@@ -123,21 +123,21 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_message = p_message
 
         l_message += '\n--------- Context ------------\n'
-        l_message += '◆ IP ---> [{0}]\n'.format(self.client_address[0])
-        l_message += '◆ Port ---> [{0}]\n'.format(self.client_address[1])
+        l_message += '- IP ---> [{0}]\n'.format(self.client_address[0])
+        l_message += '- Port ---> [{0}]\n'.format(self.client_address[1])
 
-        l_message += '◇ Browser ---> [{0}]\n'.format(self.m_browser)
-        l_message += '◇ Platform ---> [{0}]\n'.format(self.m_platform)
-        l_message += '◇ Rendering Eng ---> [{0}]\n'.format(self.m_renderingEngine)
-        l_message += '◇ Version ---> [{0}]\n'.format(self.m_browserVersion)
-        l_message += '◇ Platform Desc ---> [{0}]\n'.format(self.m_platformDesc)
-        l_message += '◇ Dev Maker ---> [{0}]\n'.format(self.m_devMaker)
-        l_message += '◇ Dev Name ---> [{0}]\n'.format(self.m_devName)
+        l_message += '= Browser ---> [{0}]\n'.format(self.m_browser)
+        l_message += '= Platform ---> [{0}]\n'.format(self.m_platform)
+        l_message += '= Rendering Eng ---> [{0}]\n'.format(self.m_renderingEngine)
+        l_message += '= Version ---> [{0}]\n'.format(self.m_browserVersion)
+        l_message += '= Platform Desc ---> [{0}]\n'.format(self.m_platformDesc)
+        l_message += '= Dev Maker ---> [{0}]\n'.format(self.m_devMaker)
+        l_message += '= Dev Name ---> [{0}]\n'.format(self.m_devName)
 
-        l_message += '◈ request line ---> [{0}]\n'.format(self.requestline)
-        l_message += '◈ raw context ---> [{0}]\n'.format(self.m_contextDict)
-        l_message += '◈ headers ---> [{0}]\n'.format(str(self.headers).strip())
-        l_message += '◈ headers dict ---> [{0}]\n'.format(self.m_headersDict)
+        l_message += '+ request line ---> [{0}]\n'.format(self.requestline)
+        l_message += '+ raw context ---> [{0}]\n'.format(self.m_contextDict)
+        l_message += '+ headers ---> [{0}]\n'.format(str(self.headers).strip())
+        l_message += '+ headers dict ---> [{0}]\n'.format(self.m_headersDict)
 
         return l_message
 
@@ -389,7 +389,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.path = '/static/images/test.jpg'
 
             self.m_logger.warning(self.pack_massage('Error Email Test'))
-            
+
             super().do_GET()
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
