@@ -189,6 +189,14 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 l_browscap = EcRequestHandler.cm_browscap.search(self.m_headersDict['User-Agent'])
 
                 if l_browscap is None:
+                    self.m_browser = '<Browscap info nor found>'
+                    self.m_platform = '<Browscap info nor found>'
+                    self.m_renderingEngine = '<Browscap info nor found>'
+                    self.m_browserVersion = '<Browscap info nor found>'
+                    self.m_platformDesc = '<Browscap info nor found>'
+                    self.m_devMaker = '<Browscap info nor found>'
+                    self.m_devName = '<Browscap info nor found>'
+
                     self.m_logger.warning(self.pack_massage('No Browscap info found!'))
                 else:
                     self.m_browser = l_browscap.name()
