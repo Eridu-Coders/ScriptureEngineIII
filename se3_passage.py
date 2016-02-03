@@ -242,35 +242,33 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
             l_start = True
             for l_versionId, l_bookId, l_chapterNumber, l_verseNumber, l_verseText in l_cursor:
                 if l_versionId == l_versionLeft:
+                    # the left-most column, with the verse references
                     if l_start:
                         l_start = False
                     else:
                         l_response += '</tr>'
 
-                    l_newContext = p_context
-                    l_newContext['K'] = 'V'
-                    l_newContext['b'] = l_bookId
-                    l_newContext['c'] = l_chapterNumber
-                    l_newContext['v'] = l_verseNumber
-                    l_jumpLink = makeLink(
-                        'VerseLink',
-                        l_newContext,
-                        '{0} {1}:{2}'.format(
-                            l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
-                            l_chapterNumber,
-                            l_verseNumber))
+                    # the right-click friendly link
+                    l_jumpLink = makeLinkCommon(p_context, l_bookId, l_chapterNumber, l_verseNumber,
+                                                '{0} {1}:{2}'.format(
+                                                    l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
+                                                    l_chapterNumber,
+                                                    l_verseNumber))
 
                     l_response += '<tr><td class="pVerseRef">' + l_jumpLink + '</td>'
 
+                # No verse text for this version
                 if l_verseText is None:
                     l_verseText = '<span class="pMessage">{0}</span>'.format(
                         get_user_string(p_context, 'p_noText'))
 
                 if l_versionId == '_gr':
+                    # ground text
                     l_verseText = '<span class="{0}">{1}</span>'.format(l_groundStyle, l_verseText)
                     l_response += '<td class="{0}">{1}</td>'.format(
                         'LRText' if l_idGroup0 == 'NT' else 'RLText', l_verseText)
                 else:
+                    # Ordinary translation text
                     l_response += '<td><span class="TranslationText">{0}</span></td>'.format(l_verseText)
 
             l_response += '</tr>'

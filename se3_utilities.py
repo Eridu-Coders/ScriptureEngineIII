@@ -821,15 +821,8 @@ def makeVerse(p_context, p_bookId, p_chapterNumber, p_verseNumber, p_verseText, 
 
     g_loggerUtilities.debug('l_verseText: {0}'.format(l_verseText))
 
-    l_newContext = p_context
-    l_newContext['K'] = 'V'
-    l_newContext['b'] = p_bookId
-    l_newContext['c'] = p_chapterNumber
-    l_newContext['v'] = p_verseNumber
-    l_jumpLink = makeLink(
-        'VerseLink',
-        l_newContext,
-        '{0} {1}:{2}'.format(p_bookShort, p_chapterNumber, p_verseNumber))
+    l_jumpLink = makeLinkCommon(p_context, p_bookId, p_chapterNumber, p_verseNumber,
+                                '{0} {1}:{2}'.format(p_bookShort, p_chapterNumber, p_verseNumber))
 
     if p_rightToLeft:
         # for right to left text (Arabic & Hebrew), the verse reference is put into a <div> that the CSS floats
@@ -863,6 +856,27 @@ def makeLink(p_class, p_context, p_label):
     l_link += '&'.join(['{0}={1}'.format(p, p_context[p]) for p in l_listParam])
 
     l_link += '">{0}</a>'.format(p_label)
+
+    return l_link
+
+
+# common entry point to make left-click friendly links
+def makeLinkCommon(p_context, p_bookId, p_chapterNumber, p_verseNumber, p_label,
+                   p_command='V', p_class='VerseLink', p_wordId=None):
+
+    l_newContext = p_context.copy()
+    l_newContext['K'] = p_command
+    l_newContext['b'] = p_bookId
+    l_newContext['c'] = p_chapterNumber
+    l_newContext['v'] = p_verseNumber
+
+    if p_wordId is not None:
+        l_newContext['d'] = p_wordId
+
+    l_link = makeLink(
+        p_class,
+        l_newContext,
+        p_label)
 
     return l_link
 

@@ -31,6 +31,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_pcVerse = p_context['v']
 
     g_loggerSingleVerse.debug('l_pcBookId: {0}'.format(l_pcBookId))
+    g_loggerSingleVerse.info('p_context[K]: {0}'.format(p_context['K']))
 
     l_dbConnection = p_dbConnectionPool.getConnection()
 
@@ -122,7 +123,6 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
             , ST_TRANSLIT
             , TX_TRANSLATION
             , TX_GRAMMAR
-            , TX_STRONGS_LINKS
             , N_WORD
             , ID_STRONGS
         from TB_INTERLINEAR
@@ -140,9 +140,18 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
         l_cursor.execute(l_query)
 
         l_interlinearHtml = ''
-        for l_ground, l_punct, l_translit, l_translation, l_grammar, l_links, l_word, l_idStrongs in l_cursor:
+        for l_ground, l_punct, l_translit, l_translation, l_grammar, l_word, l_idStrongs in l_cursor:
+
+            # word link
+            if len(l_ground.strip()) == 0:
+                l_links = '&nbsp;'
+            else:
+                l_links = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse, l_ground,
+                                         p_command='W',
+                                         p_class='WordLink',
+                                         p_wordId=str(l_word) + '-' + l_interlinearId + '-' + l_idStrongs)
+
             # values are replaced with &nbsp; if empty in order to avoid collapsed cells
-            l_links = '&nbsp;' if len(l_links.strip()) == 0 else l_links.strip()
             l_translit = '&nbsp;' if len(l_translit.strip()) == 0 else l_translit.strip()
             l_translation = '&nbsp;' if len(l_translation.strip()) == 0 else l_translation.strip()
             l_grammar = '&nbsp;' if len(l_grammar.strip()) == 0 else l_grammar.strip()
@@ -165,6 +174,8 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
         l_cursor.close()
     except Exception as l_exception:
         g_loggerSingleVerse.warning('Something went wrong {0}'.format(l_exception.args))
+
+    g_loggerSingleVerse.info('p_context[K] H: {0}'.format(p_context['K']))
 
     # ----------------- LXX --------------------------------------------------------------------------------------------
     # only available for OT obviously
@@ -227,7 +238,13 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     # KJV or NASB is selected
     if l_kjvOrNasbDisplayed:
         l_query = """
-            select ST_GROUND, ST_TRANSLIT, TX_TRANSLATION, ST_TRANS_ALT, TX_STRONGS_LINKS, N_WORD, ID_STRONGS
+            select
+                ST_GROUND
+                , ST_TRANSLIT
+                , TX_TRANSLATION
+                , ST_TRANS_ALT
+                , N_WORD
+                , ID_STRONGS
             from TB_INTERLINEAR
             where
                 ID_BOOK = '{0}'
@@ -243,7 +260,17 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
             l_cursor.execute(l_query)
 
             l_interlinearHtml = ''
-            for l_ground, l_translit, l_translKjv, l_translNasb, l_links, l_word, l_idStrongs in l_cursor:
+            for l_ground, l_translit, l_translKjv, l_translNasb, l_word, l_idStrongs in l_cursor:
+
+                # word link
+                if len(l_ground.strip()) == 0:
+                    l_links = '&nbsp;'
+                else:
+                    l_links = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse, l_ground,
+                                             p_command='W',
+                                             p_class='WordLink',
+                                             p_wordId=str(l_word) + '-' + 'K' + '-' + l_idStrongs)
+
                 # values are replaced with &nbsp; if empty in order to avoid collapsed cells
                 l_links = '&nbsp;' if len(l_links.strip()) == 0 else l_links.strip()
                 l_translKjv = '&nbsp;' if len(l_translKjv.strip()) == 0 else l_translKjv.strip()
@@ -280,6 +307,8 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
         except Exception as l_exception:
             g_loggerSingleVerse.warning('Something went wrong {0}'.format(l_exception.args))
 
+    g_loggerSingleVerse.info('p_context[K] K: {0}'.format(p_context['K']))
+
     # ----------------- List of translations ---------------------------------------------------------------------------
     l_response += translationList(p_context, l_pcBookId, l_pcChapter, l_pcVerse, l_dbConnection)
 
@@ -290,6 +319,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_response = l_topBanner + l_response + l_topBanner
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
+    g_loggerSingleVerse.info('p_context[K] End: {0}'.format(p_context['K']))
 
     return l_response, p_context, l_title
 
