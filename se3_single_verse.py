@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import json
+
 from se3_utilities import *
 import ec_utilities
 
@@ -181,7 +183,11 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     # only available for OT obviously
     if l_lxxDisplayed:
         l_query = """
-            select ST_GROUND, TX_TRANSLATION, TX_STRONGS_LINKS
+            select
+                ST_GROUND
+                , TX_STRONGS_LIST
+                , TX_TRANSLATION
+                , N_WORD
             from TB_INTERLINEAR
             where
                 ID_BOOK = '{0}'
@@ -197,8 +203,41 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
             l_cursor.execute(l_query)
 
             l_interlinearHtml = ''
-            for l_ground, l_translation, l_links in l_cursor:
-                l_links = '&nbsp;' if len(l_links.strip()) == 0 else l_links.strip()
+            for l_ground, l_strongsVector, l_translation, l_word in l_cursor:
+                if len(l_ground.strip()) == 0:
+                    # no ground text at all --> &nbsp; to avoid collapsed cell
+                    l_links = '&nbsp;'
+                else:
+                    # list of words in the ground text
+                    l_wordList = l_ground.split(' ')
+                    # corresponding list of Strong's IDs
+                    l_strongsList = json.loads(l_strongsVector)
+
+                    # Warning if 2 lists do not have same length
+                    if len(l_strongsList) != len(l_wordList):
+                        g_loggerSingleVerse.warning(
+                            ('{0} {1}:{2}.{3} - Length of ground text [{4}] and ' +
+                             'Strong\'s ID list [{5}] do not match').format(
+                                l_pcBookId, l_pcChapter, l_pcVerse, l_word, l_ground, l_strongsVector
+                            )
+                        )
+
+                    # make list of links for those words that have a strong's ID (those with 'NoStrong'
+                    # are just the ground text word without link)
+                    l_links = ' '.join(
+                        [
+                            (
+                                l_groundWord if l_strongsId == 'NoStrong' else
+                                makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse, l_groundWord,
+                                               p_command='W',
+                                               p_class='WordLink',
+                                               p_wordId=str(l_word) + '-' + 'L' + '-' + l_strongsId)
+                            )
+                            for l_strongsId, l_groundWord in zip(l_strongsList, l_wordList)
+                        ]
+                    )
+
+                # l_links = '&nbsp;' if len(l_links.strip()) == 0 else l_links.strip()
                 l_translation = '&nbsp;' if len(l_translation.strip()) == 0 else l_translation.strip()
 
                 # remove lint from the LXX translation text
