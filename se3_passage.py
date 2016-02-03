@@ -97,11 +97,13 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
 
     # whole chapter
     if not l_wholeChapter:
-        l_whole = ('<a href="" class="svGoPassage TopLink" newBook="{0}" newChapter="{1}" newVerse1="1" ' +
-                   'newVerse2="x">{2}</a>').format(
-                        l_pcBookId, l_pcChapter,
-                        get_user_string(p_context, 'sv_wholeChapter') if l_idGroup0 != 'FT'
-                        else get_user_string(p_context, 'sv_wholeSurah'))
+        # verse range = 1-x
+        l_whole = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, '1',
+                                 get_user_string(p_context, 'sv_wholeChapter') if l_idGroup0 != 'FT'
+                                 else get_user_string(p_context, 'sv_wholeSurah'),
+                                 p_command='P',
+                                 p_class='TopLink',
+                                 p_v2='x')
     else:
         l_whole = ''
 
@@ -133,15 +135,18 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
 
         # previous and next links
         # both contain 2 attribute for the new book/chapter value + one for the tooltip (title="")
-        l_previousLink = ('<a href="" class="svGoPassage TopLink" newBook="{0}" newChapter="{1}" ' +
-                          'newVerse1="1" newVerse2="x" ' +
-                          'title="{2}">◄</a>').format(l_previousBook, l_previousChapter,
-                                                      get_user_string(p_context, 'p_PreviousLink'))
+        # both have 1-x as verse ranges since these are full chapters
+        l_previousLink = makeLinkCommon(p_context, l_previousBook, l_previousChapter, '1', '◄',
+                                        p_command='P',
+                                        p_class='TopLink',
+                                        p_v2='x',
+                                        p_toolTip=get_user_string(p_context, 'p_PreviousLink'))
 
-        l_nextLink = ('<a href="" class="svGoPassage TopLink" newBook="{0}" newChapter="{1}" ' +
-                      'newVerse1="1" newVerse2="x" ' +
-                      'title="{2}">►</a>').format(l_nextBook, l_nextChapter,
-                                                  get_user_string(p_context, 'p_NextLink'))
+        l_nextLink = makeLinkCommon(p_context, l_nextBook, l_nextChapter, '1', '►',
+                                    p_command='P',
+                                    p_class='TopLink',
+                                    p_v2='x',
+                                    p_toolTip=get_user_string(p_context, 'p_NextLink'))
     else:
         l_previousLink = ''
         l_nextLink = ''

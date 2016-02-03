@@ -144,14 +144,21 @@ def get_root(p_previousContext, p_context, p_dbConnectionPool):
                     elif l_idGroup0 == 'FT':
                         l_groundStyle = 'rGroundArabic'
 
-                    l_response += ('<a href="" class="GoRoot" p_idroot="{2}">' +
-                                   '<span class="{0}">{1}</span></a>' +
-                                   (' ({0})'.format(l_def) if len(l_def.strip()) > 0 else '') +
-                                   ' ').format(l_groundStyle, l_ground, l_idRoot)
+                    l_rootLink = makeLinkCommon(p_context, '', '', '',
+                                                '<span class="{0}">{1}</span>'.format(l_groundStyle, l_ground),
+                                                p_command='R',
+                                                p_class='RootLink',
+                                                p_wordId=l_idRoot)
 
-                l_response += '<a href="" class="GoRoot" p_idroot="{0}">{1}</a></td></tr>\n'.format(
-                    l_allRoots, get_user_string(p_context, 'w_allRoots')
-                )
+                    l_response += l_rootLink + (' ({0})'.format(l_def) if len(l_def.strip()) > 0 else '') + ' '
+
+                l_all = makeLinkCommon(p_context, '', '', '',
+                                       get_user_string(p_context, 'w_allRoots'),
+                                       p_command='R',
+                                       p_class='RootLink',
+                                       p_wordId=l_allRoots)
+
+                l_response += l_all + '</td></tr>\n'
 
             l_cursor.close()
         except Exception as l_exception:

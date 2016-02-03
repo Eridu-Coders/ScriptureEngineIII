@@ -33,7 +33,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_pcVerse = p_context['v']
 
     g_loggerSingleVerse.debug('l_pcBookId: {0}'.format(l_pcBookId))
-    g_loggerSingleVerse.info('p_context[K]: {0}'.format(p_context['K']))
+    g_loggerSingleVerse.debug('p_context[K]: {0}'.format(p_context['K']))
 
     l_dbConnection = p_dbConnectionPool.getConnection()
 
@@ -177,7 +177,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     except Exception as l_exception:
         g_loggerSingleVerse.warning('Something went wrong {0}'.format(l_exception.args))
 
-    g_loggerSingleVerse.info('p_context[K] H: {0}'.format(p_context['K']))
+    g_loggerSingleVerse.debug('p_context[K] H: {0}'.format(p_context['K']))
 
     # ----------------- LXX --------------------------------------------------------------------------------------------
     # only available for OT obviously
@@ -358,7 +358,7 @@ def get_single_verse(p_previousContext, p_context, p_dbConnectionPool):
     l_response = l_topBanner + l_response + l_topBanner
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
-    g_loggerSingleVerse.info('p_context[K] End: {0}'.format(p_context['K']))
+    g_loggerSingleVerse.debug('p_context[K] End: {0}'.format(p_context['K']))
 
     return l_response, p_context, l_title
 
@@ -493,13 +493,11 @@ def topBanner(p_context, p_idGroup0, p_pcVerse, p_pcChapter, p_bookPrev, p_pcBoo
 
     # previous and next links
     # both contain 3 attribute for the new book/chapter/verse value + one for the tooltip (title="")
-    l_previousLink = ('<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}"' +
-                      'title="{3}">◄</a>').format(l_previousBook, l_previousChapter, l_previousVerse,
-                                                  get_user_string(p_context, 'sv_PreviousLink'))
+    l_previousLink = makeLinkCommon(p_context, l_previousBook, l_previousChapter, l_previousVerse,
+                                    '◄', p_toolTip=get_user_string(p_context, 'sv_PreviousLink'))
 
-    l_nextLink = ('<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}"' +
-                  'title="{3}">►</a>').format(l_nextBook, l_nextChapter, l_nextVerse,
-                                              get_user_string(p_context, 'sv_NextLink'))
+    l_nextLink = makeLinkCommon(p_context, l_nextBook, l_nextChapter, l_nextVerse,
+                                '►', p_toolTip=get_user_string(p_context, 'sv_NextLink'))
 
     # 5 adjacent verses
     l_5start = max(int(p_pcVerse) - 2, 1)
@@ -507,9 +505,11 @@ def topBanner(p_context, p_idGroup0, p_pcVerse, p_pcChapter, p_bookPrev, p_pcBoo
     if l_5end - l_5start < 4:
         l_5start = max(l_5end - 4, 1)
 
-    l_5Link = ('<a href="" class="svGoPassage TopLink" newBook="{0}" newChapter="{1}" newVerse1="{2}" ' +
-               'newVerse2="{3}">{4}</a>').format(p_pcBookId, p_pcChapter, l_5start, l_5end,
-                                                 get_user_string(p_context, 'sv_5Neighborhood'))
+    l_5Link = makeLinkCommon(p_context, p_pcBookId, p_pcChapter, l_5start,
+                             get_user_string(p_context, 'sv_5Neighborhood'),
+                             p_command='P',
+                             p_class='TopLink',
+                             p_v2=l_5end)
 
     # 9 adjacent verses
     l_9start = max(int(p_pcVerse) - 4, 1)
@@ -517,16 +517,19 @@ def topBanner(p_context, p_idGroup0, p_pcVerse, p_pcChapter, p_bookPrev, p_pcBoo
     if l_9end - l_9start < 8:
         l_9start = max(l_9end - 8, 1)
 
-    l_9Link = ('<a href="" class="svGoPassage TopLink" newBook="{0}" newChapter="{1}" newVerse1="{2}" ' +
-               'newVerse2="{3}">{4}</a>').format(p_pcBookId, p_pcChapter, l_9start, l_9end,
-                                                 get_user_string(p_context, 'sv_9Neighborhood'))
+    l_9Link = makeLinkCommon(p_context, p_pcBookId, p_pcChapter, l_9start,
+                             get_user_string(p_context, 'sv_9Neighborhood'),
+                             p_command='P',
+                             p_class='TopLink',
+                             p_v2=l_9end)
 
     # whole chapter
-    l_whole = ('<a href="" class="svGoPassage TopLink" newBook="{0}" newChapter="{1}" newVerse1="1" ' +
-               'newVerse2="x">{2}</a>').format(
-                    p_pcBookId, p_pcChapter,
-                    get_user_string(p_context, 'sv_wholeChapter') if p_idGroup0 != 'FT'
-                    else get_user_string(p_context, 'sv_wholeSurah'))
+    l_whole = makeLinkCommon(p_context, p_pcBookId, p_pcChapter, '1',
+                             get_user_string(p_context, 'sv_wholeChapter') if p_idGroup0 != 'FT'
+                             else get_user_string(p_context, 'sv_wholeSurah'),
+                             p_command='P',
+                             p_class='TopLink',
+                             p_v2='x')
 
     # Final top banner assembly
     l_links = l_allToggle + l_displayLxx + l_displayKjv + l_displayNasb + l_5Link + l_9Link + l_whole

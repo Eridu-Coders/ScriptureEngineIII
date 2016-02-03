@@ -750,6 +750,7 @@ def root_control(p_context):
     # the word ID parameter must be a sequence of items separated by '|'. Each item is either
     # 1) a strongs number: Z9999 with Z = A, H or G and 9999 a 4 digit number, or
     # 2) a "pure root" ID of the form X-ZZZ with ZZZ any trigram of capital letters
+    # 3) an Arabic root which can be any sequence of non-space letters
     if re.search('(\S{3}|[HGA][0-9]{4}|X-[A-Z]{3})(\|(\S{3}|[HGA][0-9]{4}|X-[A-Z]{3}))*', l_rootString) is None:
         return get_user_string(p_context, 'e_wrongRoot').format(l_rootString)
 
@@ -848,8 +849,11 @@ def makeVerse(p_context, p_bookId, p_chapterNumber, p_verseNumber, p_verseText, 
 
 
 # Create a link to a new context
-def makeLink(p_class, p_context, p_label):
-    l_link = '<a class="{0}" href="./?'.format(p_class)
+def makeLink(p_class, p_context, p_label, p_toolTip=None):
+    if p_toolTip is None:
+        l_link = '<a class="{0}" href="./?'.format(p_class)
+    else:
+        l_link = '<a class="{0}" title="{1}" href="./?'.format(p_class, p_toolTip)
 
     l_listParam = ['K', 'b', 'c', 'd', 'e', 'h', 'i', 'j', 'l', 'o', 'p', 'q', 's', 't', 'u', 'v', 'w']
 
@@ -862,7 +866,7 @@ def makeLink(p_class, p_context, p_label):
 
 # common entry point to make left-click friendly links
 def makeLinkCommon(p_context, p_bookId, p_chapterNumber, p_verseNumber, p_label,
-                   p_command='V', p_class='VerseLink', p_wordId=None):
+                   p_command='V', p_class='VerseLink', p_wordId=None, p_toolTip=None, p_v2=None):
 
     l_newContext = p_context.copy()
     l_newContext['K'] = p_command
@@ -873,10 +877,14 @@ def makeLinkCommon(p_context, p_bookId, p_chapterNumber, p_verseNumber, p_label,
     if p_wordId is not None:
         l_newContext['d'] = p_wordId
 
+    if p_v2 is not None:
+        l_newContext['w'] = p_v2
+
     l_link = makeLink(
         p_class,
         l_newContext,
-        p_label)
+        p_label,
+        p_toolTip)
 
     return l_link
 

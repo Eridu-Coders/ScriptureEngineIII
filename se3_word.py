@@ -141,21 +141,35 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
                 ec_app_params.g_appTitle)
 
             # create links from ground text words inside derivation field, e.g.: אָבִיב (H24)
+            l_derLinkHb = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse,
+                                         r'<span class="Hb">\1</span>',
+                                         p_command='W',
+                                         p_class='RootLink',
+                                         p_wordId=r'_-_-\2')
+
             l_derivation = re.sub(r'([\u0590-\u05FF\u200D][\s\u0590-\u05FF\u200D]+)\s+\((H[0-9]+)\)',
-                                  r'<a href="" class="GoWord" wordId="_-_-\2"><span class="Hb">\1</span></a>',
+                                  l_derLinkHb,
                                   l_derivation)
 
+            l_derLinkGk = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse,
+                                         r'<span class="Gk">\1</span>',
+                                         p_command='W',
+                                         p_class='RootLink',
+                                         p_wordId=r'_-_-\2')
+
             l_derivation = re.sub(r'([\u0370-\u03FF\u1F00-\u1FFF][\s\u0370-\u03FF\u1F00-\u1FFF]+)\s+\((G[0-9]+)\)',
-                                  r'<a href="" class="GoWord" wordId="_-_-\2"><span class="Gk">\1</span></a>',
+                                  l_derLinkGk,
                                   l_derivation)
 
             # ensure all strongs numbers in links have 4 digits
-            l_derivation = re.sub(r'<a href="" class="GoWord" wordId="_-_-([HG])([0-9]{3})">',
-                                  r'<a href="" class="GoWord" wordId="_-_-\g<1>0\2">', l_derivation)
-            l_derivation = re.sub(r'<a href="" class="GoWord" wordId="_-_-([HG])([0-9]{2})">',
-                                  r'<a href="" class="GoWord" wordId="_-_-\g<1>00\2">', l_derivation)
-            l_derivation = re.sub(r'<a href="" class="GoWord" wordId="_-_-([HG])([0-9])">',
-                                  r'<a href="" class="GoWord" wordId="_-_-\g<1>000\2">', l_derivation)
+            l_derivation = re.sub(r'd=_-_-([HG])([0-9]{3})&',
+                                  r'd=_-_-\g<1>0\2&', l_derivation)
+            l_derivation = re.sub(r'd=_-_-([HG])([0-9]{2})&',
+                                  r'd=_-_-\g<1>00\2&', l_derivation)
+            l_derivation = re.sub(r'd=_-_-([HG])([0-9])&',
+                                  r'd=_-_-\g<1>000\2&', l_derivation)
+            # we can assume that there is always '&' at the end because the links are made by placing the parameters
+            # in alphabetical order
 
             l_freqA = l_freqA.strip()
             l_freqB = l_freqB.strip()
@@ -205,10 +219,14 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
                 else:
                     l_groundRoot = '<span class="at">{0}</span>'.format(l_groundRoot)
 
-                l_response += ('<tr><td colspan="3"><span class="pFieldName">{2}:</span> ' +
-                               '<a href="" class="GoRoot" p_idroot="{3}">{0}</a> ' +
-                               '(<span class="wTranslit">{1}</span>)</td></tr>').format(
-                    l_groundRoot, l_translitRoot, get_user_string(p_context, 'w_root'), l_idRoot)
+                l_rootLink = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse, l_groundRoot,
+                                            p_command='R',
+                                            p_class='RootLink',
+                                            p_wordId=l_idRoot)
+
+                l_response += ('<tr><td colspan="3"><span class="pFieldName">{1}:</span> ' + l_rootLink +
+                               ' (<span class="wTranslit">{0}</span>)</td></tr>').format(
+                    l_translitRoot, get_user_string(p_context, 'w_root'))
 
             if l_idGroup0 != 'FT':
                 # derivation (etymology)
