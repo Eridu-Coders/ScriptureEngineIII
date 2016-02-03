@@ -527,7 +527,7 @@ p.pVersionNameParallel{
 	font-size: smaller;
 }
 
-a.GoOneVerse{
+a.GoOneVerse, a.VerseLink{
 	font-weight: bold;
 }
 

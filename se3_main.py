@@ -143,6 +143,8 @@ __author__ = 'fi11222'
 
 # TODO Arab <---> Hebrew roots correspondence
 
+# TODO Eliminate 'But not the word' if there are no excluded words in the search report message
+
 # TODO Racine pointant sur un mot inexistant :
 # http://scripture-search.org:8000/?K=R&b=Eze&c=34&v=25&w=x&q=1&l=1&p=31&d=X-FFA&s=&o=2+15&e=0&h=0&i=0&j=0
 

@@ -448,11 +448,28 @@ def getOccurences(p_context, p_dbConnection, p_idStrongs, p_wordId=None):
                 l_cellStyle = 'wOccurences'
 
             l_occuString += '<tr><td colspan="2" class="{0}">'.format(l_cellStyle)
+
+            # verse link
+            l_verseContext = p_context
+            l_verseContext['K'] = 'V'
+            l_verseContext['b'] = l_bookId
+            l_verseContext['c'] = l_chapter
+            l_verseContext['v'] = l_verse
+            l_verseLink = makeLink(
+                'VerseLink',
+                l_verseContext,
+                '{0} {1}:{2}'.format(
+                    l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
+                    l_chapter,
+                    l_verse))
+
             # verse/word reference
             l_occuString += \
-                ('(<a href="" class="GoOneVerse" pBook="{1}" pChapter="{2}" pVerse="{3}">{0}&nbsp;{2}:{3}</a>.' +
-                 '<a href="" class="GoOneWord" p_book="{1}" p_chapter="{2}" p_verse="{3}" p_wordId="{5}"' +
-                 '>{4}</a>)</td>').format(
+                ('(' + l_verseLink +
+                 # '<a href="" class="GoOneVerse" pBook="{1}" pChapter="{2}" pVerse="{3}">{0}&nbsp;{2}:{3}</a>' +
+                 '.' +
+                 '<a href="" class="GoOneWord" p_book="{1}" p_chapter="{2}" p_verse="{3}" p_wordId="{5}">{4}</a>' +
+                 ')</td>').format(
                     l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
                     l_bookId,
                     l_chapter,

@@ -247,12 +247,20 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                     else:
                         l_response += '</tr>'
 
-                    l_response += ('<tr><td class="pVerseRef">' +
-                                   '<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}">' +
-                                   '{3} {1}:{2}</a></td>').format(
-                                   l_bookId, l_chapterNumber, l_verseNumber,
-                                   l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
-                                   l_verseText)
+                    l_newContext = p_context
+                    l_newContext['K'] = 'V'
+                    l_newContext['b'] = l_bookId
+                    l_newContext['c'] = l_chapterNumber
+                    l_newContext['v'] = l_verseNumber
+                    l_jumpLink = makeLink(
+                        'VerseLink',
+                        l_newContext,
+                        '{0} {1}:{2}'.format(
+                            l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn,
+                            l_chapterNumber,
+                            l_verseNumber))
+
+                    l_response += '<tr><td class="pVerseRef">' + l_jumpLink + '</td>'
 
                 if l_verseText is None:
                     l_verseText = '<span class="pMessage">{0}</span>'.format(
@@ -310,7 +318,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                 l_cursor.execute(l_query)
 
                 for l_verseText, l_verseNumber in l_cursor:
-                    l_response += makeVerse(l_pcBookId, l_pcChapter, l_verseNumber, l_verseText,
+                    l_response += makeVerse(p_context, l_pcBookId, l_pcChapter, l_verseNumber, l_verseText,
                                             l_chapterShortFr if l_versionLanguage == 'fr' else l_chapterShortEn)
 
                 l_cursor.close()
@@ -356,11 +364,11 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                     # l_verseText = '<span class="{0}">{1}</span>'.format(l_groundStyle, l_verseText)
                     if l_idGroup0 == 'NT':
                         # left to right for Greek
-                        l_response += makeVerse(l_pcBookId, l_pcChapter, l_verseNumber, l_verseText,
+                        l_response += makeVerse(p_context, l_pcBookId, l_pcChapter, l_verseNumber, l_verseText,
                                                 l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn)
                     else:
                         # right to left otherwise
-                        l_response += makeVerse(l_pcBookId, l_pcChapter, l_verseNumber, l_verseText,
+                        l_response += makeVerse(p_context, l_pcBookId, l_pcChapter, l_verseNumber, l_verseText,
                                                 l_chapterShortFr if l_uiLanguage == 'fr' else l_chapterShortEn, True)
 
                 l_cursor.close()

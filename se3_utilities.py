@@ -793,7 +793,7 @@ def get_chapter_names(p_context, p_dbConnection):
 # p_highlightList: list of words to highlight (search output only)
 # p_highlightCaseSensitive: highlight take case into account ? (search output only)
 # p_counter: number to display btw [] to the left of the verse ref (search output only)
-def makeVerse(p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort, p_rightToLeft=False,
+def makeVerse(p_context, p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort, p_rightToLeft=False,
               p_highlightList=None, p_highlightCaseSensitive=False, p_counter=None, p_versionLabel=None):
 
     l_verseText = p_verseText
@@ -809,7 +809,7 @@ def makeVerse(p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort
                 '(' + l_word + ')',
                 r'<b>\1</b>',
                 l_verseText,
-                re.IGNORECASE if not p_highlightCaseSensitive else 0)
+                flags=re.IGNORECASE if not p_highlightCaseSensitive else 0)
 
     # proper class, depending on language
     if is_Hebrew(l_verseText):
@@ -819,27 +819,52 @@ def makeVerse(p_bookId, p_chapterNumber, p_verseNumber, p_verseText, p_bookShort
     elif is_Arabic(l_verseText):
         l_verseText = '<span class="sArabic">{0}</span>'.format(l_verseText)
 
+    g_loggerUtilities.debug('l_verseText: {0}'.format(l_verseText))
+
+    l_newContext = p_context
+    l_newContext['K'] = 'V'
+    l_newContext['b'] = p_bookId
+    l_newContext['c'] = p_chapterNumber
+    l_newContext['v'] = p_verseNumber
+    l_jumpLink = makeLink(
+        'VerseLink',
+        l_newContext,
+        '{0} {1}:{2}'.format(p_bookShort, p_chapterNumber, p_verseNumber))
+
     if p_rightToLeft:
-        # for right to left display, the verse reference is put into a <div> that the CSS floats rightwards.
-        # That way, the text floats around it as it should
-        return ('<div class="sFloatingVerse">{5}' +
-                '<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}">' +
-                '{3} {1}:{2}</a>' +
+        # for right to left text (Arabic & Hebrew), the verse reference is put into a <div> that the CSS floats
+        # rightwards. That way, the text floats around it as it should
+        return ('<div class="sFloatingVerse">{1}' + l_jumpLink +
                 (' <span class="sCounter">[{0}]</span>'.format(p_counter) if p_counter is not None else '') +
                 '</div>' +
-                '<p class="OneVerseTranslationRL">{4}</p>').format(
-                    p_bookId, p_chapterNumber, p_verseNumber, p_bookShort, l_verseText,
+                '<p class="OneVerseTranslationRL">{0}</p>').format(
+                    l_verseText,
                     ' <span class="sCounter">[{0}]</span>'.format(p_versionLabel) if p_versionLabel is not None else ''
                 )
     else:
+        # for left to right text (translations & Greek)
         return ('<p class="OneVerseTranslation">' +
                 ('<span class="sCounter">[{0}]</span> '.format(p_counter) if p_counter is not None else '') +
-                '<a href="" class="GoOneVerse" pBook="{0}" pChapter="{1}" pVerse="{2}">' +
-                '{3} {1}:{2}</a> <span class="TranslationText">{4}</span>{5}</p>').format(
-                    p_bookId, p_chapterNumber, p_verseNumber, p_bookShort, l_verseText,
+                l_jumpLink +
+                ' <span class="TranslationText">{0}</span>{1}</p>').format(
+                    l_verseText,
                     ' <span class="sCounter">[{0}]</span>'.format(p_versionLabel) if p_versionLabel is not None else ''
                 )
-    # In both cases, the verse reference is put into a link with a GoOneVerse class (+ book/chapter/verse params.)
+    # In both cases, the verse reference is put into a link containing a ref with the full context.
+    # This allows the link to be opened in another window or browser tab
+
+
+# Create a link to a new context
+def makeLink(p_class, p_context, p_label):
+    l_link = '<a class="{0}" href="./?'.format(p_class)
+
+    l_listParam = ['K', 'b', 'c', 'd', 'e', 'h', 'i', 'j', 'l', 'o', 'p', 'q', 's', 't', 'u', 'v', 'w']
+
+    l_link += '&'.join(['{0}={1}'.format(p, p_context[p]) for p in l_listParam])
+
+    l_link += '">{0}</a>'.format(p_label)
+
+    return l_link
 
 
 # Neighborhood creation function ---------------------------------------------------------------------------------------

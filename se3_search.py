@@ -84,7 +84,7 @@ def get_search(p_previousContext, p_context, p_dbConnectionPool):
         for l_bq, l_versionLabel, l_versionOrder, l_bookOrder, l_bookNameEn, l_bookNameFr, l_idGroup0, l_idGroup1, \
                 l_idBook, l_chapterNumber, l_verseNumber, l_text in l_cursor:
 
-            l_response += makeVerse(l_idBook, l_chapterNumber, l_verseNumber, l_text,
+            l_response += makeVerse(p_context, l_idBook, l_chapterNumber, l_verseNumber, l_text,
                                     l_bookNameFr if p_context['z'] == 'fr' else l_bookNameEn,
                                     p_rightToLeft=is_Hebrew(l_text) or is_Arabic(l_text),
                                     p_highlightList=l_wordList,
