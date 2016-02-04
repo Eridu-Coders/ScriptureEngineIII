@@ -722,9 +722,15 @@ def get_toc(p_previousContext, p_context, p_dbConnectionPool):
 
             l_chapterCount = 1
             for l_chapter, l_nameOr, l_nameOr2, l_nameEn, l_nameFr in l_cursor:
-                l_response += ('<p class="QuranSurah"><a href="" class="svGoPassage" newBook="Qur" ' +
-                               'newChapter="{0}" newVerse1="1" newVerse2="x"><b>{0}</b></a>: {1} - {2}</p>\n').format(
-                    l_chapter,
+
+                l_tocLink = se3_utilities.makeLinkCommon(
+                    p_context, 'Qur', l_chapter, '1', l_chapter,
+                    p_command='P',
+                    p_class='TocLink',
+                    p_v2='x')
+
+                l_response += ('<p class="QuranSurah">' + l_tocLink +
+                               ': {0} - {1}</p>\n').format(
                     l_nameFr if p_context['z'] == 'fr' else l_nameEn,
                     l_nameOr2
                 )
@@ -739,10 +745,15 @@ def get_toc(p_previousContext, p_context, p_dbConnectionPool):
         # Bible & All scripture (Book name + list of chapter numbers)
         else:
             for l_bookId, l_chapterCount, l_nameEn, l_nameFr in l_cursor:
-                l_chapLinks = ''
-                for i in range(1, l_chapterCount+1):
-                    l_chapLinks += ('<a href="" class="svGoPassage" newBook="{0}" ' +
-                                    'newChapter="{1}" newVerse1="1" newVerse2="x">{1}</a>\n').format(l_bookId, i)
+
+                l_chapLinks = ' '.join([
+                    se3_utilities.makeLinkCommon(
+                        p_context, l_bookId, i, '1', i,
+                        p_command='P',
+                        p_class='TocLink',
+                        p_v2='x')
+                    for i in range(1, l_chapterCount+1)
+                ])
 
                 l_response += '<p class="TocBook">{0}: {1}</p>\n'.format(
                     l_nameFr if p_context['z'] == 'fr' else l_nameEn, l_chapLinks
@@ -755,4 +766,4 @@ def get_toc(p_previousContext, p_context, p_dbConnectionPool):
 
     p_dbConnectionPool.releaseConnection(l_dbConnection)
 
-    return l_response, p_context, ''
+    return l_response, p_context, ec_app_params.g_appTitle
