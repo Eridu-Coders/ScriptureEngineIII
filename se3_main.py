@@ -499,7 +499,7 @@ def internal_get_header_controls(p_context):
     l_verMask = 1
     l_selectedCount = 0
     l_selectedList = [v[0] for v in se3_utilities.get_version_list(p_context, False, 'B')]
-    for l_versionId, l_language, l_default, l_labelShort, l_labelTiny in se3_utilities.getVersionList('B'):
+    for l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in se3_utilities.getVersionList('B'):
         # Bible selection checkboxes
         # Each checkbox row is enclosed in a <div class="VersionSelector"> together with its label
         # The checkbox format is:
@@ -552,7 +552,7 @@ def internal_get_header_controls(p_context):
     l_verMask = 1
     l_selectedCount = 0
     l_selectedList = [v[0] for v in se3_utilities.get_version_list(p_context, False, 'Q')]
-    for l_versionId, l_language, l_default, l_labelShort, l_labelTiny in se3_utilities.getVersionList('Q'):
+    for l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in se3_utilities.getVersionList('Q'):
         # Quran selection checkboxes
         # Each checkbox row is enclosed in a <div class="VersionSelector"> together with its label
         # The checkbox format is:

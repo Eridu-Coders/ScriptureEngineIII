@@ -170,7 +170,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
         l_response += '<tr><td></td>\n'
 
         # column titles
-        for l_versionId, l_versionLanguage, l_default, l_labelShort, l_labelTiny in l_versions:
+        for l_versionId, l_versionLanguage, l_default, l_labelShort, l_labelTiny, l_basmalat in l_versions:
             l_chapterName = l_chapterFr if l_versionLanguage == 'fr' else l_chapterEn
             if not l_wholeChapter:
                 # not whole chapter
@@ -180,10 +180,16 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                     + ' ' + l_pcVerseEnd
 
             # Display Chapter name (+ verses if applicable)
-            l_response += '<td><p class="pChapterNameParallel">{0}</h1>\n'.format(l_chapterName)
+            l_response += '<td><p class="pChapterNameParallel">{0}</p>\n'.format(l_chapterName)
 
             # Display Version Name
-            l_response += '<p class="pVersionNameParallel">{0}</h1></td>\n'.format(l_labelShort)
+            l_response += '<p class="pVersionNameParallel">{0}</p>\n'.format(l_labelShort)
+
+            # Display Basmalat (if applicable)
+            if len(l_basmalat) > 0 and l_wholeChapter and l_pcChapter not in ['1', '9']:
+                l_response += '<p class="pBasmalatParallel">{0}</p>\n'.format(l_basmalat)
+
+            l_response += '</td>\n'
 
         if p_context['g']:
             # column title for ground text if displayed
@@ -196,11 +202,17 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
                     + ' ' + l_pcVerseEnd
 
             # Display Chapter name (+ verses if applicable)
-            l_response += '<td><p class="pChapterNameParallel">{0}</h1>\n'.format(l_chapterName)
+            l_response += '<td><p class="pChapterNameParallel">{0}</p>\n'.format(l_chapterName)
 
             # Display Version Name
-            l_response += '<p class="pVersionNameParallel">{0}</h1></td>\n'.format(
+            l_response += '<p class="pVersionNameParallel">{0}</p>\n'.format(
                 get_user_string(p_context, 'p_GroundText'))
+
+            # Display Basmalat (if applicable)
+            if l_pcBookId == 'Qur' and l_wholeChapter and l_pcChapter not in ['1', '9']:
+                l_response += '<p class="pBasmalatParallelAr">{0}</p>\n'.format('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ')
+
+            l_response += '</td>\n'
 
         # end of title row
         l_response += '</tr>\n'
@@ -285,7 +297,7 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
         l_response += '</table>\n'
     else:
         # +++++++++++++++++++++ Stacked Display ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        for l_versionId, l_versionLanguage, l_default, l_labelShort, l_labelTiny in l_versions:
+        for l_versionId, l_versionLanguage, l_default, l_labelShort, l_labelTiny, l_basmalat in l_versions:
             l_chapterName = l_chapterFr if l_versionLanguage == 'fr' else l_chapterEn
             if not l_wholeChapter:
                 # not whole chapter
@@ -298,7 +310,11 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
             l_response += '<h1 class="pChapterName">{0}</h1>\n'.format(l_chapterName)
 
             # Display Version Name
-            l_response += '<h2 class="pVersionName">{0}</h1>\n'.format(l_labelShort)
+            l_response += '<h2 class="pVersionName">{0}</h2>\n'.format(l_labelShort)
+
+            # Display Basmalat (if applicable)
+            if len(l_basmalat) > 0 and l_wholeChapter and l_pcChapter not in ['1', '9']:
+                l_response += '<p class="pBasmalat">{0}</p>\n'.format(l_basmalat)
 
             # Verse List -----------------------------------------------------------------------------------------------
             l_query = """
@@ -342,7 +358,11 @@ def get_passage(p_previousContext, p_context, p_dbConnectionPool):
             l_response += '<h1 class="pChapterName">{0}</h1>\n'.format(l_chapterName)
 
             # Display Version Name
-            l_response += '<h2 class="pVersionName">{0}</h1>\n'.format(get_user_string(p_context, 'p_GroundText'))
+            l_response += '<h2 class="pVersionName">{0}</h2>\n'.format(get_user_string(p_context, 'p_GroundText'))
+
+            # Display Basmalat (if applicable)
+            if l_pcBookId == 'Qur' and l_wholeChapter and l_pcChapter not in ['1', '9']:
+                l_response += '<p class="pBasmalatAr">{0}</p>\n'.format('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ')
 
             l_query = """
                 select

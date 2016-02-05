@@ -475,6 +475,19 @@ h2.pVersionName{
 	font-size: smaller;
 }
 
+p.pBasmalat{
+	text-align: center;
+	margin: 0 0 .5em 0;
+	font-style: italic;
+}
+
+p.pBasmalatAr{
+	text-align: center;
+	margin: 0 0 .5em 0;
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
+}
+
 span.pMessage{
 	color: #a24c4c;
 	font-size: smaller;
@@ -518,6 +531,23 @@ p.pChapterNameParallel{
 	margin: 0;
 	font-weight: bold;
 	font-size: initial;
+}
+
+p.pBasmalatParallel{
+	text-align: center;
+	margin: 0;
+	margin-top: .5em;
+	font-style: italic;
+	font-size: initial;
+}
+
+p.pBasmalatParallelAr{
+	text-align: center;
+	margin: 0;
+	margin-top: .5em;
+	font-size: initial;
+	font-family: arabtype, "Times New Roman", serif; 
+	font-size: 1.5em;
 }
 
 p.pVersionNameParallel{

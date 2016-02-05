@@ -66,15 +66,20 @@ def init_versions():
         # all versions except ground text
         l_query = """
             select
-                ID_VERSION
-                , FL_BIBLE_QURAN
-                , ID_LANGUAGE
-                , FL_DEFAULT
-                , ST_LABEL_SHORT
-                , ST_LABEL_TINY
-            from TB_VERSION
-            where ID_VERSION <> '_gr'
-            order by N_ORDER
+                V.ID_VERSION
+                , V.FL_BIBLE_QURAN
+                , V.ID_LANGUAGE
+                , V.FL_DEFAULT
+                , V.ST_LABEL_SHORT
+                , V.ST_LABEL_TINY
+                , B.TX_VERSE_INSENSITIVE
+            from TB_VERSION V left outer join (
+                select ID_VERSION, TX_VERSE_INSENSITIVE
+                from TB_VERSES
+                where ID_BOOK='Qur' and N_CHAPTER=1 and N_VERSE=1
+            ) B on V.ID_VERSION = B.ID_VERSION
+            where V.ID_VERSION <> '_gr'
+            order by V.N_ORDER
             ;"""
 
         g_loggerUtilities.debug('l_query: {0}'.format(l_query))
@@ -88,9 +93,9 @@ def init_versions():
         l_maskQuran = 1
 
         # cursor iteration
-        for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny in l_cursor:
+        for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in l_cursor:
             if l_bq == 'B':
-                g_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
+                g_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny, ''))
 
                 if l_default == 'Y':
                     # the slice is necessary because the output of hex() starts with '0x'
@@ -98,7 +103,7 @@ def init_versions():
 
                 l_maskBible *= 2
             else:
-                g_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny))
+                g_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat))
 
                 if l_default == 'Y':
                     # the slice is necessary because the output of hex() starts with '0x'
@@ -275,7 +280,7 @@ def get_version_vector(p_context, p_forceAll=False):
 
 # ------------------------- Version dictionary -------------------------------------------------------------------------
 # Same as above but the return value is a list of tuples instead of a string
-# Each tuple is of the form (l_versionId, l_language, l_default, l_labelShort, l_labelTiny)
+# Each tuple is of the form (l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat)
 #
 # p_context['q'] and p_context['l'] are hexadecimal bit vector representations of the selected versions
 # (resp. Quran and Bible). E.g. p_context['q'] = 1B = 11011 --> versions 1, 2, 4 and 5 are selected
