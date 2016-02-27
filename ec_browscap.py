@@ -157,7 +157,7 @@ def load_browscap_file(browscap_file_path):
 
                 # Progress message in case verbose mode is on
                 if g_verboseModeOn:
-                    print('   Rows read:', len(regex_cache), end='\r' )
+                    print('   Rows read:', len(regex_cache), end='\r')
 
                 try:
                     ua_regex = '^{0}$'.format(re.escape(line['propertyname']))

@@ -172,21 +172,24 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         self.m_logger.info('Context Dict.    : {0}'.format(self.m_contextDict))
 
-        # pyCharm complains but this is perfectly ok
+        # Extraction of k/v pairs from headers
         self.m_logger.debug('Raw headers      : {0}'.format(l_headers))
-        self.m_headersDict = dict(re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers + '\n'))
+        # key is converted to lower case to handle the "user-agent" vs. "User-Agent" case
+        self.m_headersDict = dict(
+            (k.lower(), v) for k, v in
+            re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers + '\n'))
         self.m_logger.info('Headers dict.    : {0}'.format(self.m_headersDict))
 
         l_userAgent = ''
 
         # browser (terminal) attributes based on user-agent through browscap
-        if 'User-Agent' in self.m_headersDict.keys():
-            self.m_logger.info('User-Agent       : {0}'.format(self.m_headersDict['User-Agent']))
-            l_userAgent = self.m_headersDict['User-Agent']
+        if 'user-agent' in self.m_headersDict.keys():
+            self.m_logger.info('User-Agent       : {0}'.format(self.m_headersDict['user-agent']))
+            l_userAgent = self.m_headersDict['user-agent']
 
             # browscap can be None during debug (parameter p_skip=True in initBrowscap)
             if EcRequestHandler.cm_browscap is not None:
-                l_browscap = EcRequestHandler.cm_browscap.search(self.m_headersDict['User-Agent'])
+                l_browscap = EcRequestHandler.cm_browscap.search(self.m_headersDict['user-agent'])
 
                 if l_browscap is None:
                     self.m_browser = '<Browscap info nor found>'
@@ -225,17 +228,12 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.m_logger.warning(self.pack_massage('No User-Agent in : {0}'.format(repr(l_headers))))
 
         # ------------------------------------- Language ---------------------------------------------------------------
-        if 'Accept-Language' in self.m_headersDict.keys():
-            l_acceptLanguage = self.m_headersDict['Accept-Language']
-            self.m_logger.info('Accept Language  : {0}'.format(l_acceptLanguage))
+        # handles the (incorrect) case where we have "accept language" instead of "accept-language"
+        if 'accept language' in self.m_headersDict.keys():
+            self.m_headersDict['accept-language'] = self.m_headersDict['accept language']
 
-            # only recognizes French. Otherwise, English
-            if re.search('fr', l_acceptLanguage) is not None:
-                self.m_contextDict['z'] = 'fr'
-            else:
-                self.m_contextDict['z'] = 'en'
-        elif 'Accept Language' in self.m_headersDict.keys():
-            l_acceptLanguage = self.m_headersDict['Accept Language']
+        if 'accept-language' in self.m_headersDict.keys():
+            l_acceptLanguage = self.m_headersDict['accept-language']
             self.m_logger.info('Accept Language  : {0}'.format(l_acceptLanguage))
 
             # only recognizes French. Otherwise, English
@@ -247,9 +245,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.m_contextDict['z'] = 'en'
 
         # ------------------------------------- Cookies ----------------------------------------------------------------
-        if 'Cookie' in self.m_headersDict.keys():
+        if 'cookie' in self.m_headersDict.keys():
             # only one cookie used, to store existing Terminal ID (if any)
-            l_cookieString = str(self.m_headersDict['Cookie'])
+            l_cookieString = str(self.m_headersDict['cookie'])
             self.m_logger.info('Raw Cookie string: {0}'.format(l_cookieString))
 
             l_cookieKey = (l_cookieString.split('=')[0]).strip()

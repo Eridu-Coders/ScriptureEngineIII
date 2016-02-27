@@ -121,13 +121,9 @@ __author__ = 'fi11222'
 
 # TODO Check warning messages all over the application
 
-# TODO No Terminal ID sent ?
-
 # TODO Handling the absence of User Agent or malformed user Agents (like \n in front)
 
 # TODO Convert Hebrew from HTML entities to Unicode (for search)
-
-# TODO "In the Name of God the Merciful the Compassionate" in the beginning of each Surah
 
 # TODO Buttons to unclick all versions (Bible & Coran)
 
