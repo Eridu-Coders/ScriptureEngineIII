@@ -202,10 +202,12 @@ def sendMail(p_subject, p_message):
 def check_system_health():
     l_mem = psutil.virtual_memory()
 
-    g_loggerUtilities.info('Available RAM: {0} Mb ({1} %)'.format(l_mem.available/(1024*1024), l_mem.percent))
+    g_loggerUtilities.info('Available RAM: {0} Mb ({1} % usage)'.format(
+        l_mem.available/(1024*1024), l_mem.percent))
 
-    if l_mem.percent < 25:
-        g_loggerUtilities.warning('Available RAM: {0} Mb ({1} %)'.format(l_mem.available/(1024*1024), l_mem.percent))
+    if l_mem.percent > 75:
+        g_loggerUtilities.warning('Available RAM: {0} Mb ({1} % usage)'.format(
+            l_mem.available/(1024*1024), l_mem.percent))
 
 
 # ------------------------- Customized template class ------------------------------------------------------------------
