@@ -112,8 +112,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # the previous context, as retrieved from the TB_TERMINAL table
         self.m_previousContext = {}
 
-        super().__init__(p_request, p_client_address, p_server)
         self.m_logger.info('------------ request handler created ------------------------------------')
+
+        super().__init__(p_request, p_client_address, p_server)
 
     # disable logging to std output
     def log_message(self, *args):
@@ -126,13 +127,14 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_message += '- IP ---> [{0}]\n'.format(self.client_address[0])
         l_message += '- Port ---> [{0}]\n'.format(self.client_address[1])
 
-        l_message += '= Browser ---> [{0}]\n'.format(self.m_browser)
-        l_message += '= Platform ---> [{0}]\n'.format(self.m_platform)
-        l_message += '= Rendering Eng ---> [{0}]\n'.format(self.m_renderingEngine)
-        l_message += '= Version ---> [{0}]\n'.format(self.m_browserVersion)
-        l_message += '= Platform Desc ---> [{0}]\n'.format(self.m_platformDesc)
-        l_message += '= Dev Maker ---> [{0}]\n'.format(self.m_devMaker)
-        l_message += '= Dev Name ---> [{0}]\n'.format(self.m_devName)
+        if EcRequestHandler.cm_browscap is not None:
+            l_message += '= Browser ---> [{0}]\n'.format(self.m_browser)
+            l_message += '= Platform ---> [{0}]\n'.format(self.m_platform)
+            l_message += '= Rendering Eng ---> [{0}]\n'.format(self.m_renderingEngine)
+            l_message += '= Version ---> [{0}]\n'.format(self.m_browserVersion)
+            l_message += '= Platform Desc ---> [{0}]\n'.format(self.m_platformDesc)
+            l_message += '= Dev Maker ---> [{0}]\n'.format(self.m_devMaker)
+            l_message += '= Dev Name ---> [{0}]\n'.format(self.m_devName)
 
         l_message += '+ request line ---> [{0}]\n'.format(self.requestline)
         l_message += '+ raw context ---> [{0}]\n'.format(self.m_contextDict)
@@ -140,6 +142,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_message += '+ headers dict ---> [{0}]\n'.format(self.m_headersDict)
 
         return l_message
+
+    def do_HEAD(self):
+        super().do_HEAD()
 
     def do_GET(self):
         self.m_doGetCalled = True
@@ -538,25 +543,72 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(l_bytes)
 
     def end_headers(self):
-        # cookie destruction if necessary
-        if self.m_delCookie is not None:
-            l_cookieString = '{0}=deleted; Domain={1}; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'.format(
-                self.m_delCookie, g_appDomain)
-            self.send_header('Set-Cookie', l_cookieString)
+        # Raw request logging
 
-        # send the cookie containing the terminal ID in the headers
-        if self.m_terminalID is None:
-            self.m_logger.warning(self.pack_massage('Terminal ID undefined - No cookie sent ({0})'.format(
-                'do_GET was called' if self.m_doGetCalled else 'do_GET was NOT called')))
-        else:
-            # hundred year cookie (duration in g_cookiePersistence)
-            l_expire = (datetime.datetime.now(tz=pytz.utc) +
-                        datetime.timedelta(g_cookiePersistence)).strftime('%a, %d %b %Y %H:%M:%S %Z')
+        # pick a DB connection from the pool
+        l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
 
-            l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
-                .format(g_sessionName, self.m_terminalID, g_appDomain, l_expire)
+        l_postData = ''
+        if self.command == 'POST':
+            l_length = 0
+            if 'content-length' in self.m_headersDict.keys():
+                l_length = int(self.m_headersDict['content-length'])
 
-            self.send_header('Set-Cookie', l_cookieString)
+            if l_length > 0:
+                l_postData = self.rfile.read(l_length)
+
+        l_query = """
+            insert into TB_RAW_LOG(
+                `ST_IP`
+                , `ST_PORT`
+                , `ST_COMMAND`
+                , `TX_REQUEST`
+                , `TX_POST`
+            )
+            values('{0}', '{1}', '{2}', '{3}', '{4}')
+            ;""".format(
+                self.client_address[0],
+                self.client_address[1],
+                self.command,
+                self.requestline.replace("'", "''"),
+                l_postData.replace("'", "''"))
+
+        self.m_logger.debug('l_query: {0}'.format(l_query))
+        try:
+            l_cursor = l_dbConnection.cursor()
+            l_cursor.execute(l_query)
+            # the cursor is executed and THEN, the connection is committed
+            l_dbConnection.commit()
+            l_cursor.close()
+        except Exception as l_exception:
+            self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
+                                  'to execute this logging query: {0} Error: {1}'.format(
+                                      l_query, l_exception.args)))
+
+        # return DB connection to the pool
+        EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)
+
+        # there is something special to do here only for a GET HTTP command
+        if self.command == 'GET':
+            # cookie destruction if necessary
+            if self.m_delCookie is not None:
+                l_cookieString = '{0}=deleted; Domain={1}; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'.format(
+                    self.m_delCookie, g_appDomain)
+                self.send_header('Set-Cookie', l_cookieString)
+
+            # send the cookie containing the terminal ID in the headers
+            if self.m_terminalID is None:
+                self.m_logger.warning(self.pack_massage('Terminal ID undefined - No cookie sent ({0})'.format(
+                    'do_GET was called' if self.m_doGetCalled else 'do_GET was NOT called')))
+            else:
+                # hundred year cookie (duration in g_cookiePersistence)
+                l_expire = (datetime.datetime.now(tz=pytz.utc) +
+                            datetime.timedelta(g_cookiePersistence)).strftime('%a, %d %b %Y %H:%M:%S %Z')
+
+                l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
+                    .format(g_sessionName, self.m_terminalID, g_appDomain, l_expire)
+
+                self.send_header('Set-Cookie', l_cookieString)
 
         super().end_headers()
 

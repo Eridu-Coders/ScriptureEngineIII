@@ -28,7 +28,6 @@ random.seed()
 os.chdir(g_appRoot)
 
 # abort if already launched
-
 l_countApp = 0
 for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
     try:
@@ -46,6 +45,7 @@ for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
 
 if l_countApp > 1:
     print('Already Running ...')
+    sendMail('Already Running ...', 'l_countApp = {0}'.format(l_countApp))
     sys.exit(0)
 
 # Make sure MySQL is running
@@ -60,7 +60,8 @@ while True:
         l_connect.close()
         print('MySQL ok')
         break
-    except mysql.connector.Error:
+    except mysql.connector.Error as e:
+        sendMail('PANIC: No MySql', str(e))
         continue
 
 try:
@@ -97,6 +98,8 @@ except Exception as e:
     sys.exit(0)
 
 try:
+    check_system_health()
+
     # server main loop
     l_httpd.serve_forever()
 except Exception as e:

@@ -10,6 +10,7 @@ import random
 import threading
 import smtplib
 import email.utils
+import psutil
 
 from string import Template
 
@@ -198,11 +199,21 @@ def sendMail(p_subject, p_message):
 
 
 # ------------------------- Customized template class ------------------------------------------------------------------
+def check_system_health():
+    l_mem = psutil.virtual_memory()
+
+    g_loggerUtilities.info('Available RAM: {0} Mb ({1} %)'.format(l_mem.available/(1024*1024), l_mem.percent))
+
+    if l_mem.percent < 25:
+        g_loggerUtilities.warning('Available RAM: {0} Mb ({1} %)'.format(l_mem.available/(1024*1024), l_mem.percent))
+
+
+# ------------------------- Customized template class ------------------------------------------------------------------
 class EcTemplate(Template):
     delimiter = '§'
 
 
-# ----------------- Database connection pool ------------------------------------------------------
+# ----------------- Database connection pool ---------------------------------------------------------------------------
 class EcConnectionPool(threading.Thread):
     def __init__(self):
         super().__init__(daemon=True)
@@ -263,6 +274,14 @@ class EcConnectionPool(threading.Thread):
         while True:
             # sleeps for 15 minutes
             time.sleep(15*60)
+
+            # Before anything, do a system health check
+            check_system_health()
+
+            # Warning message if pool count abnormally low
+            if len(self.m_connectionPool) < 15:
+                g_loggerUtilities.warning('Connections left: {0}'.format(len(self.m_connectionPool)))
+
             g_loggerUtilities.info('Starting refresh cycle')
 
             l_tmpSet = set()
@@ -291,7 +310,7 @@ class EcConnectionPool(threading.Thread):
 
                 l_tmpSet.add(l_connection)
 
-            # when this point is reach the critical section is still in effect
+            # when this point is reach the critical section IS STILL IN EFFECT
             self.m_connectionPool = l_tmpSet
 
             # end of CRITICAL section before sleep
