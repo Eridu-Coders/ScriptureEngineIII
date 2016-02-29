@@ -121,8 +121,6 @@ __author__ = 'fi11222'
 
 # TODO Check warning messages all over the application
 
-# TODO Handling the absence of User Agent or malformed user Agents (like \n in front)
-
 # TODO Convert Hebrew from HTML entities to Unicode (for search)
 
 # TODO Buttons to unclick all versions (Bible & Coran)

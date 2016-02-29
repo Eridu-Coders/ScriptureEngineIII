@@ -95,6 +95,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # flag indicating that do_Get has been called (in case m_terminalID is found missing when needed)
         self.m_doGetCalled = False
 
+        self.m_userAgent = ''
+
         # terminal (browser) characteristics
         self.m_browser = ''
         self.m_platform = ''
@@ -185,12 +187,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             re.findall(r"(?P<key>.*?): (?P<value>.*?)\n", l_headers + '\n'))
         self.m_logger.info('Headers dict.    : {0}'.format(self.m_headersDict))
 
-        l_userAgent = ''
-
         # browser (terminal) attributes based on user-agent through browscap
         if 'user-agent' in self.m_headersDict.keys():
             self.m_logger.info('User-Agent       : {0}'.format(self.m_headersDict['user-agent']))
-            l_userAgent = self.m_headersDict['user-agent']
+            self.m_userAgent = self.m_headersDict['user-agent']
 
             # browscap can be None during debug (parameter p_skip=True in initBrowscap)
             if EcRequestHandler.cm_browscap is not None:
@@ -344,7 +344,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
                 # the Id string is a hash of the user-agent, the ip and a random number
                 l_hash = hashlib.new('MD5')
-                l_hash.update(bytes(l_userAgent + l_clientIpPort + str(random.random()), 'utf-8'))
+                l_hash.update(bytes(self.m_userAgent + l_clientIpPort + str(random.random()), 'utf-8'))
 
                 self.m_terminalID = l_hash.hexdigest()
                 self.m_logger.info('Terminal ID (new): {0}'.format(self.m_terminalID))
@@ -392,21 +392,20 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # ---------------------------------- Response ------------------------------------------------------------------
         if re.match('/static/', self.path):
             # fetching a static document --> rely on the base class functionality
-            # self.path = os.path.join(g_staticRoot, re.sub('^/', '', self.path))
-            # self.m_logger.info('g_staticRoot    : {0}'.format(g_staticRoot))
-            # self.m_logger.info('static self.path: {0}'.format(self.path))
             super().do_GET()
         elif re.match('/test-error/', self.path):
+            # test trigger path to send a warning email (for e-mail setup testing purposes
             self.path = '/static/images/test.jpg'
 
             self.m_logger.warning(self.pack_massage('Error Email Test'))
 
             super().do_GET()
+        elif re.match('/robots.txt', self.path):
+            # redirect robots.txt fetch to the appropriate location
+            self.path = '/static/robots.txt'
+            super().do_GET()
         elif re.match('/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
-            # self.path = os.path.join(g_staticRoot, 'static/images/favicon.ico')
-            # self.m_logger.info('g_staticRoot     : {0}'.format(g_staticRoot))
-            # self.m_logger.info('favicon self.path: {0}'.format(self.path))
             self.path = '/static/images/favicon.ico'
             # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
             super().do_GET()
@@ -449,7 +448,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.client_address[0],
                 self.client_address[1],
                 'Y' if self.m_badTerminal else 'N',
-                l_userAgent,
+                self.m_userAgent,
                 self.m_browser.replace("'", "''"),
                 self.m_browserVersion.replace("'", "''"),
                 self.m_renderingEngine.replace("'", "''"),
@@ -562,14 +561,16 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 `ST_IP`
                 , `ST_PORT`
                 , `ST_COMMAND`
+                , `TX_USERAGENT`
                 , `TX_REQUEST`
                 , `TX_POST`
             )
-            values('{0}', '{1}', '{2}', '{3}', '{4}')
+            values('{0}', '{1}', '{2}', '{3}', '{4}', '{5}')
             ;""".format(
                 self.client_address[0],
                 self.client_address[1],
                 self.command,
+                self.m_userAgent.replace("'", "''"),
                 self.requestline.replace("'", "''"),
                 l_postData.replace("'", "''"))
 

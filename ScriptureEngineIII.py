@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import http.server
-import os
 import string
 
 from socketserver import ThreadingMixIn
@@ -61,7 +60,8 @@ while True:
         print('MySQL ok')
         break
     except mysql.connector.Error as e:
-        sendMail('PANIC: No MySql', str(e))
+        sendMail('WAITING: No MySql yet ...', str(e))
+        time.sleep(1)
         continue
 
 try:
