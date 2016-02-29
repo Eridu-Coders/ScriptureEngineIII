@@ -144,6 +144,8 @@ def internal_get_report(p_context, p_wordList, l_mode, p_caseSensitive, p_wholeW
 
         # put an appropriate style on excluded words if they happen to be in Arabic/Hebrew/Greek
         if len(p_excludedSet) > 0:
+            g_loggerSearch.info('p_excludedSet: {0}'.format(p_excludedSet))
+
             l_listExcluded = []
             for l_word in list(p_excludedSet):
                 if is_Arabic(l_word):
@@ -350,7 +352,10 @@ def internal_get_query(p_context, p_searchQuery, p_exclude, p_mode, p_wholeWords
             l_wordList.append('Aaron')
 
     # set of excluded words
-    l_excludedSet = set(l_exclude.split(' '))
+    if len(l_exclude) > 0:
+        l_excludedSet = set(l_exclude.split(' '))
+    else:
+        l_excludedSet = set()
 
     # add terms to the boolean query for the excluded words
     if len(l_exclude) > 0:

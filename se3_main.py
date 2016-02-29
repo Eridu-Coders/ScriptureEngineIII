@@ -119,9 +119,11 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
+# TODO Convert Hebrew from HTML entities to Unicode (for search)
+
 # TODO Check warning messages all over the application
 
-# TODO Convert Hebrew from HTML entities to Unicode (for search)
+# TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
 
 # TODO Avoid creating unnecessary terminal IDs for keep-alive requests & and other useless cases
 
@@ -129,13 +131,9 @@ __author__ = 'fi11222'
 
 # TODO Open/close for each word in root/word display (on screen only)
 
-# TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
-
 # TODO dictionary text (BDB, Gesenius, ...) for Bible words
 
 # TODO Arab <---> Hebrew roots correspondence
-
-# TODO Eliminate 'But not the word' if there are no excluded words in the search report message
 
 # TODO Racine pointant sur un mot inexistant :
 # http://scripture-search.org:8000/?K=R&b=Eze&c=34&v=25&w=x&q=1&l=1&p=31&d=X-FFA&s=&o=2+15&e=0&h=0&i=0&j=0
