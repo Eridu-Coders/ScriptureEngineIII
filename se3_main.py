@@ -123,9 +123,7 @@ __author__ = 'fi11222'
 
 # TODO Convert Hebrew from HTML entities to Unicode (for search)
 
-# TODO Buttons to unclick all versions (Bible & Coran)
-
-# TODO Avoid creating unnecessary terminal IDs for keep-alive requests
+# TODO Avoid creating unnecessary terminal IDs for keep-alive requests & and other useless cases
 
 # TODO Arab search without vowels (and for Hebrew as well ...)
 
@@ -476,7 +474,7 @@ def internal_get_dimensions():
 
 def internal_get_header_controls(p_context):
     # number of version selection checkboxes per column
-    l_segmentLength = 9
+    l_segmentLength = 10
     # Max number of versions to display in the status display
     l_selectedLimit = 4
 
@@ -504,7 +502,7 @@ def internal_get_header_controls(p_context):
         # yy = 'checked' if version selected or nothing otherwise
         l_bibleVersionControl += ('<div class="VersionSelector">' +
                                   '<input type="checkbox" value="" ' +
-                                  'class="ToggleVersion" name="" ver_mask="{2}" ' +
+                                  'class="ToggleVersion ToggleVersionBible" name="" ver_mask="{2}" ' +
                                   'bible_quran="B" {1}>&nbsp{0}</div>\n').format(
             l_labelShort,
             'checked' if l_versionId in l_selectedList else '',
@@ -530,7 +528,8 @@ def internal_get_header_controls(p_context):
     else:
         l_statusDisplay += ' '
 
-    l_bibleVersionControl += '</div>\n'
+    l_bibleVersionControl += ' <input type="button" id="UnselectAllBible" value="{0}"></div>\n'.format(
+        se3_utilities.get_user_string(p_context, 'm_unselectAll'))
     l_bibleVersionControl = re.sub('<div class="VersionSegment"></div>$', '', l_bibleVersionControl)
 
     # Quran versions selection checkboxes (beginning)
@@ -556,7 +555,7 @@ def internal_get_header_controls(p_context):
         # xx = hexadecimal bit mask indicating the version
         # yy = 'checked' if version selected or nothing otherwise
         l_quranVersionControl += ('<div class="VersionSelector"><input type="checkbox" value="" ' +
-                                  'class="ToggleVersion" name="" ver_mask="{2}" ' +
+                                  'class="ToggleVersion ToggleVersionQuran" name="" ver_mask="{2}" ' +
                                   'bible_quran="Q" {1}>&nbsp{0}</div>\n').format(
             l_labelShort,
             'checked' if l_versionId in l_selectedList else '',
@@ -580,7 +579,8 @@ def internal_get_header_controls(p_context):
     if len(l_selectedList) > l_selectedLimit:
         l_statusDisplay += ', ... '
 
-    l_quranVersionControl += '</div>'
+    l_quranVersionControl += ' <input type="button" id="UnselectAllQuran" value="{0}"></div>\n'.format(
+        se3_utilities.get_user_string(p_context, 'm_unselectAll'))
     l_quranVersionControl = re.sub('<div class="VersionSegment"></div>$', '', l_quranVersionControl)
 
     # parameter checkboxes (same formatting as version checkboxes)

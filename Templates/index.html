@@ -190,12 +190,10 @@
 					// the operation here is a bitwise XOR
 					// the 16 parameter passed to ParseInt() and val() is for reading and writing hexa
 					if($(this).attr("bible_quran") == "Q") {
-						console.log("NavControl_q: " + $("#NavControl_q").val() );
 						l_newVer = parseInt($("#NavControl_q").val(), 16) ^ parseInt($(this).attr("ver_mask"));
 						$("#NavControl_q").val( l_newVer.toString(16) );
 					}
 					else {
-						console.log("NavControl_l: " + $("#NavControl_l").val() );
 						l_newVer = parseInt($("#NavControl_l").val(), 16) ^ parseInt($(this).attr("ver_mask"));
 						$("#NavControl_l").val( l_newVer.toString(16) );
 					}
@@ -370,6 +368,25 @@
 						$( "#RestOfSearch" ).slideDown( 250 );
 						$( "#SearchCollapsar" ).text("§{CollapsarHide}");
 					}
+				});
+				
+				// Unselect all Bible version checkboxes
+				$( "#UnselectAllBible" ).on( "click", function(){
+					$('input:checkbox.ToggleVersionBible').removeAttr('checked');
+					$("#NavControl_l").val( '0' );
+					// since this is used by links in the header --> triggers the display of the apply button
+					$("#ApplyButton").show();
+					// ... and hiding of the status display
+					$("#StatusDisplay").hide();
+				});
+				// Unselect all Quran version checkboxes
+				$( "#UnselectAllQuran" ).on( "click", function(){
+					$('input:checkbox.ToggleVersionQuran').removeAttr('checked');
+					$("#NavControl_q").val( '0' );
+					// since this is used by links in the header --> triggers the display of the apply button
+					$("#ApplyButton").show();
+					// ... and hiding of the status display
+					$("#StatusDisplay").hide();
 				});
 			});
 

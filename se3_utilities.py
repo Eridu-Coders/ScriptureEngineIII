@@ -405,10 +405,10 @@ def preprocess_context(p_context, p_previousContext):
         l_quranVersionsInt = int(g_defaultQuranId, 16)
         l_context['q'] = g_defaultQuranId
 
-    if l_bibleVersionsInt >= 2 ** len(g_bibleVersionId):
+    if l_bibleVersionsInt >= 2 ** len(g_bibleVersionId) or l_bibleVersionsInt == 0:
         l_context['l'] = g_defaultBibleId
 
-    if l_quranVersionsInt >= 2 ** len(g_quranVersionId):
+    if l_quranVersionsInt >= 2 ** len(g_quranVersionId) or l_quranVersionsInt == 0:
         l_context['q'] = g_defaultQuranId
 
     # Search combo default values -------------------------

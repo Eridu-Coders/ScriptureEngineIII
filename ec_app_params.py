@@ -60,6 +60,8 @@ def i18n(k):
     return g_userStrings[k]
 
 g_userStrings = {
+    'en-m_unselectAll': 'Unselect All',
+    'fr-m_unselectAll': 'Tout Décocher',
     'en-m_CollapsarShow': '⇣',
     'fr-m_CollapsarShow': '⇣',
     'en-m_CollapsarHide': '⇡',
