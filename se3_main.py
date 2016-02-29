@@ -119,13 +119,9 @@ __author__ = 'fi11222'
 # french.dic must be in a dir by itself
 # then add the french.dic dictionary to pyCharm settings
 
-# TODO Convert Hebrew from HTML entities to Unicode (for search)
-
 # TODO Check warning messages all over the application
 
 # TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
-
-# TODO Avoid creating unnecessary terminal IDs for keep-alive requests & and other useless cases
 
 # TODO Arab search without vowels (and for Hebrew as well ...)
 
@@ -187,7 +183,7 @@ def init(p_templatePath):
 
 
 # ---------------------- Application entry point -------------------------------------------------------------------
-def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath):
+def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
     global g_homePageTemplatePath
     global g_homePageTemplate
 
@@ -309,8 +305,8 @@ def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, 
                                            WindowTitle=l_title,
                                            UrlPath=p_urlPath,
                                            NoJSPath=p_noJSPath,
-                                           FooterText='{0} v. {1}'.format(
-                                               ec_app_params.g_appTitle, ec_app_params.g_appVersion),
+                                           FooterText='{0} v. {1}<br/>Terminal ID: {2}'.format(
+                                               ec_app_params.g_appTitle, ec_app_params.g_appVersion, p_terminalID),
                                            HiddenFieldsStyle=l_hiddenFieldsStyle,
                                            HiddenFieldsType=l_hiddenFieldsType,
                                            StatusLine=l_statusDisplay,

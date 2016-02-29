@@ -270,6 +270,13 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_terminalID = l_cookieValue
 
         # ---------------------------------- Detection of invalid browsers ---------------------------------------------
+        # if the path is not one of the cases below, it cannot be good (malevolent robot)
+        self.m_badTerminal = not (self.path == '/' or re.match('/\?', self.path)) and \
+            not re.match('/static/', self.path) and \
+            not re.match('/test-error/', self.path) and \
+            not re.match('/robots.txt', self.path) and \
+            not re.match('/favicon.ico', self.path)
+
         if 'y' in self.m_contextDict.keys() and not self.m_badTerminal:
             if self.m_contextDict['y'] == 'restart':
                 self.m_validatedTerminal = False
@@ -410,19 +417,19 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
             super().do_GET()
         elif self.path == '/' or re.match('/\?', self.path):
-            if self.m_badTerminal:
-                # the terminal does not have the required JS/cookie capabilities
-                self.badBrowserMessage()
-            elif self.m_validatedTerminal:
-                # this is where the rest of the application is called
+            if self.m_validatedTerminal:
+                # validated terminal: this is where the rest of the application is called
                 self.buildResponse(l_dbConnection)
+            elif self.m_badTerminal:
+                # the terminal does not have the required JS/cookie capabilities
+                self.badBrowserMessage(l_dbConnection)
             else:
                 # not necessarily bad but not yet validated
                 # sends the browser test page
                 self.testBrowser()
         else:
             # anything else is an error
-            super().send_error(404, 'Only valid path starts with /static/')
+            super().send_error(404, 'Only valid paths start with /static/')
 
         # -------------------------------- Log -------------------------------------------------------------------------
         l_query = """
@@ -474,12 +481,35 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # ---------------------------------- Release DB connection -----------------------------------------------------
         EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)
 
-    def badBrowserMessage(self):
+    def badBrowserMessage(self, p_dbConnection):
         self.m_logger.info('Sending bad browser message')
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
+
+        # since the browser is bad, delete the terminal ID (and the test terminal ID if different)
+        if 'y' in self.m_contextDict.keys():
+            l_testTID = self.m_contextDict['y']
+        else:
+            l_testTID = ''
+
+        l_query = """
+            DELETE FROM `TB_TERMINAL`
+            WHERE `TERMINAL_ID` = '{0}' or `TERMINAL_ID` = '{1}'
+            ;""".format(self.m_terminalID, l_testTID)
+
+        self.m_logger.debug('l_query: {0}'.format(l_query))
+        try:
+            l_cursor = p_dbConnection.cursor()
+            l_cursor.execute(l_query)
+            # the cursor is executed and THEN, the connection is committed
+            p_dbConnection.commit()
+            l_cursor.close()
+        except Exception as l_exception:
+            self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
+                                  'to execute this query: {0} Error: {1}'.format(
+                                      l_query, l_exception.args)))
 
         # construct the bad browser page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
@@ -633,7 +663,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_contextDict,
                 EcRequestHandler.cm_connectionPool,
                 l_barePath,
-                l_noJSPath
+                l_noJSPath,
+                self.m_terminalID
             )
 
         # and send it

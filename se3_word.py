@@ -219,14 +219,23 @@ def get_word(p_previousContext, p_context, p_dbConnectionPool):
                 else:
                     l_groundRoot = '<span class="at">{0}</span>'.format(l_groundRoot)
 
+                g_loggerWord.info('l_groundRoot: {0}'.format(l_groundRoot))
+
                 l_rootLink = makeLinkCommon(p_context, l_pcBookId, l_pcChapter, l_pcVerse, l_groundRoot,
                                             p_command='R',
                                             p_class='RootLink',
                                             p_wordId=l_idRoot)
 
-                l_response += ('<tr><td colspan="3"><span class="pFieldName">{1}:</span> ' + l_rootLink +
-                               ' (<span class="wTranslit">{0}</span>)</td></tr>').format(
-                    l_translitRoot, get_user_string(p_context, 'w_root'))
+                g_loggerWord.info('l_rootLink: {0}'.format(l_rootLink))
+
+                # WARNING: there may be a '{' in certain arabic root IDs.
+                # Therefore, l_rootLink cannot be substituted into the string using .format()
+                # The '{' messes with the '{x}' substitution field placeholders
+                l_response += \
+                    '<tr><td colspan="3">' + \
+                    '<span class="pFieldName">{0}:</span> '.format(get_user_string(p_context, 'w_root')) + \
+                    l_rootLink + \
+                    ' (<span class="wTranslit">{0}</span>)</td></tr>'.format(l_translitRoot)
 
             if l_idGroup0 != 'FT':
                 # derivation (etymology)
