@@ -109,9 +109,10 @@ __author__ = 'fi11222'
 # y - browser capabilities test                     Request Handler
 # z - UI language                                   All
 
-# required optional Python 3 packages
-# pytz : sudo pip3 install pytz
-# Mysql : sudo apt-get install python3-mysql.connector [Ubuntu >= 14.04]
+# ###### required optional Python 3 packages ###############
+# pytz   : sudo pip3 install pytz
+# psutil : sudo pip3 install psutil
+# Mysql  : sudo apt-get install python3-mysql.connector [Ubuntu >= 14.04]
 
 # NOTE - Adding french spell-check dictionary to pyCharm:
 # sudo apt-get install aspell-fr
@@ -123,20 +124,13 @@ __author__ = 'fi11222'
 
 # TODO Handle traffic limitation and excessive unsuccessful browser validation attempts
 
-# TODO Arab search without vowels (and for Hebrew as well ...)
-
 # TODO Open/close for each word in root/word display (on screen only)
 
 # TODO dictionary text (BDB, Gesenius, ...) for Bible words
 
 # TODO Arab <---> Hebrew roots correspondence
 
-# TODO Racine pointant sur un mot inexistant :
-# http://scripture-search.org:8000/?K=R&b=Eze&c=34&v=25&w=x&q=1&l=1&p=31&d=X-FFA&s=&o=2+15&e=0&h=0&i=0&j=0
-
-# TODO Crash on wrong root ID in url. Example (correct one below):
-# http://scripture-search.org/?K=R&b=Jos&c=9&v=10&w=x&q=1&l=1&p=33&d=Y-IWJ&s=loop&o=&e=0&h=0&i=0&j=0
-# http://scripture-search.org/?K=R&b=Jos&c=9&v=10&w=x&q=1&l=1&p=33&d=X-IWJ&s=loop&o=&e=0&h=0&i=0&j=0
+# TODO Arab search without vowels (and for Hebrew as well ...)
 
 # ---------------------- Logging ---------------------------------------------------------------------------------------
 g_loggerSE3 = logging.getLogger(ec_app_params.g_appName + '.se3_main')
