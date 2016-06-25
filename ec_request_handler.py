@@ -22,6 +22,8 @@ if g_debugModeOn:
 
 # ----------------------------------------- New Request Handler --------------------------------------------------------
 class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
+    cm_handlerCount = 0
+
     # lock to protect the critical section where new Terminal UIDs are created
     cm_termIDCreationLock = None
 
@@ -73,6 +75,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             p_badBroserPath, len(cls.cm_badBrowserPage)))
 
     def __init__(self, p_request, p_client_address, p_server):
+        self.m_handlerID = EcRequestHandler.cm_handlerCount
+        EcRequestHandler.cm_handlerCount += 1
+
         # each instance has its own logger with a name that includes the thread it is riding on
         self.m_logger = logging.getLogger(g_appName + '.HR-' + threading.current_thread().name)
         if g_verboseModeOn:
@@ -114,7 +119,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # the previous context, as retrieved from the TB_TERMINAL table
         self.m_previousContext = {}
 
-        self.m_logger.info('------------ request handler created ------------------------------------')
+        self.m_logger.info('------------ request handler #{1} created -----------------------------'.format(
+            self.m_handlerID))
 
         super().__init__(p_request, p_client_address, p_server)
 
@@ -155,7 +161,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
 
         l_clientIpPort = self.client_address[0] + ':' + str(self.client_address[1])
-        self.m_logger.info('------------ do_Get() ------------------------------------')
+        self.m_logger.info('------------ do_Get() START ------------------------------------')
+        self.m_logger.info('Handler ID       : {0}'.format(self.m_handlerID))
+        self.m_logger.info('Connection ID    : {0}'.format(l_dbConnection.getID()))
         self.m_logger.info('Thread name      : {0}'.format(threading.currentThread().getName()))
         self.m_logger.info('Client Address   : {0}'.format(l_clientIpPort))
         self.m_logger.info('Request Path     : {0}'.format(self.path))
@@ -479,6 +487,11 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                                       l_query, l_exception.args)))
 
         # ---------------------------------- Release DB connection -----------------------------------------------------
+
+        self.m_logger.info('------------ do_Get() END ------------------------------------')
+        self.m_logger.info('Handler ID       : {0}'.format(self.m_handlerID))
+        self.m_logger.info('Connection ID    : {0}'.format(l_dbConnection.getID()))
+        self.m_logger.info('--------------------------------------------------------------')
         EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)
 
     def badBrowserMessage(self, p_dbConnection):
@@ -577,6 +590,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # pick a DB connection from the pool
         l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
 
+        self.m_logger.info('------------ end_headers() START ------------------------------------')
+        self.m_logger.info('Handler ID       : {0}'.format(self.m_handlerID))
+        self.m_logger.info('Connection ID    : {0}'.format(l_dbConnection.getID()))
+
         l_postData = ''
         if self.command == 'POST':
             l_length = 0
@@ -617,6 +634,11 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                                       l_query, l_exception.args)))
 
         # return DB connection to the pool
+        self.m_logger.info('------------ end_headers() RELEASE CONN ------------------------------')
+        self.m_logger.info('Handler ID       : {0}'.format(self.m_handlerID))
+        self.m_logger.info('Connection ID    : {0}'.format(l_dbConnection.getID()))
+        self.m_logger.info('----------------------------------------------------------------------')
+
         EcRequestHandler.cm_connectionPool.releaseConnection(l_dbConnection)
 
         # there is something special to do here only for a GET HTTP command

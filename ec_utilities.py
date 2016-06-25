@@ -339,3 +339,6 @@ class EcConnector(mysql.connector.MySQLConnection):
 
     def isStale(self):
         return self.m_expirationDate < datetime.datetime.now(tz=pytz.utc)
+
+    def getID(self):
+        return self.m_connectorID
