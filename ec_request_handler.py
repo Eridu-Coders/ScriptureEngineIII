@@ -119,7 +119,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # the previous context, as retrieved from the TB_TERMINAL table
         self.m_previousContext = {}
 
-        self.m_logger.info('------------ request handler #{1} created -----------------------------'.format(
+        self.m_logger.info('------------ request handler #{0} created -----------------------------'.format(
             self.m_handlerID))
 
         super().__init__(p_request, p_client_address, p_server)
