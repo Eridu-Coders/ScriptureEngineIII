@@ -322,13 +322,18 @@ class EcConnectionPool(threading.Thread):
 
 # custom DB connector class incorporating expiration date
 class EcConnector(mysql.connector.MySQLConnection):
+    cm_connectorCount = 0
+
     def __init__(self, **kwargs):
+        self.m_connectorID = EcConnector.cm_connectorCount
+        EcConnector.cm_connectorCount += 1
+
         # life span = g_dbcLifeAverage +- 1/2 (in hours)
         l_lifespan = g_dbcLifeAverage + (.5 - random.random())
         self.m_expirationDate = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(hours=l_lifespan)
 
-        g_loggerUtilities.info('EcConnector created. Life span = {0:.2f} hours. Expiry: {1}'.format(
-            l_lifespan, self.m_expirationDate))
+        g_loggerUtilities.info('EcConnector #{2} created. Life span = {0:.2f} hours. Expiry: {1}'.format(
+            l_lifespan, self.m_expirationDate, self.m_connectorID))
 
         super().__init__(**kwargs)
 
