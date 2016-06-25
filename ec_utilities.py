@@ -222,101 +222,111 @@ class EcConnectionPool(threading.Thread):
 
         # lock to protect the connection pool critical sections (pick-up and release)
         self.m_connectionPoolLock = threading.Lock()
-        self.m_connectionPool = set()
+        self.m_connectionPool = []
 
-        try:
-            # fill the connection pool
-            for i in range(g_connectionPoolCount):
-                self.m_connectionPool.add(
-                    # mysql.connector.connect(
-                    EcConnector(
-                        user=g_dbUser, password=g_dbPassword,
-                        host=g_dbServer,
-                        database=g_dbDatabase)
-                )
-        except mysql.connector.Error as l_exception:
-            g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
-            raise
+        # fill the connection pool
+        for i in range(g_connectionPoolCount):
+            self.m_connectionPool.append( self.getNewConnection() )
 
         # starts the refresh thread
         self.start()
 
+    def getNewConnection(self):
+        try:
+            l_connection = EcConnector(
+                user=g_dbUser, password=g_dbPassword,
+                host=g_dbServer,
+                database=g_dbDatabase)
+        except mysql.connector.Error as l_exception:
+            g_loggerUtilities.critical(
+                'Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+            raise
+
+        return l_connection
+
     def getConnection(self):
         l_connection = None
+
+        l_tryCount = 0
         while l_connection is None:
-            # only access to this CRITICAL section one thread at a time
+            # only access to this CRITICAL SECTION one thread at a time
             self.m_connectionPoolLock.acquire()
             if len(self.m_connectionPool) > 0:
-                l_connection = self.m_connectionPool.pop()
+                l_connection = self.m_connectionPool.pop(0)
+
+                # if the connection is past due date, create a new one
+                if l_connection.isStale():
+                    l_connection = self.getNewConnection()
 
                 g_loggerUtilities.info('Connections left: {0}'.format(len(self.m_connectionPool)))
-                # end of CRITICAL section
+                # end of CRITICAL SECTION
                 self.m_connectionPoolLock.release()
             else:
-                # end of CRITICAL section before sleep
+                # end of CRITICAL SECTION before rest of process
                 self.m_connectionPoolLock.release()
 
-                g_loggerUtilities.info('Sleeping ...')
-                # otherwise wait for 1 second fo other connections to be released
-                time.sleep(1)
+                l_tryLimit = 5
+                if l_tryCount > l_tryLimit:
+                    # more than five tries --> create a new connection
+                    g_loggerUtilities.warning(
+                        'Failed more than {0} times to get a connection from the pool - Creating a new one'.format(
+                            l_tryLimit))
+                    l_connection = self.getNewConnection()
+                else:
+                    # otherwise wait for 1 second fo other connections to be released
+                    l_tryCount += 1
+                    g_loggerUtilities.info('Sleeping ...')
+                    time.sleep(1)
 
         return l_connection
 
     def releaseConnection(self, p_connection):
-        # only access this CRITICAL section one thread at a time
+        # only access this CRITICAL SECTION one thread at a time
         self.m_connectionPoolLock.acquire()
-        self.m_connectionPool.add(p_connection)
+        self.m_connectionPool.append(p_connection)
         g_loggerUtilities.info('Connections left: {0}'.format(len(self.m_connectionPool)))
-        # end of CRITICAL section
+        # end of CRITICAL SECTION
         self.m_connectionPoolLock.release()
 
     # refresher thread
     def run(self):
         g_loggerUtilities.info('Connection refresh thread started ...')
         while True:
-            # sleeps for 15 minutes
-            time.sleep(15*60)
+            # sleeps for 30 seconds
+            time.sleep(30)
 
             # Before anything, do a system health check
             check_system_health()
 
-            # Warning message if pool count abnormally low
-            if len(self.m_connectionPool) < 15:
-                g_loggerUtilities.warning('Connections left: {0}'.format(len(self.m_connectionPool)))
+            # Warning message if pool count abnormally low --> top up pool with new connections
+            if len(self.m_connectionPool) < g_connectionPoolCount/3:
+                g_loggerUtilities.warning('Connections left: {0} - topping up'.format(len(self.m_connectionPool)))
+
+                # Add a third fill of new connections
+                for i in range(g_connectionPoolCount/3):
+                    self.m_connectionPool.append( self.getNewConnection() )
 
             g_loggerUtilities.info('Starting refresh cycle')
 
-            l_tmpSet = set()
-            while True:
-                # only access to this CRITICAL section one thread at a time
-                # no one can get or release a connection while those in the pool are refreshed
-                self.m_connectionPoolLock.acquire()
-                if len(self.m_connectionPool) == 0:
-                    break
+            # refresh one randomly chosen connection if stale
 
-                l_connection = self.m_connectionPool.pop()
-                # end of CRITICAL section before rest of loop
-                self.m_connectionPoolLock.release()
+            # only access to this CRITICAL SECTION one thread at a time
+            # no one can get or release a connection while those in the pool are refreshed
+            self.m_connectionPoolLock.acquire()
 
-                if l_connection.isStale():
-                    g_loggerUtilities.debug('Stale connection found')
-                    try:
-                        l_connection = EcConnector(
-                            user=g_dbUser, password=g_dbPassword,
-                            host=g_dbServer,
-                            database=g_dbDatabase)
-                    except mysql.connector.Error as l_exception:
-                        g_loggerUtilities.critical(
-                            'Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
-                        raise
+            # CRITICAL SECTION
+            l_testIndex = random.randint(0, len(self.m_connectionPool)-1)
 
-                l_tmpSet.add(l_connection)
+            # CRITICAL SECTION
+            if self.m_connectionPool[l_testIndex].isStale():
+                g_loggerUtilities.debug('Stale connection found')
+                self.m_connectionPool[l_testIndex] = self.getNewConnection()
+            else:
+                g_loggerUtilities.debug('No stale connection found')
 
-            # when this point is reach the critical section IS STILL IN EFFECT
-            self.m_connectionPool = l_tmpSet
-
-            # end of CRITICAL section before sleep
+            # end of CRITICAL section
             self.m_connectionPoolLock.release()
+
             g_loggerUtilities.info('End of refresh cycle')
 
 
