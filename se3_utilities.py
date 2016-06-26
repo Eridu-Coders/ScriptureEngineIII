@@ -117,6 +117,9 @@ def init_versions():
         g_loggerUtilities.debug('g_quranVersionId: {0}'.format(g_quranVersionId))
 
         l_connector.close()
+
+        g_loggerUtilities.info('g_bibleVersionId loaded. Size: {0}'.format(len(g_bibleVersionId)))
+        g_loggerUtilities.info('g_quranVersionId loaded. Size: {0}'.format(len(g_quranVersionId)))
     except mysql.connector.Error as l_exception:
         g_loggerUtilities.critical('Cannot load versions. Exception [{0}]. Aborting.'.format(l_exception))
         raise
@@ -201,6 +204,7 @@ def init_book_chapter():
         l_connector.close()
         g_loggerUtilities.debug('Connector Closed')
 
+        g_loggerUtilities.info('g_bookChapter loaded. Size: {0}'.format(len(g_bookChapter)))
     except mysql.connector.Error as l_exception:
         g_loggerUtilities.critical('Cannot load Books/Chapters. Mysql Exception [{0}]. Aborting.'.format(l_exception))
         raise
@@ -243,6 +247,7 @@ def init_book_alias():
             g_bookAlias[l_bookAlias] = l_bookId
 
         l_cursor.close()
+        l_connector.close()
 
         g_loggerUtilities.info('g_bookAlias loaded. Size: {0}'.format(len(g_bookAlias)))
     except mysql.connector.Error as l_exception:

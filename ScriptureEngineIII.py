@@ -70,6 +70,9 @@ try:
 except Exception as e:
     sendMail('Failed to initialize EcLogger', str(e))
 
+# init mysql connector class
+EcConnector.classInit()
+
 try:
     # browscap init
     ec_browscap.Browscap.initBrowscap(p_skip=g_skipBrowscap)

@@ -285,7 +285,9 @@ class EcConnectionPool(threading.Thread):
         return l_connection
 
     def releaseConnection(self, p_connection):
-        if not g_noConnectionPool:
+        if g_noConnectionPool:
+            p_connection.close()
+        else:
             # only access this CRITICAL SECTION one thread at a time
             self.m_connectionPoolLock.acquire()
             self.m_connectionPool.append(p_connection)
@@ -347,6 +349,11 @@ class EcConnectionPool(threading.Thread):
 # custom DB connector class incorporating expiration date
 class EcConnector(mysql.connector.MySQLConnection):
     cm_connectorCount = 0
+
+    @classmethod
+    def classInit(cls):
+        cls.cm_connectorCount = 0
+        g_loggerUtilities.info('EcConnector initialized. cm_connectorCount = {0}'.format(cls.cm_connectorCount))
 
     def __init__(self, **kwargs):
         self.m_connectorID = EcConnector.cm_connectorCount
