@@ -27,6 +27,7 @@ g_dbUser = 'root'
 g_dbPassword = 'murugan!'
 
 # size of DB connection pool
+g_noConnectionPool = True
 g_connectionPoolCount = 120
 
 # average db connection life span (in hours)

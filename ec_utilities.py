@@ -220,16 +220,17 @@ class EcConnectionPool(threading.Thread):
     def __init__(self):
         super().__init__(daemon=True)
 
-        # lock to protect the connection pool critical sections (pick-up and release)
-        self.m_connectionPoolLock = threading.Lock()
-        self.m_connectionPool = []
+        if not g_noConnectionPool:
+            # lock to protect the connection pool critical sections (pick-up and release)
+            self.m_connectionPoolLock = threading.Lock()
+            self.m_connectionPool = []
 
-        # fill the connection pool
-        for i in range(g_connectionPoolCount):
-            self.m_connectionPool.append( self.getNewConnection() )
+            # fill the connection pool
+            for i in range(g_connectionPoolCount):
+                self.m_connectionPool.append( self.getNewConnection() )
 
-        # starts the refresh thread
-        self.start()
+            # starts the refresh thread
+            self.start()
 
     def getNewConnection(self):
         try:
@@ -245,7 +246,10 @@ class EcConnectionPool(threading.Thread):
         return l_connection
 
     def getConnection(self):
-        l_connection = None
+        if g_noConnectionPool:
+            l_connection = self.getNewConnection()
+        else:
+            l_connection = None
 
         l_tryCount = 0
         while l_connection is None:
@@ -281,12 +285,13 @@ class EcConnectionPool(threading.Thread):
         return l_connection
 
     def releaseConnection(self, p_connection):
-        # only access this CRITICAL SECTION one thread at a time
-        self.m_connectionPoolLock.acquire()
-        self.m_connectionPool.append(p_connection)
-        g_loggerUtilities.info('Connections left: {0}'.format(len(self.m_connectionPool)))
-        # end of CRITICAL SECTION
-        self.m_connectionPoolLock.release()
+        if not g_noConnectionPool:
+            # only access this CRITICAL SECTION one thread at a time
+            self.m_connectionPoolLock.acquire()
+            self.m_connectionPool.append(p_connection)
+            g_loggerUtilities.info('Connections left: {0}'.format(len(self.m_connectionPool)))
+            # end of CRITICAL SECTION
+            self.m_connectionPoolLock.release()
 
     # refresher thread
     def run(self):
@@ -294,6 +299,7 @@ class EcConnectionPool(threading.Thread):
         while True:
             # sleeps for 30 seconds
             time.sleep(30)
+            g_loggerUtilities.info('Hello')
 
             # Before anything, do a system health check
             check_system_health()
@@ -302,9 +308,17 @@ class EcConnectionPool(threading.Thread):
             if len(self.m_connectionPool) < g_connectionPoolCount/3:
                 g_loggerUtilities.warning('Connections left: {0} - topping up'.format(len(self.m_connectionPool)))
 
+                # only access to this CRITICAL SECTION one thread at a time
+                # no one can get or release a connection while those in the pool are refreshed
+                self.m_connectionPoolLock.acquire()
+
                 # Add a third fill of new connections
                 for i in range(g_connectionPoolCount/3):
+                    g_loggerUtilities.info('topping up: {0}'.format(i))
                     self.m_connectionPool.append( self.getNewConnection() )
+
+                # end of CRITICAL section
+                self.m_connectionPoolLock.release()
 
             g_loggerUtilities.info('Starting refresh cycle')
 
