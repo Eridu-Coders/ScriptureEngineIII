@@ -10,7 +10,7 @@ g_staticRoot = g_appRoot
 
 # general parameters
 g_appName = 'ScriptureEngineIII'
-g_appVersion = '3.2.1'
+g_appVersion = '3.3.0'
 g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
