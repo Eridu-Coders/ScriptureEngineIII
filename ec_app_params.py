@@ -15,7 +15,7 @@ g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
 
-# in days
+# in days (100 years)
 g_cookiePersistence = 365*100
 
 # Session name (cookie name for session handling)

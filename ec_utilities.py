@@ -159,7 +159,8 @@ def sendMail(p_subject, p_message):
         return
 
     # all messages
-    l_fLog = open(re.sub('\.csv', '.all_msg', g_logFile), 'a')
+    l_fLogName = re.sub('\.csv', '.all_msg', g_logFile), 'a'
+    l_fLog = open(l_fLogName)
     l_fLog.write('>>>>>>>\n' + l_message)
     l_fLog.close()
 
@@ -195,6 +196,10 @@ def sendMail(p_subject, p_message):
                 datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M.%S'),
                 re.sub('\s+', ' ', repr(l_eception))
             ))
+        l_fLog.close()
+    except Exception as e:
+        l_fLog = open(l_fLogName)
+        l_fLog.write('>>>>>>>\n!!!!! ' + repr(e))
         l_fLog.close()
 
 
