@@ -159,8 +159,8 @@ def sendMail(p_subject, p_message):
         return
 
     # all messages
-    l_fLogName = re.sub('\.csv', '.all_msg', g_logFile), 'a'
-    l_fLog = open(l_fLogName)
+    l_fLogName = re.sub('\.csv', '.all_msg', g_logFile)
+    l_fLog = open(l_fLogName, 'a')
     l_fLog.write('>>>>>>>\n' + l_message)
     l_fLog.close()
 
@@ -198,7 +198,7 @@ def sendMail(p_subject, p_message):
             ))
         l_fLog.close()
     except Exception as e:
-        l_fLog = open(l_fLogName)
+        l_fLog = open(l_fLogName, 'a')
         l_fLog.write('>>>>>>>\n!!!!! ' + repr(e))
         l_fLog.close()
 
