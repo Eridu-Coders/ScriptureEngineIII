@@ -10,7 +10,7 @@ g_staticRoot = g_appRoot
 
 # general parameters
 g_appName = 'ScriptureEngineIII'
-g_appVersion = '3.3.0'
+g_appVersion = '3.3.0.1'
 g_appTitle = 'Scripture Search Engine III'
 
 # HTTP server parameters
@@ -26,7 +26,7 @@ g_dbDatabase = 'ScriptureEngineIII'
 g_dbUser = 'root'
 g_dbPassword = 'murugan!'
 
-# size of DB connection pool
+# size of DB connection pool + on/off switch
 g_noConnectionPool = True
 g_connectionPoolCount = 120
 

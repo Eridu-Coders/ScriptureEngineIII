@@ -16,7 +16,7 @@ __author__ = 'fi11222'
 # ################################ SEE se3.main.py for global intro ####################################################
 
 
-# Multithreaded HTTP server according to https://pymotw.com/2/BaseHTTPServer/index.html#module-BaseHTTPServer
+# Multi-threaded HTTP server according to https://pymotw.com/2/BaseHTTPServer/index.html#module-BaseHTTPServer
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     """Handle requests in a separate thread."""
 
@@ -50,7 +50,6 @@ if l_countApp > 1:
 # Make sure MySQL is running
 while True:
     try:
-        # mysql.connector.connect(
         l_connect = EcConnector(
             user=g_dbUser, password=g_dbPassword,
             host=g_dbServer,
@@ -106,4 +105,4 @@ try:
     # server main loop
     l_httpd.serve_forever()
 except Exception as e:
-    EcLogger.cm_logger.critical('App crashed. Error: {2}'.format(str(e)))
+    EcLogger.cm_logger.critical('App crashed. Error: {0}'.format(str(e)))

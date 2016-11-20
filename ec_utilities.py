@@ -95,8 +95,8 @@ class EcLogger:
         cls.cm_logger.addHandler(l_handlerFile)
 
         # Start-up Messages
-        cls.cm_logger.info('Start logging')
-        cls.cm_logger.debug('Start logging')
+        cls.cm_logger.info('-->> Start logging')
+        cls.cm_logger.debug('-->> Start logging')
 
 
 g_loggerUtilities = logging.getLogger(g_appName + '.util')
@@ -357,16 +357,17 @@ class EcConnector(mysql.connector.MySQLConnection):
 
     def __init__(self, **kwargs):
         self.m_connectorID = EcConnector.cm_connectorCount
+        g_loggerUtilities.debug('Creating EcConnector #{0} ....'.format(self.m_connectorID))
         EcConnector.cm_connectorCount += 1
 
         # life span = g_dbcLifeAverage +- 1/2 (in hours)
         l_lifespan = g_dbcLifeAverage + (.5 - random.random())
         self.m_expirationDate = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(hours=l_lifespan)
 
+        super().__init__(**kwargs)
+
         g_loggerUtilities.info('EcConnector #{2} created. Life span = {0:.2f} hours. Expiry: {1}'.format(
             l_lifespan, self.m_expirationDate, self.m_connectorID))
-
-        super().__init__(**kwargs)
 
     def isStale(self):
         return self.m_expirationDate < datetime.datetime.now(tz=pytz.utc)
