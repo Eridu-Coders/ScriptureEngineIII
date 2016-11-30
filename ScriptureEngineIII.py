@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import http.server
 import string
 
 from socketserver import ThreadingMixIn
@@ -9,7 +8,7 @@ from socketserver import ThreadingMixIn
 from ec_request_handler import *
 
 import ec_browscap
-import ec_app_core
+from se3_main import *
 
 __author__ = 'fi11222'
 
@@ -22,9 +21,10 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
 
 # ----------------------------------------- main() ---------------------------------------------------------------------
 random.seed()
+EcMailer.initMailer()
 
 # set current working dir
-os.chdir(g_appRoot)
+os.chdir(EcAppParam.gcm_appRoot)
 
 # abort if already launched
 l_countApp = 0
@@ -44,57 +44,61 @@ for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
 
 if l_countApp > 1:
     print('Already Running ...')
-    sendMail('Already Running ...', 'l_countApp = {0}'.format(l_countApp))
+    EcMailer.sendMail('Already Running ...', 'l_countApp = {0}'.format(l_countApp))
     sys.exit(0)
+
+# logger init
+try:
+    EcLogger.logInit()
+except Exception as e:
+    EcMailer.sendMail('Failed to initialize EcLogger', str(e))
 
 # Make sure MySQL is running
 while True:
     try:
+        EcLogger.cm_logger.debug('Attempting MySql Connection ...')
         l_connect = EcConnector(
-            user=g_dbUser, password=g_dbPassword,
-            host=g_dbServer,
-            database=g_dbDatabase)
+            user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
+            host=EcAppParam.gcm_dbServer,
+            database=EcAppParam.gcm_dbDatabase)
 
         l_connect.close()
-        print('MySQL ok')
+        EcLogger.cm_logger.debug('MySQL ok')
         break
     except mysql.connector.Error as e:
-        sendMail('WAITING: No MySql yet ...', str(e))
+        EcLogger.cm_logger.debug('WAITING: No MySql yet ... : ' + str(e))
+        EcMailer.sendMail('WAITING: No MySql yet ...', str(e))
         time.sleep(1)
         continue
 
-try:
-    # logger init
-    EcLogger.logInit()
-except Exception as e:
-    sendMail('Failed to initialize EcLogger', str(e))
 
 # init mysql connector class
 EcConnector.classInit()
 
 try:
     # browscap init
-    ec_browscap.Browscap.initBrowscap(p_skip=g_skipBrowscap)
+    ec_browscap.Browscap.initBrowscap(p_skip=EcAppParam.gcm_skipBrowscap)
 
     # custom handler + app init
     EcRequestHandler.initClass(
         ec_browscap.Browscap.cm_browscap,
-        ec_app_core.EcAppCore(g_templateIndex),
-        g_templateBrowser,
-        g_templateBad)
+        Se3AppCore(Se3AppParam.gcm_templateIndex),
+        EcAppParam.gcm_templateBrowserTest,
+        EcAppParam.gcm_templateBadBrowser)
 
     # python http server init
-    l_httpd = ThreadedHTTPServer(("", g_httpPort), EcRequestHandler)
+    l_httpd = ThreadedHTTPServer(("", EcAppParam.gcm_httpPort), EcRequestHandler)
 
-    EcLogger.cm_logger.info('g_appName        : ' + g_appName)
-    EcLogger.cm_logger.info('g_appVersion     : ' + g_appVersion)
-    EcLogger.cm_logger.info('g_appTitle       : ' + g_appTitle)
+    EcLogger.cm_logger.info('g_appName        : ' + EcAppParam.gcm_appName)
+    EcLogger.cm_logger.info('g_appVersion     : ' + EcAppParam.gcm_appVersion)
+    EcLogger.cm_logger.info('g_appTitle       : ' + EcAppParam.gcm_appTitle)
 
-    EcLogger.cm_logger.warning('Server up and running at [{0}:{1}]'.format(g_appDomain, str(g_httpPort)))
+    EcLogger.cm_logger.warning('Server up and running at [{0}:{1}]'
+                               .format(EcAppParam.gcm_appDomain, str(EcAppParam.gcm_httpPort)))
 except Exception as e:
     EcLogger.cm_logger.critical('Cannot start server at [{0}:{1}]. Error: {2}'.format(
-        g_appDomain,
-        str(g_httpPort),
+        EcAppParam.gcm_appDomain,
+        str(EcAppParam.gcm_httpPort),
         str(e)
     ))
     sys.exit(0)

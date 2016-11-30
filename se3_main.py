@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import re
-import logging
+from ec_utilities import *
 
-import ec_app_params
-import se3_single_verse
-import se3_passage
-import se3_word
-import se3_root
-import se3_search
-import se3_utilities
-import ec_utilities
-import se3_lexicon
+from se3_single_verse import *
+from se3_passage import *
+from se3_root import *
+from se3_search import *
+from se3_lexicon import *
 
 __author__ = 'fi11222'
 
@@ -132,620 +127,1278 @@ __author__ = 'fi11222'
 
 # TODO Arab search without vowels (and for Hebrew as well ...)
 
-# ---------------------- Logging ---------------------------------------------------------------------------------------
-g_loggerSE3 = logging.getLogger(ec_app_params.g_appName + '.se3_main')
-if ec_app_params.g_verboseModeOn:
-    g_loggerSE3.setLevel(logging.INFO)
-if ec_app_params.g_debugModeOn:
-    g_loggerSE3.setLevel(logging.DEBUG)
+# ------------------------- Response building class --------------------------------------------------------------------
+class Se3ResponseFactory:
+    @classmethod
+    def buildNew(cls, p_app, p_requestHandler):
+        l_context = p_requestHandler.getContext()
 
-# ---------------------- Templates--------------------------------------------------------------------------------------
-# there could be several templates but here there is only one (there are 2 others for the req. handler)
-g_homePageTemplatePath = ''
-g_homePageTemplate = ''
+        # single verse
+        if l_context['K'] == 'V':
+            return Se3_SingleVerse(p_app, p_requestHandler)
+        # passage
+        elif l_context['K'] == 'P':
+            return Se3_Passage(p_app, p_requestHandler)
+        # word (lexicon)
+        elif l_context['K'][0] == 'W':
+            return Se3_Word(p_app, p_requestHandler)
+        # root
+        elif l_context['K'][0] == 'R':
+            return Se3_Root(p_app, p_requestHandler)
+        # search
+        elif l_context['K'][0] == 'S':
+            return Se3_Search(p_app, p_requestHandler)
+        # table of contents
+        elif l_context['K'][0] == 'T':
+            return Se3_Toc(p_app, p_requestHandler)
+        # Arabic Lexicon
+        elif l_context['K'][0] == 'L':
+            return Se3_Lexicon(p_app, p_requestHandler)
+        else:
+            return '<p>No Response (You should not be seeing this!)</p>'
 
+class Se3AppCore(EcAppCore):
+    # --------------------- App Init -----------------------------------------------------------------------------------
+    def __init__(self, p_templatePath):
+        # init connection pool
+        super().__init__(p_templatePath)
 
-def loadTemplates():
-    global g_homePageTemplatePath
-    global g_homePageTemplate
+        self.m_homePageTemplatePath = p_templatePath
 
-    try:
-        with open(g_homePageTemplatePath, 'r') as l_fTemplate:
-            g_homePageTemplate = l_fTemplate.read()
-    except OSError as e:
-        g_loggerSE3.critical(
-            'Could not open template file [{0}]. Exception: [{1}]. Aborting.'.format(
-                g_homePageTemplatePath, str(e)))
-        raise
+        # ---------------------- Logging ---------------------------------------------------------------------------------------
+        self.m_loggerSE3 = logging.getLogger(EcAppParam.gcm_appName + '.se3_main')
+        if EcAppParam.gcm_verboseModeOn:
+            self.m_loggerSE3.setLevel(logging.INFO)
+        if EcAppParam.gcm_debugModeOn:
+            self.m_loggerSE3.setLevel(logging.DEBUG)
 
-    g_loggerSE3.info('Loaded template file [{0}].'.format(g_homePageTemplatePath))
+        # load the page template
+        self.loadTemplates()
 
+        # loads the versions lists (one for Bible, one for Quran)
+        self.m_bibleVersionId = []  # l_versionId, l_language, l_default, l_labelShort, l_labelTiny for Bible versions
+        self.m_quranVersionId = []  # l_versionId, l_language, l_default, l_labelShort, l_labelTiny for Quran versions
+        self.init_versions()
 
-# ---------------------- Application Init point ------------------------------------------------------------------------
-def init(p_templatePath):
-    global g_homePageTemplatePath
+        # loads the book/chapter dictionary
+        self.m_bookChapter = {}
+        self.init_book_chapter()
 
-    g_homePageTemplatePath = p_templatePath
-    # load the page template
-    loadTemplates()
-    # loads the versions lists (one for Bible, one for Quran)
-    se3_utilities.init_versions()
-    # loads the book/chapter dictionary
-    se3_utilities.init_book_chapter()
-    # loads the book alias --> book ID dictionary
-    se3_utilities.init_book_alias()
+        # loads the book alias --> book ID dictionary
+        self.m_bookAlias = {}
+        self.init_book_alias()
 
+    # ------------------ Templates--------------------------------------------------------------------------------------
+    # there could be several templates but here there is only one (there are 2 others for the req. handler)
+    def loadTemplates(self):
+        # self.m_homePageTemplatePath
+        # self.m_homePageTemplate
 
-# ---------------------- Application entry point -------------------------------------------------------------------
-def se3_entryPoint(p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
-    global g_homePageTemplatePath
-    global g_homePageTemplate
+        try:
+            with open(self.m_homePageTemplatePath, 'r') as l_fTemplate:
+                self.m_homePageTemplate = l_fTemplate.read()
+        except OSError as e:
+            self.m_loggerSE3.critical(
+                'Could not open template file [{0}]. Exception: [{1}]. Aborting.'.format(
+                    self.m_homePageTemplatePath, str(e)))
+            raise
 
-    g_loggerSE3.info('Entering SE3')
+        self.m_loggerSE3.info('Loaded template file [{0}].'.format(self.m_homePageTemplatePath))
 
-    # if debugging, reload template for each request
-    if ec_app_params.g_debugModeOn:
-        loadTemplates()
+    # --------------------- Version ID lists (Called at App Init) ------------------------------------------------------
+    # self.m_bibleVersionId = []   # l_versionId, l_language, l_default, l_labelShort, l_labelTiny for Bible versions
+    # self.m_quranVersionId = []   # l_versionId, l_language, l_default, l_labelShort, l_labelTiny for Quran versions
 
-    # default values, certain common controls, parameter expansion, ...
-    l_context = se3_utilities.preprocess_context(p_context, p_previousContext)
+    # self.m_defaultBibleId = '1'  # Hexadecimal bit mask representation of the default Bible version ID
+    # self.m_defaultQuranId = '1'  # same for Quran
 
-    # passage/book/verse references given in search box --> transformed into respective P/V commands
-    l_context = se3_utilities.trap_references(l_context)
+    # these serve as default values for p_context['l'] and p_context['q'] respectively
 
-    # +++++++++++++++++ A) response creation +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # gets the proper response depending on the command parameter (l_context['K'])
-    # this is not yet the whole page but only the part which goes in the main content area
+    # TODO ???? !!!! ????
+    # helper function to avoid accessing global variables outside of their file
+    def getVersionList(self, p_bibleQuran='B'):
+        if p_bibleQuran == 'B':
+            return self.m_bibleVersionId
+        else:
+            return self.m_quranVersionId
 
-    l_title = ec_app_params.g_appTitle
+    # loads the version vectors from the database (performed at app startup)
+    def init_versions(self):
+        l_connector = self.m_connectionPool.getConnection()
+        #try:
+            # this is necessary because the connection pool has not yet been initialized
+            # (It is only initialized in the EcRequestHandler class init to which the newly created app is passed as
+            # a parameter)
+            #l_connector = EcConnector(
+            #    user=g_dbUser, password=g_dbPassword,
+            #   host=g_dbServer,
+            #    database=g_dbDatabase)
 
-    # sigle verse
-    if l_context['K'] == 'V':
-        l_response, l_context, l_title = \
-            se3_single_verse.get_single_verse(p_previousContext, l_context, p_dbConnectionPool)
-    # passage
-    elif l_context['K'] == 'P':
-        l_response, l_context, l_title = se3_passage.get_passage(p_previousContext, l_context, p_dbConnectionPool)
-    # word (lexicon)
-    elif l_context['K'][0] == 'W':
-        l_response, l_context, l_title = se3_word.get_word(p_previousContext, l_context, p_dbConnectionPool)
-    # root
-    elif l_context['K'][0] == 'R':
-        l_response, l_context, l_title = se3_root.get_root(p_previousContext, l_context, p_dbConnectionPool)
-    # search
-    elif l_context['K'][0] == 'S':
-        l_response, l_context, l_title = se3_search.get_search(p_previousContext, l_context, p_dbConnectionPool)
-    # table of contents
-    elif l_context['K'][0] == 'T':
-        l_response, l_context, l_title = get_toc(p_previousContext, l_context, p_dbConnectionPool)
-    # Arabic Lexicon
-    elif l_context['K'] == 'La':
-        l_response, l_context, l_title = se3_lexicon.lexicon_arabic(p_previousContext, l_context, p_dbConnectionPool)
-    # Hebrew Lexicon
-    elif l_context['K'] == 'Lh':
-        l_response, l_context, l_title = se3_lexicon.lexicon_hebrew(p_previousContext, l_context, p_dbConnectionPool)
-    # Greek Lexicon
-    elif l_context['K'] == 'Lg':
-        l_response, l_context, l_title = se3_lexicon.lexicon_greek(p_previousContext, l_context, p_dbConnectionPool)
-    else:
-        l_response = '<p>No Response (You should not be seeing this!)</p>'
+            #l_connector = mysql.connector.connect(
+            #    user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
+            #    host=EcAppParam.gcm_dbServer,
+            #    database=EcAppParam.gcm_dbDatabase)
+        #except mysql.connector.Error as l_exception:
+        #    self.m_loggerSE3.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+        #    raise
 
-    # +++++++++++++++++ B) substitution values +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        try:
+            # all versions except ground text
+            l_query = """
+                select
+                    V.ID_VERSION
+                    , V.FL_BIBLE_QURAN
+                    , V.ID_LANGUAGE
+                    , V.FL_DEFAULT
+                    , V.ST_LABEL_SHORT
+                    , V.ST_LABEL_TINY
+                    , B.TX_VERSE_INSENSITIVE
+                from TB_VERSION V left outer join (
+                    select ID_VERSION, TX_VERSE_INSENSITIVE
+                    from TB_VERSES
+                    where ID_BOOK='Qur' and N_CHAPTER=1 and N_VERSE=1
+                ) B on V.ID_VERSION = B.ID_VERSION
+                where V.ID_VERSION <> '_gr'
+                order by V.N_ORDER
+                ;"""
 
-    # ............. B.1) header elements ...............................................................................
+            self.m_loggerSE3.debug('l_query: {0}'.format(l_query))
 
-    l_bibleVersionControl, l_quranVersionControl, l_paramControl, l_statusDisplay = \
-        internal_get_header_controls(l_context)
+            l_cursor = l_connector.cursor(buffered=True)
+            l_cursor.execute(l_query)
 
-    # ............. B.2) dimensions ....................................................................................
+            # binary mask variables used to set the value of g_defaultBibleId and g_defaultQuranId
+            # they are multiplied by 2 (i.e. set to next bit) each time a Bible (resp. Quran) verse is encountered
+            l_maskBible = 1
+            l_maskQuran = 1
 
-    l_dimensions = internal_get_dimensions()
+            # cursor iteration
+            for l_versionId, l_bq, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in l_cursor:
+                if l_bq == 'B':
+                    self.m_bibleVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny, ''))
 
-    # ............. B.3) other elements ................................................................................
-    # determines the values of all the §{xx} variables for the template substitution
+                    if l_default == 'Y':
+                        # the slice is necessary because the output of hex() starts with '0x'
+                        self.m_defaultBibleId = hex(l_maskBible)[2:].upper()
 
-    # dimensions table + context / previous context tables are displayed only in debug mode
-    l_dimensionsTable = ''
-    l_oldContextTable = ''
-    l_newContextTable = ''
+                    l_maskBible *= 2
+                else:
+                    self.m_quranVersionId.append((l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat))
 
-    if ec_app_params.g_debugModeOn:
-        l_hiddenFieldsType = 'text'
-        l_hiddenFieldsStyle = ''
+                    if l_default == 'Y':
+                        # the slice is necessary because the output of hex() starts with '0x'
+                        self.m_defaultQuranId = hex(l_maskQuran)[2:].upper()
 
-        l_dimensionsTable = '<p>Dimensions:</p><table style="border: 1px solid black;">'
-        for l_key in l_dimensions.keys():
-            l_dimensionsTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_dimensions[l_key])
-        l_dimensionsTable += '</table>\n'
+                    l_maskQuran *= 2
 
-        l_oldContextTable = '<p>Old Context:</p><table style="border: 1px solid black;">'
-        for l_key, l_value in p_previousContext.items():
-            l_oldContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
-        l_oldContextTable += '</table>\n'
+            l_cursor.close()
 
-        l_newContextTable = '<p>Context:</p><table style="border: 1px solid black;">'
+            self.m_loggerSE3.debug('g_bibleVersionId: {0}'.format(self.m_bibleVersionId))
+            self.m_loggerSE3.debug('g_quranVersionId: {0}'.format(self.m_quranVersionId))
+
+            #l_connector.close()
+            self.m_connectionPool.releaseConnection(l_connector)
+
+            self.m_loggerSE3.info('g_bibleVersionId loaded. Size: {0}'.format(len(self.m_bibleVersionId)))
+            self.m_loggerSE3.info('g_quranVersionId loaded. Size: {0}'.format(len(self.m_quranVersionId)))
+        except mysql.connector.Error as l_exception:
+            self.m_loggerSE3.critical('Cannot load versions. Exception [{0}]. Aborting.'.format(l_exception))
+            raise
+
+    # ------------------------- Book/Chapter data (Called at App Init) -------------------------------------------------
+    # self.m_bookChapter = {}
+
+    # g_bookChapter['id'] = [(l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext), v1, v2, ... ,vn]
+    #                        ^ first item in the list = tuple containing                     |<----------->|
+    #                          various info about the chapter                                 see below
+    #
+    # v1, v2, ... ,vn = verse count for each chapter of the book (n = number of chapters for this book)
+    #
+    # Therefore: Verse count for a given chapter = g_bookChapter['id'][chapter number]
+    #            Chapter count for the book = len(g_bookChapter['id']) - 1
+
+    def init_book_chapter(self):
+        l_connector = self.m_connectionPool.getConnection()
+        #try:
+        #   # this is necessary because the connection pool has not yet been initialized
+        #   l_connector = mysql.connector.connect(
+        #       user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
+        #       host=EcAppParam.gcm_dbServer,
+        #       database=EcAppParam.gcm_dbDatabase)
+        #except mysql.connector.Error as l_exception:
+        #    g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+        #    raise
+
+        try:
+            # All books
+            l_query = """
+                select
+                    ID_BOOK
+                    , FL_BIBLE_QURAN
+                    , ID_GROUP_0
+                    , ID_GROUP_1
+                    , ID_BOOK_PREV
+                    , ID_BOOK_NEXT
+                    , ST_NAME_EN_SHORT2
+                    , ST_NAME_FR_SHORT2
+                from TB_BOOK
+                order by N_ORDER
+                ;"""
+
+            g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+
+            l_cursor = l_connector.cursor(buffered=True)
+            l_cursor.execute(l_query)
+
+            # loads the first term of each g_bookChapter['id']
+            for l_bookId, l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr in l_cursor:
+                self.m_bookChapter[l_bookId] = \
+                    [(l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr)]
+
+            l_cursor.close()
+
+            # All chapters
+            l_query = """
+                select ID_BOOK, N_VERSE_COUNT
+                from TB_CHAPTER
+                order by ST_ORDER
+                ;"""
+
+            g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+
+            l_cursor = l_connector.cursor(buffered=True)
+            g_loggerUtilities.debug('Cursor Created')
+            l_cursor.execute(l_query)
+            g_loggerUtilities.debug('Cursor Executed')
+
+            # loads the chapter verse count terms of each g_bookChapter['id'] (from position 1 in the list onwards)
+            for l_bookId, l_verseCount in l_cursor:
+                self.m_bookChapter[l_bookId].append(l_verseCount)
+
+            g_loggerUtilities.debug('g_bookChapter: {0}'.format(self.m_bookChapter))
+
+            l_cursor.close()
+            g_loggerUtilities.debug('Cursor Closed')
+
+            #l_connector.close()
+            self.m_connectionPool.releaseConnection(l_connector)
+            g_loggerUtilities.debug('Connector released')
+
+            g_loggerUtilities.info('g_bookChapter loaded. Size: {0}'.format(len(self.m_bookChapter)))
+        except mysql.connector.Error as l_exception:
+            g_loggerUtilities.critical(
+                'Cannot load Books/Chapters. Mysql Exception [{0}]. Aborting.'.format(l_exception))
+            raise
+        except Exception as l_exception:
+            g_loggerUtilities.critical(
+                'Cannot load Books/Chapters. General Exception [{0}]. Aborting.'.format(l_exception))
+            raise
+
+    # ------------------------- Book Aliases table (Called at App Init) ------------------------------------------------
+    # self.m_bookAlias = {}  # Dictionary giving the correct book ID from one of its allowed aliases
+    # (rm, rom, ... --> Rom)
+
+    def init_book_alias(self):
+        l_connector = self.m_connectionPool.getConnection()
+        #try:
+        #    l_connector = mysql.connector.connect(
+        #        user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
+        #        host=EcAppParam.gcm_dbServer,
+        #        database=EcAppParam.gcm_dbDatabase)
+        #except mysql.connector.Error as l_exception:
+        #    g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
+        #    raise
+
+        try:
+            l_query = """
+                select
+                    ID_BOOK
+                    , ID_BOOK_ALIAS
+                from TB_BOOKS_ALIAS
+                ;"""
+
+            g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+
+            l_cursor = l_connector.cursor(buffered=True)
+            l_cursor.execute(l_query)
+
+            for l_bookId, l_bookAliasBytes in l_cursor:
+                l_bookAlias = l_bookAliasBytes.decode('utf-8')
+                self.m_bookAlias[l_bookAlias] = l_bookId
+
+            l_cursor.close()
+            #l_connector.close()
+            self.m_connectionPool.releaseConnection(l_connector)
+
+            g_loggerUtilities.info('g_bookAlias loaded. Size: {0}'.format(len(self.m_bookAlias)))
+        except mysql.connector.Error as l_exception:
+            g_loggerUtilities.critical('Cannot load book aliases. Exception [{0}]. Aborting.'.format(l_exception))
+            raise
+
+    # ------------------------- Version vector--------------------------------------------------------------------------
+    # creates a string of the form "id1", "id2", ..., "idn" where the ids correspond to the selected versions
+    # indicated by p_context['l'] (Bible) or p_context['q'] (Quran) depending on the value of p_context['b'] (book)
+    # used to fill in the IN clauses of the SQL requests which filter versions
+
+    def get_version_vector(self, p_context, p_forceAll=False):
+        # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have
+        # been checked before)
+        l_pcBookId = self.m_bookAlias[p_context['b'].lower().strip()]
+
+        if p_forceAll:
+            if l_pcBookId == 'Qur':
+                l_versionList = self.m_quranVersionId
+            else:
+                l_versionList = self.m_bibleVersionId
+
+            # the version Id is the first element (0th) of the tuple for each version
+            l_vector = '"' + '", "'.join([v[0] for v in l_versionList]) + '"'
+        else:
+            l_vector = '"' + '", "'.join([v[0] for v in self.get_version_list(p_context)]) + '"'
+
+        g_loggerUtilities.debug('l_vector: {0}'.format(l_vector))
+
+        return l_vector
+
+    # ------------------------- Version dictionary ---------------------------------------------------------------------
+    # Same as above but the return value is a list of tuples instead of a string
+    # Each tuple is of the form (l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat)
+    #
+    # p_context['q'] and p_context['l'] are hexadecimal bit vector representations of the selected versions
+    # (resp. Quran and Bible). E.g. p_context['q'] = 1B = 11011 --> versions 1, 2, 4 and 5 are selected
+
+    def get_version_list(self, p_context, p_QuranAndBible=False, p_forceBibleQuran=None):
+        # if p_QuranAndBible = True --> get both versions from the Bible and Quran
+        # otherwise decide based on p_context['b'] or p_forceBibleQuran if set
+
+        # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have been
+        # checked before)
+        l_pcBookId = self.m_bookAlias[p_context['b'].lower().strip()]
+
+        if p_QuranAndBible:
+            return self.get_vl_internal(self.m_quranVersionId, p_context['q']) + \
+                   self.get_vl_internal(self.m_bibleVersionId, p_context['l'])
+        else:
+            # decision to return Bible or Quran version based on context (l_pcBookId) or p_forceBibleQuran if set
+            l_bibleQuran = p_forceBibleQuran if p_forceBibleQuran is not None else l_pcBookId
+            if l_bibleQuran[0:1] == 'Q':
+                return self.get_vl_internal(self.m_quranVersionId, p_context['q'])
+            else:
+                return self.get_vl_internal(self.m_bibleVersionId, p_context['l'])
+
+    # internal function doing the heavy lifting
+    def get_vl_internal(self, p_versionList, p_versionWordStr):
+        l_versionWord = int(p_versionWordStr, 16)
+        g_loggerUtilities.debug('l_versionWord]: {0}'.format(l_versionWord))
+
+        # list based on the binary value of the parameter p_versionWordStr
+        l_list = []
+        for i in range(0, len(p_versionList)):
+            if l_versionWord % 2 == 1:
+                l_list.append(p_versionList[i])
+
+            l_versionWord //= 2
+            if l_versionWord == 0:
+                break
+
+        # default value if list is empty
+        if len(l_list) == 0:
+            for l_version in p_versionList:
+                if l_version[2] == 'Y':
+                    l_list.append(l_version)
+
+        # last resort default value: first element in the list
+        if len(l_list) == 0 and len(p_versionList) > 0:
+            l_list.append(p_versionList[0])
+
+        g_loggerUtilities.debug('l_list: {0}'.format(l_list))
+
+        return l_list
+
+    # ------------------------- Context preprocessing ------------------------------------------------------------------
+    def preprocess_context(self, p_context, p_previousContext):
+        l_context = p_context
+
+        # Minimal parameter presence ------------------
+        l_paramVector = ['b', 'c', 'v', 'w', 'q', 'l', 'p', 'd', 's', 'o', 'e', 'h', 'i', 'j']
+        for l_paramName in l_paramVector:
+            if l_paramName not in l_context.keys():
+                if l_paramName in p_previousContext.keys():
+                    l_context[l_paramName] = p_previousContext[l_paramName]
+                else:
+                    l_context[l_paramName] = ''
+
+        # Minimal parameter presence ------------------
+        # specific values
+        if l_context['b'] == '':
+            l_context['b'] = 'Gen'
+        if l_context['c'] == '':
+            l_context['c'] = '1'
+        if l_context['v'] == '':
+            l_context['v'] = '1'
+        if l_context['w'] == '':
+            l_context['w'] = '1'
+        if l_context['p'] == '':
+            l_context['p'] = '0'
+        if l_context['e'] == '':
+            l_context['e'] = '0'
+        if l_context['h'] == '':
+            l_context['h'] = '0'
+        if l_context['i'] == '':
+            l_context['i'] = '0'
+        if l_context['j'] == '':
+            l_context['j'] = '0'
+
+        # Minimal parameter presence ------------------
+        # special checkbox case
+        l_flagVector = ['t', 'u']
+        for l_flagName in l_flagVector:
+            if l_flagName not in l_context.keys():
+                l_context[l_flagName] = ''
+
+        # for 'K' (command), the default value is 'T' (table of contents)
+        if 'K' not in l_context.keys():
+            if 'K' in p_previousContext.keys():
+                l_context['K'] = p_previousContext['K']
+            else:
+                l_context['K'] = 'T'
+
+        # Bible/Quran default versions -------------------------
+        try:
+            l_bibleVersionsInt = int(l_context['l'], 16)
+        except ValueError:
+            l_bibleVersionsInt = int(self.m_defaultBibleId, 16)
+            l_context['l'] = self.m_defaultBibleId
+
+        try:
+            l_quranVersionsInt = int(l_context['q'], 16)
+        except ValueError:
+            l_quranVersionsInt = int(self.m_defaultQuranId, 16)
+            l_context['q'] = self.m_defaultQuranId
+
+        if l_bibleVersionsInt >= 2 ** len(self.m_bibleVersionId) or l_bibleVersionsInt == 0:
+            l_context['l'] = self.m_defaultBibleId
+
+        if l_quranVersionsInt >= 2 ** len(self.m_quranVersionId) or l_quranVersionsInt == 0:
+            l_context['q'] = self.m_defaultQuranId
+
+        # Search combo default values -------------------------
+        # search mode
+        if l_context['e'] != '0' \
+                and l_context['e'] != '1' \
+                and l_context['e'] != '2':
+            l_context['e'] = '0'
+
+        # Scope - Quran
+        if l_context['h'] != '0' \
+                and l_context['h'] != '1':
+            l_context['h'] = '0'
+
+        # Scope - NT
+        if l_context['i'] != '0' \
+                and l_context['i'] != '1' \
+                and l_context['i'] != '2' \
+                and l_context['i'] != '3' \
+                and l_context['i'] != '4':
+            l_context['i'] = '0'
+
+        # Scope - OT
+        if l_context['j'] != '0' \
+                and l_context['j'] != '1' \
+                and l_context['j'] != '2' \
+                and l_context['j'] != '3' \
+                and l_context['j'] != '4' \
+                and l_context['j'] != '5':
+            l_context['j'] = '0'
+
+        # Parameter expansion -------------------------
+        # expands the hexadecimal l_context['p'] bit mask into individual parameters
+        l_paramVector = ['a', 'x', 'k', 'n', 'g', 'r']
+
+        try:
+            l_paramInt = int(l_context['p'], 16)
+        except ValueError:
+            l_paramInt = 0
+            l_context['p'] = '0'
+
+        for l_paramName in l_paramVector:
+            l_context[l_paramName] = 0 if l_paramInt % 2 == 0 else 1
+            l_paramInt //= 2
+
+        return l_context
+
+    # ---------------- Trapping of passage references ----------------------------------------------------------------------
+    # Captures passage, book and verse references given in the search box
+    # No control is done here only trapping the probable reference values ---> proper control is done later, at the
+    # command handling module level
+    def trap_references(self, p_context):
+        l_context = p_context
+
+        # only if the current command is Search
+        if p_context['K'] == 'S':
+            l_searchQuery = p_context['s'].strip().lower()
+            g_loggerUtilities.debug('l_searchQuery: {0}'.format(l_searchQuery))
+
+            # All 3 Quran traps below just add 'qur' in front so that the normal trapping mechanisms can catch them
+            # afterwards
+
+            # 1) Quran passage of the form: xxx:yyy-zzz --> qur xxx:yyy-zzz
+            l_match = re.search('^(\d+)[: ](\d+)-(\d+)$', l_searchQuery)
+            if l_match is not None:
+                l_chapter = l_match.groups()[0]
+                l_verse1 = l_match.groups()[1]
+                l_verse2 = l_match.groups()[2]
+
+                g_loggerUtilities.info('Quran passage reference trapped')
+                g_loggerUtilities.info('l_chapter: {0}'.format(l_chapter))
+                g_loggerUtilities.info('l_verse1:  {0}'.format(l_verse1))
+                g_loggerUtilities.info('l_verse2:  {0}'.format(l_verse2))
+
+                l_searchQuery = 'qur {0}:{1}-{2}'.format(l_chapter, l_verse1, l_verse2)
+                l_context['s'] = l_searchQuery
+
+            # 2) Quran verse of the form: xxx:yyy --> qur xxx:yyy
+            l_match = re.search('^(\d+)[: ](\d+)$', l_searchQuery)
+            if l_match is not None:
+                l_chapter = l_match.groups()[0]
+                l_verse1 = l_match.groups()[1]
+
+                g_loggerUtilities.info('Quran verse reference trapped')
+                g_loggerUtilities.info('l_chapter: {0}'.format(l_chapter))
+                g_loggerUtilities.info('l_verse1:  {0}'.format(l_verse1))
+
+                l_searchQuery = 'qur {0}:{1}'.format(l_chapter, l_verse1)
+                l_context['s'] = l_searchQuery
+
+            # 3) Quran chapter of the form: xxx --> qur xxx
+            l_match = re.search('^(\d+)$', l_searchQuery)
+            if l_match is not None:
+                l_chapter = l_match.groups()[0]
+
+                g_loggerUtilities.info('Quran chapter reference trapped')
+                g_loggerUtilities.info('l_chapter: {0}'.format(l_chapter))
+
+                l_searchQuery = 'qur {0}'.format(l_chapter)
+                l_context['s'] = l_searchQuery
+
+            # General passage trap: xxx:yyy-zzz ---> transformed into a 'P' command
+            l_match = re.search('^(\d*)\s*([a-z]+)\.?\s+(\d+)[: ](\d+)-(\d+)$', l_searchQuery)
+            if l_match is not None:
+                l_book = l_match.groups()[0] + l_match.groups()[1]
+                l_chapter = l_match.groups()[2]
+                l_verse1 = l_match.groups()[3]
+                l_verse2 = l_match.groups()[4]
+
+                g_loggerUtilities.info('Passage reference trapped')
+                g_loggerUtilities.info('l_book:    {0}'.format(l_book))
+                g_loggerUtilities.info('l_chapter: {0}'.format(l_chapter))
+                g_loggerUtilities.info('l_verse1:  {0}'.format(l_verse1))
+                g_loggerUtilities.info('l_verse2:  {0}'.format(l_verse2))
+
+                l_context['K'] = 'P'
+                l_context['b'] = l_book
+                l_context['c'] = l_chapter
+                l_context['v'] = l_verse1
+                l_context['w'] = l_verse2
+
+                return l_context
+
+            # General verse trap: xxx:yyy ---> transformed into a 'V' command
+            l_match = re.search('^(\d*)\s*([a-z]+)\.?\s+(\d+)[: ](\d+)$', l_searchQuery)
+            if l_match is not None:
+                l_book = l_match.groups()[0] + l_match.groups()[1]
+                l_chapter = l_match.groups()[2]
+                l_verse = l_match.groups()[3]
+
+                g_loggerUtilities.info('Verse reference trapped')
+                g_loggerUtilities.info('l_book:    {0}'.format(l_book))
+                g_loggerUtilities.info('l_chapter: {0}'.format(l_chapter))
+                g_loggerUtilities.info('l_verse1:  {0}'.format(l_verse))
+
+                l_context['K'] = 'V'
+                l_context['b'] = l_book
+                l_context['c'] = l_chapter
+                l_context['v'] = l_verse
+
+                return l_context
+
+            # General chapter trap: xxx ---> transformed into a 'P' command 1-x
+            l_match = re.search('^(\d*)\s*([a-z]+)\.?\s+(\d+)$', l_searchQuery)
+            if l_match is not None:
+                l_book = l_match.groups()[0] + l_match.groups()[1]
+                l_chapter = l_match.groups()[2]
+
+                g_loggerUtilities.info('Chapter reference trapped')
+                g_loggerUtilities.info('l_book:    {0}'.format(l_book))
+                g_loggerUtilities.info('l_chapter: {0}'.format(l_chapter))
+
+                l_context['K'] = 'P'
+                l_context['b'] = l_book
+                l_context['c'] = l_chapter
+                l_context['v'] = '1'
+                l_context['w'] = 'x'
+
+                return l_context
+
+        return l_context
+
+    # ---------------- Parameter control -----------------------------------------------------------------------------------
+    # ensure correct values for the parameters needed by the passage command ('P')
+    # called at the beginning of get_passage()
+    def passage_control(self, p_context):
+        l_book = p_context['b']
+        l_chapter = p_context['c']
+        l_verse1 = p_context['v']
+        l_verse2 = p_context['w']
+
+        # book must be in the alias table
+        if l_book.lower().strip() not in self.m_bookAlias.keys():
+            return EcAppCore.get_user_string(p_context, 'e_wrongBookPassage').format(
+                l_book, l_chapter, l_verse1, l_verse2)
+        else:
+            # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
+            l_pcBookId = self.m_bookAlias[l_book.lower().strip()]
+
+            # chapter must be a valid number
+            try:
+                l_intChapter = int(l_chapter)
+            except ValueError:
+                return EcAppCore.get_user_string(p_context, 'e_wrongChapterPassage').format(
+                    l_book, l_chapter, l_verse1, l_verse2)
+
+            # chapter must be in the right range based on the book table
+            if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+                return EcAppCore.get_user_string(p_context, 'e_wrongChapterPassage').format(
+                    l_book, l_chapter, l_verse1, l_verse2)
+            else:
+                # verse1 must be a valid number
+                try:
+                    l_intVerse1 = int(l_verse1)
+                except ValueError:
+                    return EcAppCore.get_user_string(p_context, 'e_wrongV1Passage').format(
+                        l_book, l_chapter, l_verse1, l_verse2)
+
+                l_intVerse2 = 0
+                # verse2 must be a valid number except in the case where v1 = 1 and v2 = 'x' (indicating 'whole chapter)
+                try:
+                    l_intVerse2 = int(l_verse2)
+                except ValueError:
+                    if not (l_intVerse1 == 1 and l_verse2 == 'x'):
+                        return EcAppCore.get_user_string(p_context, 'e_wrongV2Passage').format(
+                            l_book, l_chapter, l_verse1, l_verse2)
+
+                # v1 must be in the right range as determined based on the chapter and book
+                if l_intVerse1 < 1 or l_intVerse1 > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                    return EcAppCore.get_user_string(p_context, 'e_wrongV1Passage').format(
+                        l_book, l_chapter, l_verse1, l_verse2)
+                # v2 must be in the same range as v1 and also greater than v1
+                elif l_verse2 != 'x' and \
+                        (l_intVerse2 < 1 or l_intVerse2 > self.m_bookChapter[l_pcBookId][l_intChapter] or
+                                 l_intVerse1 > l_intVerse2):
+                    return EcAppCore.get_user_string(p_context, 'e_wrongV2Passage').format(
+                        l_book, l_chapter, l_verse1, l_verse2)
+
+        return ''
+
+    # ensure correct values for the parameters needed by the verse command ('V')
+    # called at the beginning of get_single_verse()
+    def verse_control(self, p_context):
+        l_book = p_context['b']
+        l_chapter = p_context['c']
+        l_verse = p_context['v']
+
+        # book must be in the alias table
+        if l_book.lower().strip() not in self.m_bookAlias.keys():
+            return EcAppCore.get_user_string(p_context, 'e_wrongBookVerse').format(
+                l_book, l_chapter, l_verse)
+        else:
+            # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
+            l_pcBookId = self.m_bookAlias[l_book.lower().strip()]
+
+            # chapter must be a valid number
+            try:
+                l_intChapter = int(l_chapter)
+            except ValueError:
+                return EcAppCore.get_user_string(p_context, 'e_wrongChapterVerse').format(
+                    l_book, l_chapter, l_verse)
+
+            # chapter must be in the right range based on the book table
+            if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+                return EcAppCore.get_user_string(p_context, 'e_wrongChapterVerse').format(
+                    l_book, l_chapter, l_verse)
+            else:
+                # verse must be a valid number
+                try:
+                    l_intVerse = int(l_verse)
+                except ValueError:
+                    return EcAppCore.get_user_string(p_context, 'e_wrongVVerse').format(
+                        l_book, l_chapter, l_verse)
+
+                # verse must be in the right range as determined based on the chapter and book
+                if l_intVerse < 1 or l_intVerse > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                    return EcAppCore.get_user_string(p_context, 'e_wrongVVerse').format(
+                        l_book, l_chapter, l_verse)
+
+        return ''
+
+    # ensure correct values for the parameters needed by the word command ('W')
+    # called at the beginning of get_word()
+    def word_control(self, p_context):
+        l_book = p_context['b']
+        l_chapter = p_context['c']
+        l_verse = p_context['v']
+
+        # the word ID parameter must be of the form X-Y-Z9999 where
+        # X is a number (Word number)
+        # Y is C, H, K or L (interlinear ID)
+        # Z is H, G or A (Strong's number initial)
+        # 9999 is a 4 digit number
+        # or the ID must be of the form _-_-Z9999 (no word ID and Interlinear ID provided)
+        if re.search('([0-9]+|_)-[CHKL_]-[HGA][0-9]{4}', p_context['d']) is None:
+            return EcAppCore.get_user_string(p_context, 'e_wrongIdWord').format(
+                l_book, l_chapter, l_verse, p_context['d'])
+
+        l_wordId = p_context['d'].split('-')[0]
+        l_interlinearId = p_context['d'].split('-')[1]
+        l_idStrongs = p_context['d'].split('-')[2]
+
+        # if both the word ID and the interlinear ID are '_' then there is no further test to perform
+        # otherwise, all the tests below apply
+        if not (l_wordId == '_' and l_interlinearId == '_'):
+            # book must be in the alias table
+            if l_book.lower().strip() not in self.m_bookAlias.keys():
+                return EcAppCore.get_user_string(p_context, 'e_wrongBookWord').format(
+                    l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+            else:
+                # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
+                l_pcBookId = self.m_bookAlias[l_book.lower().strip()]
+
+                # chapter must be a valid number
+                try:
+                    l_intChapter = int(l_chapter)
+                except ValueError:
+                    return EcAppCore.get_user_string(p_context, 'e_wrongChapterWord').format(
+                        l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+
+                # chapter must be in the right range based on the book table
+                if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+                    return EcAppCore.get_user_string(p_context, 'e_wrongChapterWord').format(
+                        l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+                else:
+                    # verse must be a valid number
+                    try:
+                        l_intVerse = int(l_verse)
+                    except ValueError:
+                        return EcAppCore.get_user_string(p_context, 'e_wrongVWord').format(
+                            l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+
+                    # verse must be in the right range as determined based on the chapter and book
+                    if l_intVerse < 1 or l_intVerse > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                        return EcAppCore.get_user_string(p_context, 'e_wrongVWord').format(
+                            l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+                    else:
+                        # word ID must be a valid number
+                        try:
+                            l_intWord = int(l_wordId)
+                        except ValueError:
+                            return EcAppCore.get_user_string(p_context, 'e_wrongWordWord').format(
+                                l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+
+                        # word number must be in a "reasonable" range
+                        if l_intWord < 0 or l_intWord > 500:
+                            return EcAppCore.get_user_string(p_context, 'e_wrongWordWord').format(
+                                l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
+
+        return ''
+
+    # ensure correct values for the parameters needed by the root command ('R')
+    # called at the beginning of get_root()
+    def root_control(self, p_context):
+        l_rootString = p_context['d']
+
+        # the word ID parameter must be a sequence of items separated by '|'. Each item is either
+        # 1) a strongs number: Z9999 with Z = A, H or G and 9999 a 4 digit number, or
+        # 2) a "pure root" ID of the form X-ZZZ with ZZZ any trigram of capital letters
+        # 3) an Arabic root which can be any sequence of non-space letters
+        if re.search('(\S{3}|[HGA][0-9]{4}|X-[A-Z]{3})(\|(\S{3}|[HGA][0-9]{4}|X-[A-Z]{3}))*', l_rootString) is None:
+            return EcAppCore.get_user_string(p_context, 'e_wrongRoot').format(l_rootString)
+
+        return ''
+
+    # ------------------------- Chapter names (en/fr) ----------------------------------------------------------------------
+    # get the French and English full chapter name corresponding to context (p_context['b'] + p_context['c'])
+    def get_chapter_names(self, p_context, p_dbConnection):
+        # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have been checked before)
+        l_pcBookId = self.m_bookAlias[p_context['b'].lower().strip()]
+
+        l_query = """
+            select ST_NAME_EN, ST_NAME_FR
+            from TB_CHAPTER
+            where
+                ID_BOOK = '{0}'
+                and N_CHAPTER = {1}
+            ;""".format(l_pcBookId, p_context['c'])
+
+        g_loggerUtilities.debug('l_query: {0}'.format(l_query))
+        l_chapterEn, l_chapterFr = '', ''
+        try:
+            l_cursor = p_dbConnection.cursor(buffered=True)
+            l_cursor.execute(l_query)
+
+            for l_chapterEn, l_chapterFr in l_cursor:
+                pass
+
+            l_cursor.close()
+        except Exception as l_exception:
+            g_loggerUtilities.warning('Something went wrong {0}'.format(l_exception.args))
+            l_chapterEn, l_chapterFr = 'Not Found', 'Non trouvé'
+
+        return l_chapterEn, l_chapterFr
+
+    # -------------------- Call Point from EcRequestHandler ------------------------------------------------------------
+    #def getResponse(self, p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
+    def getResponse(self, p_requestHandler):
+        self.m_loggerSE3.info('Getting response from App Core')
+
+        #return self.se3_entryPoint(
+        #    p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID)
+        return self.se3_entryPoint(p_requestHandler)
+
+    # ---------------------- Application entry point -------------------------------------------------------------------
+    #def se3_entryPoint(self, p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
+    def se3_entryPoint(self, p_requestHandler):
+        self.m_loggerSE3.info('Entering SE3')
+
+        # if debugging, reload template for each request
+        if EcAppParam.gcm_debugModeOn:
+            self.loadTemplates()
+
+        l_previousContext = p_requestHandler.getPreviousContext()
+        l_dbConnectionPool = self.m_connectionPool
+        
+        # default values, certain common controls, parameter expansion, ...
+        l_context = self.preprocess_context(p_requestHandler.getContext(), l_previousContext)
+
+        # passage/book/verse references given in search box --> transformed into respective P/V commands
+        l_context = self.trap_references(l_context)
+
+        # +++++++++++++++++ A) response creation +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # gets the proper response depending on the command parameter (l_context['K'])
+        # this is not yet the whole page but only the part which goes in the main content area
+
+        l_builder = Se3ResponseFactory.buildNew(self, p_requestHandler)
+        l_response, l_context, l_title = l_builder.buildResponse()
+
+        # sigle verse
+        #if l_context['K'] == 'V':
+        #    l_response, l_context, l_title = \
+        #        se3_single_verse.get_single_verse(l_previousContext, l_context, l_dbConnectionPool)
+        # passage
+        #elif l_context['K'] == 'P':
+        #   l_response, l_context, l_title = se3_passage.get_passage(l_previousContext, l_context, l_dbConnectionPool)
+        ## word (lexicon)
+        #elif l_context['K'][0] == 'W':
+        #    l_response, l_context, l_title = se3_word.get_word(l_previousContext, l_context, l_dbConnectionPool)
+        # root
+        #elif l_context['K'][0] == 'R':
+        #    l_response, l_context, l_title = se3_root.get_root(l_previousContext, l_context, l_dbConnectionPool)
+        # search
+        #elif l_context['K'][0] == 'S':
+        #    l_response, l_context, l_title = se3_search.get_search(l_previousContext, l_context, l_dbConnectionPool)
+        # table of contents
+        #elif l_context['K'][0] == 'T':
+        #    l_response, l_context, l_title = self.get_toc(l_previousContext, l_context, l_dbConnectionPool)
+        # Arabic Lexicon
+        #elif l_context['K'] == 'La':
+        #    l_response, l_context, l_title = se3_lexicon.lexicon_arabic(l_previousContext, l_context, l_dbConnectionPool)
+        # Hebrew Lexicon
+        #elif l_context['K'] == 'Lh':
+        #    l_response, l_context, l_title = se3_lexicon.lexicon_hebrew(l_previousContext, l_context, l_dbConnectionPool)
+        # Greek Lexicon
+        #elif l_context['K'] == 'Lg':
+        #    l_response, l_context, l_title = se3_lexicon.lexicon_greek(l_previousContext, l_context, l_dbConnectionPool)
+        #else:
+        #    l_response = '<p>No Response (You should not be seeing this!)</p>'
+
+        # +++++++++++++++++ B) substitution values +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        # ............. B.1) header elements ...............................................................................
+
+        l_bibleVersionControl, l_quranVersionControl, l_paramControl, l_statusDisplay = \
+            self.internal_get_header_controls(l_context)
+
+        # ............. B.2) dimensions ....................................................................................
+
+        l_dimensions = self.internal_get_dimensions()
+
+        # ............. B.3) other elements ................................................................................
+        # determines the values of all the §{xx} variables for the template substitution
+
+        # dimensions table + context / previous context tables are displayed only in debug mode
+        l_dimensionsTable = ''
+        l_oldContextTable = ''
+        l_newContextTable = ''
+
+        if EcAppParam.gcm_debugModeOn:
+            l_hiddenFieldsType = 'text'
+            l_hiddenFieldsStyle = ''
+
+            l_dimensionsTable = '<p>Dimensions:</p><table style="border: 1px solid black;">'
+            for l_key in l_dimensions.keys():
+                l_dimensionsTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_dimensions[l_key])
+            l_dimensionsTable += '</table>\n'
+
+            l_oldContextTable = '<p>Old Context:</p><table style="border: 1px solid black;">'
+            for l_key, l_value in l_previousContext.items():
+                l_oldContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
+            l_oldContextTable += '</table>\n'
+
+            l_newContextTable = '<p>Context:</p><table style="border: 1px solid black;">'
+            for l_key, l_value in l_context.items():
+                l_newContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
+            l_newContextTable += '</table>\n'
+        else:
+            l_hiddenFieldsType = 'hidden'
+            l_hiddenFieldsStyle = 'display: none;'
+
+        # create appropriate template substitution key/values for each element of the context
+        l_inputValues = {}
         for l_key, l_value in l_context.items():
-            l_newContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
-        l_newContextTable += '</table>\n'
-    else:
-        l_hiddenFieldsType = 'hidden'
-        l_hiddenFieldsStyle = 'display: none;'
+            l_inputValues['inputValue_' + l_key] = l_value
 
-    # create appropriate template substitution key/values for each element of the context
-    l_inputValues = {}
-    for l_key, l_value in l_context.items():
-        l_inputValues['inputValue_' + l_key] = l_value
+        # NB : the value of t and u is 'checked' or '' and §{inputValue_t} / §{inputValue_u} are used
+        # at the end of each checkbox input tag to indicate if it is checked or not. For example :
 
-    # NB : the value of t and u is 'checked' or '' and §{inputValue_t} / §{inputValue_u} are used
-    # at the end of each checkbox input tag to indicate if it is checked or not. For example :
+        # <input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}>
 
-    # <input type="checkbox" id="NavControl_wholeWords" name="t" value="checked" §{inputValue_t}>
+        # So this also sets the current value for t and u
 
-    # So this also sets the current value for t and u
+        self.m_loggerSE3.debug('l_inputValues: {0}'.format(l_inputValues))
 
-    g_loggerSE3.debug('l_inputValues: {0}'.format(l_inputValues))
+        # merge l_dimensions and l_inputValues
+        l_substituteVar = l_dimensions
+        l_substituteVar.update(l_inputValues)
 
-    # merge l_dimensions and l_inputValues
-    l_substituteVar = l_dimensions
-    l_substituteVar.update(l_inputValues)
+        l_substituteVar.update(self.internal_get_labels(l_context))
 
-    l_substituteVar.update(internal_get_labels(l_context))
+        self.m_loggerSE3.debug('l_substituteVar: {0}'.format(l_substituteVar))
 
-    g_loggerSE3.debug('l_substituteVar: {0}'.format(l_substituteVar))
+        # +++++++++++++++++ C) final substitution ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        l_urlPath, l_noJSPath = p_requestHandler.getPaths()
+        l_terminalID = p_requestHandler.getTerminalID()
+        l_pageTemplate = EcTemplate(self.m_homePageTemplate)
+        l_response = l_pageTemplate.substitute(l_substituteVar,
+                                               WindowTitle=l_title,
+                                               UrlPath=l_urlPath,
+                                               NoJSPath=l_noJSPath,
+                                               FooterText='{0} v. {1}<br/>Terminal ID: {2}'.format(
+                                                   EcAppParam.gcm_appTitle, EcAppParam.gcm_appVersion, l_terminalID),
+                                               HiddenFieldsStyle=l_hiddenFieldsStyle,
+                                               HiddenFieldsType=l_hiddenFieldsType,
+                                               StatusLine=l_statusDisplay,
+                                               Parameters=l_paramControl,
+                                               BibleVersions=l_bibleVersionControl,
+                                               QuranVersions=l_quranVersionControl,
+                                               Response=l_response,
+                                               OldContextTable=l_oldContextTable,
+                                               NewContextTable=l_newContextTable,
+                                               DimensionsTable=l_dimensionsTable)
 
-    # +++++++++++++++++ C) final substitution ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    l_pageTemplate = ec_utilities.EcTemplate(g_homePageTemplate)
-    l_response = l_pageTemplate.substitute(l_substituteVar,
-                                           WindowTitle=l_title,
-                                           UrlPath=p_urlPath,
-                                           NoJSPath=p_noJSPath,
-                                           FooterText='{0} v. {1}<br/>Terminal ID: {2}'.format(
-                                               ec_app_params.g_appTitle, ec_app_params.g_appVersion, p_terminalID),
-                                           HiddenFieldsStyle=l_hiddenFieldsStyle,
-                                           HiddenFieldsType=l_hiddenFieldsType,
-                                           StatusLine=l_statusDisplay,
-                                           Parameters=l_paramControl,
-                                           BibleVersions=l_bibleVersionControl,
-                                           QuranVersions=l_quranVersionControl,
-                                           Response=l_response,
-                                           OldContextTable=l_oldContextTable,
-                                           NewContextTable=l_newContextTable,
-                                           DimensionsTable=l_dimensionsTable)
+        self.m_loggerSE3.info('SE3 returning')
+        return l_response, l_context
 
-    g_loggerSE3.info('SE3 returning')
-    return l_response, l_context
+    def internal_get_labels(self, p_context):
+        l_substituteVar = dict()
 
+        # Search form labels and current values
+        l_substituteVar['label_search'] = self.get_user_string(p_context, 'm_labelSearch')
+        l_substituteVar['label_wholeWords'] = self.get_user_string(p_context, 'm_labelWholeWords')
+        l_substituteVar['label_caseSensitive'] = self.get_user_string(p_context, 'm_labelCaseSensitive')
+        l_substituteVar['label_exclude'] = self.get_user_string(p_context, 'm_labelExclude')
+        l_substituteVar['label_searchScope'] = self.get_user_string(p_context, 'm_labelSearchScope')
 
-def internal_get_labels(p_context):
-    l_substituteVar = dict()
+        # Search mode value labels
+        l_substituteVar['label_searchMode'] = self.get_user_string(p_context, 'm_labelSearchMode')
+        l_substituteVar['label_searchMode0'] = self.get_user_string(p_context, 'm_labelSearchMode0')
+        l_substituteVar['label_searchMode1'] = self.get_user_string(p_context, 'm_labelSearchMode1')
+        l_substituteVar['label_searchMode2'] = self.get_user_string(p_context, 'm_labelSearchMode2')
 
-    # Search form labels and current values
-    l_substituteVar['label_search'] = se3_utilities.get_user_string(p_context, 'm_labelSearch')
-    l_substituteVar['label_wholeWords'] = se3_utilities.get_user_string(p_context, 'm_labelWholeWords')
-    l_substituteVar['label_caseSensitive'] = se3_utilities.get_user_string(p_context, 'm_labelCaseSensitive')
-    l_substituteVar['label_exclude'] = se3_utilities.get_user_string(p_context, 'm_labelExclude')
-    l_substituteVar['label_searchScope'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScope')
+        # Search mode current value
+        l_substituteVar['inputValue_e0'] = ''
+        l_substituteVar['inputValue_e1'] = ''
+        l_substituteVar['inputValue_e2'] = ''
+        l_substituteVar['inputValue_e' + p_context['e']] = 'selected'
 
-    # Search mode value labels
-    l_substituteVar['label_searchMode'] = se3_utilities.get_user_string(p_context, 'm_labelSearchMode')
-    l_substituteVar['label_searchMode0'] = se3_utilities.get_user_string(p_context, 'm_labelSearchMode0')
-    l_substituteVar['label_searchMode1'] = se3_utilities.get_user_string(p_context, 'm_labelSearchMode1')
-    l_substituteVar['label_searchMode2'] = se3_utilities.get_user_string(p_context, 'm_labelSearchMode2')
+        # Quran scope value labels
+        l_substituteVar['label_searchScopeQ'] = self.get_user_string(p_context, 'm_labelSearchScopeQ')
+        l_substituteVar['label_searchScopeQ0'] = self.get_user_string(p_context, 'm_labelSearchScopeQ0')
+        l_substituteVar['label_searchScopeQ1'] = self.get_user_string(p_context, 'm_labelSearchScopeQ1')
 
-    # Search mode current value
-    l_substituteVar['inputValue_e0'] = ''
-    l_substituteVar['inputValue_e1'] = ''
-    l_substituteVar['inputValue_e2'] = ''
-    l_substituteVar['inputValue_e' + p_context['e']] = 'selected'
+        # Quran scope current value
+        l_substituteVar['inputValue_h0'] = ''
+        l_substituteVar['inputValue_h1'] = ''
+        l_substituteVar['inputValue_h' + p_context['h']] = 'selected'
 
-    # Quran scope value labels
-    l_substituteVar['label_searchScopeQ'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeQ')
-    l_substituteVar['label_searchScopeQ0'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeQ0')
-    l_substituteVar['label_searchScopeQ1'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeQ1')
+        # NT scope value labels
+        l_substituteVar['label_searchScopeNT'] = self.get_user_string(p_context, 'm_labelSearchScopeNT')
+        l_substituteVar['label_searchScopeNT0'] = self.get_user_string(p_context, 'm_labelSearchScopeNT0')
+        l_substituteVar['label_searchScopeNT1'] = self.get_user_string(p_context, 'm_labelSearchScopeNT1')
+        l_substituteVar['label_searchScopeNT2'] = self.get_user_string(p_context, 'm_labelSearchScopeNT2')
+        l_substituteVar['label_searchScopeNT3'] = self.get_user_string(p_context, 'm_labelSearchScopeNT3')
+        l_substituteVar['label_searchScopeNT4'] = self.get_user_string(p_context, 'm_labelSearchScopeNT4')
 
-    # Quran scope current value
-    l_substituteVar['inputValue_h0'] = ''
-    l_substituteVar['inputValue_h1'] = ''
-    l_substituteVar['inputValue_h' + p_context['h']] = 'selected'
+        # NT scope current value
+        l_substituteVar['inputValue_i0'] = ''
+        l_substituteVar['inputValue_i1'] = ''
+        l_substituteVar['inputValue_i2'] = ''
+        l_substituteVar['inputValue_i3'] = ''
+        l_substituteVar['inputValue_i4'] = ''
+        l_substituteVar['inputValue_i' + p_context['i']] = 'selected'
 
-    # NT scope value labels
-    l_substituteVar['label_searchScopeNT'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT')
-    l_substituteVar['label_searchScopeNT0'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT0')
-    l_substituteVar['label_searchScopeNT1'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT1')
-    l_substituteVar['label_searchScopeNT2'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT2')
-    l_substituteVar['label_searchScopeNT3'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT3')
-    l_substituteVar['label_searchScopeNT4'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT4')
+        # OT scope value labels
+        l_substituteVar['label_searchScopeOT'] = self.get_user_string(p_context, 'm_labelSearchScopeOT')
+        l_substituteVar['label_searchScopeOT0'] = self.get_user_string(p_context, 'm_labelSearchScopeOT0')
+        l_substituteVar['label_searchScopeOT1'] = self.get_user_string(p_context, 'm_labelSearchScopeOT1')
+        l_substituteVar['label_searchScopeOT2'] = self.get_user_string(p_context, 'm_labelSearchScopeOT2')
+        l_substituteVar['label_searchScopeOT3'] = self.get_user_string(p_context, 'm_labelSearchScopeOT3')
+        l_substituteVar['label_searchScopeOT4'] = self.get_user_string(p_context, 'm_labelSearchScopeOT4')
+        l_substituteVar['label_searchScopeOT5'] = self.get_user_string(p_context, 'm_labelSearchScopeOT5')
 
-    # NT scope current value
-    l_substituteVar['inputValue_i0'] = ''
-    l_substituteVar['inputValue_i1'] = ''
-    l_substituteVar['inputValue_i2'] = ''
-    l_substituteVar['inputValue_i3'] = ''
-    l_substituteVar['inputValue_i4'] = ''
-    l_substituteVar['inputValue_i' + p_context['i']] = 'selected'
+        # OT scope current value
+        l_substituteVar['inputValue_j0'] = ''
+        l_substituteVar['inputValue_j1'] = ''
+        l_substituteVar['inputValue_j2'] = ''
+        l_substituteVar['inputValue_j3'] = ''
+        l_substituteVar['inputValue_j4'] = ''
+        l_substituteVar['inputValue_j5'] = ''
+        l_substituteVar['inputValue_j' + p_context['j']] = 'selected'
 
-    # OT scope value labels
-    l_substituteVar['label_searchScopeOT'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT')
-    l_substituteVar['label_searchScopeOT0'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT0')
-    l_substituteVar['label_searchScopeOT1'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT1')
-    l_substituteVar['label_searchScopeOT2'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT2')
-    l_substituteVar['label_searchScopeOT3'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT3')
-    l_substituteVar['label_searchScopeOT4'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT4')
-    l_substituteVar['label_searchScopeOT5'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT5')
+        # TOC labels
+        l_substituteVar['toc_allScripture'] = self.get_user_string(p_context, 'm_tocAllScripture')
+        l_substituteVar['toc_Quran'] = self.get_user_string(p_context, 'm_quran')
+        l_substituteVar['toc_QuranRev'] = self.get_user_string(p_context, 'm_tocQuranRev')
+        l_substituteVar['toc_NT'] = self.get_user_string(p_context, 'm_labelSearchScopeNT')
+        l_substituteVar['toc_OT'] = self.get_user_string(p_context, 'm_labelSearchScopeOT')
+        l_substituteVar['toc_toc'] = self.get_user_string(p_context, 'm_tocToc')
 
-    # OT scope current value
-    l_substituteVar['inputValue_j0'] = ''
-    l_substituteVar['inputValue_j1'] = ''
-    l_substituteVar['inputValue_j2'] = ''
-    l_substituteVar['inputValue_j3'] = ''
-    l_substituteVar['inputValue_j4'] = ''
-    l_substituteVar['inputValue_j5'] = ''
-    l_substituteVar['inputValue_j' + p_context['j']] = 'selected'
+        # Lexicon labels
+        l_substituteVar['lex_Arabic'] = self.get_user_string(p_context, 'm_lexArabic')
+        l_substituteVar['lex_Greek'] = self.get_user_string(p_context, 'm_lexGreek')
+        l_substituteVar['lex_Hebrew'] = self.get_user_string(p_context, 'm_lexHebrew')
+        l_substituteVar['lex_lex'] = self.get_user_string(p_context, 'm_lexLex')
 
-    # TOC labels
-    l_substituteVar['toc_allScripture'] = se3_utilities.get_user_string(p_context, 'm_tocAllScripture')
-    l_substituteVar['toc_Quran'] = se3_utilities.get_user_string(p_context, 'm_quran')
-    l_substituteVar['toc_QuranRev'] = se3_utilities.get_user_string(p_context, 'm_tocQuranRev')
-    l_substituteVar['toc_NT'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeNT')
-    l_substituteVar['toc_OT'] = se3_utilities.get_user_string(p_context, 'm_labelSearchScopeOT')
-    l_substituteVar['toc_toc'] = se3_utilities.get_user_string(p_context, 'm_tocToc')
+        # Apply button label
+        l_substituteVar['ApplyLabel'] = self.get_user_string(p_context, 'm_ApplyLabel')
 
-    # Lexicon labels
-    l_substituteVar['lex_Arabic'] = se3_utilities.get_user_string(p_context, 'm_lexArabic')
-    l_substituteVar['lex_Greek'] = se3_utilities.get_user_string(p_context, 'm_lexGreek')
-    l_substituteVar['lex_Hebrew'] = se3_utilities.get_user_string(p_context, 'm_lexHebrew')
-    l_substituteVar['lex_lex'] = se3_utilities.get_user_string(p_context, 'm_lexLex')
+        # Left panel section collapse buttons in open and closed positions
+        l_substituteVar['CollapsarShow'] = self.get_user_string(p_context, 'm_CollapsarShow')
+        l_substituteVar['CollapsarHide'] = self.get_user_string(p_context, 'm_CollapsarHide')
 
-    # Apply button label
-    l_substituteVar['ApplyLabel'] = se3_utilities.get_user_string(p_context, 'm_ApplyLabel')
+        return l_substituteVar
 
-    # Left panel section collapse buttons in open and closed positions
-    l_substituteVar['CollapsarShow'] = se3_utilities.get_user_string(p_context, 'm_CollapsarShow')
-    l_substituteVar['CollapsarHide'] = se3_utilities.get_user_string(p_context, 'm_CollapsarHide')
+    # Most of the CSS code is located in basic.css and print.css
+    # However, some CSS definitions are located within the index.html template file
+    # They are those which include dimension items which are set at template substitution time based on the
+    # variables below.
 
-    return l_substituteVar
+    # Some HTML tags in the template need to have CSS coming both from basic.css/print.css (for different behavior
+    # on screen and in print) and from the template (for dimensions). In these cases, the tags have both an id (located
+    # in basic.css/print.css, for precedence sake) and a class located in the template.
+    # When the id is of the form Xxx, the class is of the form XxxProxy
+    # The tags involved are:
+    # <header>
+    # <nav>
+    # <div id="Content">
+    # <div id="RestOfPage">
+    def internal_get_dimensions(self):
+        # all values in em
+        l_dimensions = dict()
 
+        # width of the left panel (search controls, TOC, ...)
+        l_dimensions['NavWidth'] = 12
+        # width of the show/hide control for the left panel
+        l_dimensions['NavShowHideWidth'] = .8
 
-# Most of the CSS code is located in basic.css and print.css
-# However, some CSS definitions are located within the index.html template file
-# They are those which include dimension items which are set at template substitution time based on the
-# variables below.
+        # padding at the top of the left panel
+        l_dimensions['NavTopPadding'] = 1.2
+        # padding on both sides of the left panel
+        l_dimensions['NavLeftPadding'] = 1
+        l_dimensions['NavRightPadding'] = 1
 
-# Some HTML tags in the template need to have CSS coming both from basic.css/print.css (for different behavior
-# on screen and in print) and from the template (for dimensions). In these cases, the tags have both an id (located
-# in basic.css/print.css, for precedence sake) and a class located in the template.
-# When the id is of the form Xxx, the class is of the form XxxProxy
-# The tags involved are:
-# <header>
-# <nav>
-# <div id="Content">
-# <div id="RestOfPage">
-def internal_get_dimensions():
-    # all values in em
+        # margin for all components inside the upper (smaller part) of the header
+        l_dimensions['HeaderMargin'] = .5
+        # logo width calculation
+        l_dimensions['LogoWidth'] = l_dimensions['NavWidth'] - l_dimensions['NavLeftPadding']
 
-    l_dimensions = dict()
+        # header height in its closed form
+        l_dimensions['HeaderHeight'] = 2
+        # header height in its opened form
+        l_dimensions['HeaderHeightBig'] = 15.2
+        # height calculation for the open/close header control
+        l_dimensions['BigSmallHeight'] = l_dimensions['HeaderHeight'] - 2*l_dimensions['HeaderMargin']
+        # margin on the top of the open/close header control when the header is open
+        l_dimensions['MarginBigSmallBig'] = \
+            l_dimensions['HeaderHeightBig'] - l_dimensions['HeaderMargin'] - l_dimensions['BigSmallHeight']
 
-    # width of the left panel (search controls, TOC, ...)
-    l_dimensions['NavWidth'] = 12
-    # width of the show/hide control for the left panel
-    l_dimensions['NavShowHideWidth'] = .8
+        # left panel contents width calculation
+        l_dimensions['NavContentWidth'] = l_dimensions['NavWidth'] - l_dimensions['NavShowHideWidth']
+        # search form width calculation
+        l_dimensions['NavFormWidth'] = l_dimensions['NavWidth'] - (
+            l_dimensions['NavRightPadding'] + l_dimensions['NavLeftPadding'] + l_dimensions['NavShowHideWidth'])
 
-    # padding at the top of the left panel
-    l_dimensions['NavTopPadding'] = 1.2
-    # padding on both sides of the left panel
-    l_dimensions['NavLeftPadding'] = 1
-    l_dimensions['NavRightPadding'] = 1
+        return l_dimensions
 
-    # margin for all components inside the upper (smaller part) of the header
-    l_dimensions['HeaderMargin'] = .5
-    # logo width calculation
-    l_dimensions['LogoWidth'] = l_dimensions['NavWidth'] - l_dimensions['NavLeftPadding']
+    def internal_get_header_controls(self, p_context):
+        # number of version selection checkboxes per column
+        l_segmentLength = 10
+        # Max number of versions to display in the status display
+        l_selectedLimit = 4
 
-    # header height in its closed form
-    l_dimensions['HeaderHeight'] = 2
-    # header height in its opened form
-    l_dimensions['HeaderHeightBig'] = 15.2
-    # height calculation for the open/close header control
-    l_dimensions['BigSmallHeight'] = l_dimensions['HeaderHeight'] - 2*l_dimensions['HeaderMargin']
-    # margin on the top of the open/close header control when the header is open
-    l_dimensions['MarginBigSmallBig'] = \
-        l_dimensions['HeaderHeightBig'] - l_dimensions['HeaderMargin'] - l_dimensions['BigSmallHeight']
+        # Bible version list for the status display (beginning)
+        l_statusDisplay = '<b>{0}</b>: '.format(self.get_user_string(p_context, 'm_bible'))
 
-    # left panel contents width calculation
-    l_dimensions['NavContentWidth'] = l_dimensions['NavWidth'] - l_dimensions['NavShowHideWidth']
-    # search form width calculation
-    l_dimensions['NavFormWidth'] = l_dimensions['NavWidth'] - (
-        l_dimensions['NavRightPadding'] + l_dimensions['NavLeftPadding'] + l_dimensions['NavShowHideWidth'])
+        # Bible versions selection checkboxes (beginning)
+        l_bibleVersionControl = '<div class="VersionSegment">' + \
+                                '<div class="VersionSelector"><b>{0}</b>:</div>'.format(
+                                    self.get_user_string(p_context, 'm_bibleVersions'))
 
-    return l_dimensions
+        # produce both the status display Bible version list and the Bible version selection checkbox block
+        l_segmentCount = 1
+        l_verMask = 1
+        l_selectedCount = 0
+        l_selectedList = [v[0] for v in self.get_version_list(p_context, False, 'B')]
+        for l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in self.getVersionList('B'):
+            # Bible selection checkboxes
+            # Each checkbox row is enclosed in a <div class="VersionSelector"> together with its label
+            # The checkbox format is:
+            #
+            # <input type="checkbox" value="" class="ToggleVersion" name="" ver_mask="xx" bible_quran="B" yy>
+            #
+            # xx = hexadecimal bit mask indicating the version
+            # yy = 'checked' if version selected or nothing otherwise
+            l_bibleVersionControl += ('<div class="VersionSelector">' +
+                                      '<input type="checkbox" value="" ' +
+                                      'class="ToggleVersion ToggleVersionBible" name="" ver_mask="{2}" ' +
+                                      'bible_quran="B" {1}>&nbsp{0}</div>\n').format(
+                l_labelShort,
+                'checked' if l_versionId in l_selectedList else '',
+                l_verMask
+            )
 
+            # status display Bible version list
+            if l_versionId in l_selectedList and l_selectedCount < l_selectedLimit:
+                l_statusDisplay += l_labelTiny + ', '
+                l_selectedCount += 1
 
-def internal_get_header_controls(p_context):
-    # number of version selection checkboxes per column
-    l_segmentLength = 10
-    # Max number of versions to display in the status display
-    l_selectedLimit = 4
+            l_segmentCount += 1
+            l_verMask *= 2
+            # column break if column height reached
+            if l_segmentCount % l_segmentLength == 0:
+                l_segmentCount = 0
+                l_bibleVersionControl += '</div><div class="VersionSegment">'
 
-    # Bible version list for the status display (beginning)
-    l_statusDisplay = '<b>{0}</b>: '.format(se3_utilities.get_user_string(p_context, 'm_bible'))
+        l_statusDisplay = re.sub(',\s$', '', l_statusDisplay)
+        # adding ... at the end of the status display if there are more Bible versions than the limit
+        if len(l_selectedList) > l_selectedLimit:
+            l_statusDisplay += ', ... '
+        else:
+            l_statusDisplay += ' '
 
-    # Bible versions selection checkboxes (beginning)
-    l_bibleVersionControl = '<div class="VersionSegment">' + \
-                            '<div class="VersionSelector"><b>{0}</b>:</div>'.format(
-                                se3_utilities.get_user_string(p_context, 'm_bibleVersions'))
+        l_bibleVersionControl += ' <input type="button" id="UnselectAllBible" value="{0}"></div>\n'.format(
+            self.get_user_string(p_context, 'm_unselectAll'))
+        l_bibleVersionControl = re.sub('<div class="VersionSegment"></div>$', '', l_bibleVersionControl)
 
-    # produce both the status display Bible version list and the Bible version selection checkbox block
-    l_segmentCount = 1
-    l_verMask = 1
-    l_selectedCount = 0
-    l_selectedList = [v[0] for v in se3_utilities.get_version_list(p_context, False, 'B')]
-    for l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in se3_utilities.getVersionList('B'):
-        # Bible selection checkboxes
-        # Each checkbox row is enclosed in a <div class="VersionSelector"> together with its label
-        # The checkbox format is:
-        #
-        # <input type="checkbox" value="" class="ToggleVersion" name="" ver_mask="xx" bible_quran="B" yy>
-        #
-        # xx = hexadecimal bit mask indicating the version
-        # yy = 'checked' if version selected or nothing otherwise
-        l_bibleVersionControl += ('<div class="VersionSelector">' +
-                                  '<input type="checkbox" value="" ' +
-                                  'class="ToggleVersion ToggleVersionBible" name="" ver_mask="{2}" ' +
-                                  'bible_quran="B" {1}>&nbsp{0}</div>\n').format(
-            l_labelShort,
-            'checked' if l_versionId in l_selectedList else '',
-            l_verMask
-        )
+        # Quran versions selection checkboxes (beginning)
+        l_quranVersionControl = '<div class="VersionSegment">' + \
+                                '<div class="VersionSelector"><b>{0}</b>:</div>'.format(
+                                    self.get_user_string(p_context, 'm_quranVersions'))
 
-        # status display Bible version list
-        if l_versionId in l_selectedList and l_selectedCount < l_selectedLimit:
-            l_statusDisplay += l_labelTiny + ', '
-            l_selectedCount += 1
+        # Quran version list for the status display (beginning)
+        l_statusDisplay += '<b>{0}</b>: '.format(self.get_user_string(p_context, 'm_quran'))
 
-        l_segmentCount += 1
-        l_verMask *= 2
-        # column break if column height reached
-        if l_segmentCount % l_segmentLength == 0:
-            l_segmentCount = 0
-            l_bibleVersionControl += '</div><div class="VersionSegment">'
+        # produce both the status display Quran version list and the Quran version selection checkbox block
+        l_segmentCount = 1
+        l_verMask = 1
+        l_selectedCount = 0
+        l_selectedList = [v[0] for v in self.get_version_list(p_context, False, 'Q')]
+        for l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in self.getVersionList('Q'):
+            # Quran selection checkboxes
+            # Each checkbox row is enclosed in a <div class="VersionSelector"> together with its label
+            # The checkbox format is:
+            #
+            # <input type="checkbox" value="" class="ToggleVersion" name="" ver_mask="xx" bible_quran="B" yy>
+            #
+            # xx = hexadecimal bit mask indicating the version
+            # yy = 'checked' if version selected or nothing otherwise
+            l_quranVersionControl += ('<div class="VersionSelector"><input type="checkbox" value="" ' +
+                                      'class="ToggleVersion ToggleVersionQuran" name="" ver_mask="{2}" ' +
+                                      'bible_quran="Q" {1}>&nbsp{0}</div>\n').format(
+                l_labelShort,
+                'checked' if l_versionId in l_selectedList else '',
+                l_verMask
+            )
 
-    l_statusDisplay = re.sub(',\s$', '', l_statusDisplay)
-    # adding ... at the end of the status display if there are more Bible versions than the limit
-    if len(l_selectedList) > l_selectedLimit:
-        l_statusDisplay += ', ... '
-    else:
-        l_statusDisplay += ' '
+            # status display Quran version list
+            if l_versionId in l_selectedList and l_selectedCount < l_selectedLimit:
+                l_statusDisplay += l_labelTiny + ', '
+                l_selectedCount += 1
 
-    l_bibleVersionControl += ' <input type="button" id="UnselectAllBible" value="{0}"></div>\n'.format(
-        se3_utilities.get_user_string(p_context, 'm_unselectAll'))
-    l_bibleVersionControl = re.sub('<div class="VersionSegment"></div>$', '', l_bibleVersionControl)
+            l_segmentCount += 1
+            l_verMask *= 2
+            # column break if column height reached
+            if l_segmentCount % l_segmentLength == 0:
+                l_segmentCount = 0
+                l_quranVersionControl += '</div><div class="VersionSegment">'
 
-    # Quran versions selection checkboxes (beginning)
-    l_quranVersionControl = '<div class="VersionSegment">' + \
-                            '<div class="VersionSelector"><b>{0}</b>:</div>'.format(
-                                se3_utilities.get_user_string(p_context, 'm_quranVersions'))
+        l_statusDisplay = re.sub(',\s$', '', l_statusDisplay)
+        # adding ... at the end of the status display if there are more Quran versions than the limit
+        if len(l_selectedList) > l_selectedLimit:
+            l_statusDisplay += ', ... '
 
-    # Quran version list for the status display (beginning)
-    l_statusDisplay += '<b>{0}</b>: '.format(se3_utilities.get_user_string(p_context, 'm_quran'))
+        l_quranVersionControl += ' <input type="button" id="UnselectAllQuran" value="{0}"></div>\n'.format(
+            self.get_user_string(p_context, 'm_unselectAll'))
+        l_quranVersionControl = re.sub('<div class="VersionSegment"></div>$', '', l_quranVersionControl)
 
-    # produce both the status display Quran version list and the Quran version selection checkbox block
-    l_segmentCount = 1
-    l_verMask = 1
-    l_selectedCount = 0
-    l_selectedList = [v[0] for v in se3_utilities.get_version_list(p_context, False, 'Q')]
-    for l_versionId, l_language, l_default, l_labelShort, l_labelTiny, l_basmalat in se3_utilities.getVersionList('Q'):
-        # Quran selection checkboxes
-        # Each checkbox row is enclosed in a <div class="VersionSelector"> together with its label
-        # The checkbox format is:
-        #
-        # <input type="checkbox" value="" class="ToggleVersion" name="" ver_mask="xx" bible_quran="B" yy>
-        #
-        # xx = hexadecimal bit mask indicating the version
-        # yy = 'checked' if version selected or nothing otherwise
-        l_quranVersionControl += ('<div class="VersionSelector"><input type="checkbox" value="" ' +
-                                  'class="ToggleVersion ToggleVersionQuran" name="" ver_mask="{2}" ' +
-                                  'bible_quran="Q" {1}>&nbsp{0}</div>\n').format(
-            l_labelShort,
-            'checked' if l_versionId in l_selectedList else '',
-            l_verMask
-        )
+        # parameter checkboxes (same formatting as version checkboxes)
+        l_paramControl = '<div class="VersionSegment">' +\
+                         '<div class="VersionSelector"><b>{0}</b>:</div>'.format(
+                             self.get_user_string(p_context, 'm_paramControl'))
 
-        # status display Quran version list
-        if l_versionId in l_selectedList and l_selectedCount < l_selectedLimit:
-            l_statusDisplay += l_labelTiny + ', '
-            l_selectedCount += 1
-
-        l_segmentCount += 1
-        l_verMask *= 2
-        # column break if column height reached
-        if l_segmentCount % l_segmentLength == 0:
-            l_segmentCount = 0
-            l_quranVersionControl += '</div><div class="VersionSegment">'
-
-    l_statusDisplay = re.sub(',\s$', '', l_statusDisplay)
-    # adding ... at the end of the status display if there are more Quran versions than the limit
-    if len(l_selectedList) > l_selectedLimit:
-        l_statusDisplay += ', ... '
-
-    l_quranVersionControl += ' <input type="button" id="UnselectAllQuran" value="{0}"></div>\n'.format(
-        se3_utilities.get_user_string(p_context, 'm_unselectAll'))
-    l_quranVersionControl = re.sub('<div class="VersionSegment"></div>$', '', l_quranVersionControl)
-
-    # parameter checkboxes (same formatting as version checkboxes)
-    l_paramControl = '<div class="VersionSegment">' +\
-                     '<div class="VersionSelector"><b>{0}</b>:</div>'.format(
-                         se3_utilities.get_user_string(p_context, 'm_paramControl'))
-
-    # list of tuples used to feed the loop below. Contains all the necessary elements for each parameter checkbox
-    l_tmpList = [
-        # the substitution is because some labels have '·' instead of ' ' in order to separate words
-        (se3_utilities.get_user_string(p_context, 'sv_AllVersions'),
-         p_context['a'],
-         se3_utilities.g_svAllVersions),
-        (se3_utilities.get_user_string(p_context, 'm_DisplayLxx'),
-         p_context['x'],
-         se3_utilities.g_svDisplayLxx),
-        (se3_utilities.get_user_string(p_context, 'm_DisplayNasb'),
-         p_context['n'],
-         se3_utilities.g_svDisplayNasb),
-        (se3_utilities.get_user_string(p_context, 'm_DisplayKJV'),
-         p_context['k'],
-         se3_utilities.g_svDisplayKjv),
-        (se3_utilities.get_user_string(p_context, 'p_displayGround'),
-         p_context['g'],
-         se3_utilities.g_pDisplayGround),
-        (se3_utilities.get_user_string(p_context, 'p_parallelVersions'),
-         p_context['r'],
-         se3_utilities.g_pParallel)
-    ]
-
-    for l_label, l_condition, l_mask in l_tmpList:
-        l_paramControl += ('<div class="VersionSelector"><input type="checkbox"  value="" ' +
-                           'class="ToggleParameter" name="" param_mask="{2}" ' +
-                           '{1}>&nbsp{0}</div>\n').format(
+        # list of tuples used to feed the loop below. Contains all the necessary elements for each parameter checkbox
+        l_tmpList = [
             # the substitution is because some labels have '·' instead of ' ' in order to separate words
-            re.sub('·', ' ', l_label),
-            'checked' if l_condition else '',
-            l_mask
-        )
+            (self.get_user_string(p_context, 'sv_AllVersions'),
+             p_context['a'],
+             Se3AppParam.gcm_svAllVersions),
+            (self.get_user_string(p_context, 'm_DisplayLxx'),
+             p_context['x'],
+             Se3AppParam.gcm_svDisplayLxx),
+            (self.get_user_string(p_context, 'm_DisplayNasb'),
+             p_context['n'],
+             Se3AppParam.gcm_svDisplayNasb),
+            (self.get_user_string(p_context, 'm_DisplayKJV'),
+             p_context['k'],
+             Se3AppParam.gcm_svDisplayKjv),
+            (self.get_user_string(p_context, 'p_displayGround'),
+             p_context['g'],
+             Se3AppParam.gcm_pDisplayGround),
+            (self.get_user_string(p_context, 'p_parallelVersions'),
+             p_context['r'],
+             Se3AppParam.gcm_pParallel)
+        ]
 
-    l_paramControl += '</div>'
-
-    return l_bibleVersionControl, l_quranVersionControl, l_paramControl, l_statusDisplay
-
-
-# ---------------------- Table of contents response generation ---------------------------------------------------------
-# not isolated in a separate module
-def get_toc(p_previousContext, p_context, p_dbConnectionPool):
-    g_loggerSE3.info('Getting TOC response')
-    g_loggerSE3.debug('p_previousContext: {0}'.format(p_previousContext))
-    g_loggerSE3.debug('p_context: {0}'.format(p_context))
-
-    l_dbConnection = p_dbConnectionPool.getConnection()
-
-    l_response = ''
-
-    # Ta1 : Quran, surah number order
-    # Ta2 : Quran, revelation order
-    # Tb  : NT
-    # Tc  : OT
-    # T   : all scripture
-
-    # For Quran, chapter ordering based on ST_ORDER (Surah number) or ST_ORDER_ALT (Revelation order)
-    if p_context['K'] == 'Ta1':
-        # Query for Quran only: long chapter names + Translit. No need for the Book ID
-        l_query = """
-            select
-                N_CHAPTER
-                , ST_NAME_OR
-                , ST_NAME_OR2
-                , ST_NAME_EN
-                , ST_NAME_FR
-            from TB_CHAPTER
-            where ID_BOOK = 'Qur'
-            order by ST_ORDER
-            ;"""
-    elif p_context['K'] == 'Ta2':
-        l_query = """
-            select
-                N_CHAPTER
-                , ST_NAME_OR
-                , ST_NAME_OR2
-                , ST_NAME_EN
-                , ST_NAME_FR
-            from TB_CHAPTER
-            where ID_BOOK = 'Qur'
-            order by ST_ORDER_ALT
-            ;"""
-    else:
-        if p_context['K'] == 'Tb':
-            l_cond = 'ID_GROUP_0 = "NT"'
-            # title for NT
-            l_response += '<h1 class="TocTitle">{0}</h1>\n'.format(
-                se3_utilities.get_user_string(p_context, 'm_tocNTTitle')
-            )
-        elif p_context['K'] == 'Tc':
-            l_cond = 'ID_GROUP_0 = "OT"'
-            # title for OT
-            l_response += '<h1 class="TocTitle">{0}</h1>\n'.format(
-                se3_utilities.get_user_string(p_context, 'm_tocOTTitle')
-            )
-        else:
-            l_cond = 'true'
-            # title for All scripture
-            l_response += '<h1 class="TocTitle">{0}</h1>\n'.format(
-                se3_utilities.get_user_string(p_context, 'm_tocAllTitle')
+        for l_label, l_condition, l_mask in l_tmpList:
+            l_paramControl += ('<div class="VersionSelector"><input type="checkbox"  value="" ' +
+                               'class="ToggleParameter" name="" param_mask="{2}" ' +
+                               '{1}>&nbsp{0}</div>\n').format(
+                # the substitution is because some labels have '·' instead of ' ' in order to separate words
+                re.sub('·', ' ', l_label),
+                'checked' if l_condition else '',
+                l_mask
             )
 
-        # Query for All scripture or Bible: only chapter names + Book ID
-        l_query = """
-            select
-                ID_BOOK
-                , N_CHAPTER_COUNT
-                , ST_NAME_EN
-                , ST_NAME_FR
-            from TB_BOOK
-            where {0}
-            order by ID_GROUP_0, N_ORDER
-            ;""".format(l_cond)
+        l_paramControl += '</div>'
 
-    g_loggerSE3.debug('l_query: {0}'.format(l_query))
-    try:
-        l_cursor = l_dbConnection.cursor(buffered=True)
-        l_cursor.execute(l_query)
+        return l_bibleVersionControl, l_quranVersionControl, l_paramControl, l_statusDisplay
 
-        # Quran only (2 columns with Surah names)
-        if p_context['K'][0:2] == 'Ta':
-            # title for Quran (depending on Surah order)
-            l_response += '<h1 class="TocTitle">{0}</h1><div class="QuranToc"><div class="QuranTocCol1">\n'.format(
-                se3_utilities.get_user_string(p_context, 'm_tocQuranTitle') if p_context['K'] == 'Ta1'else
-                se3_utilities.get_user_string(p_context, 'm_tocQuranTitleRev')
-            )
 
-            l_chapterCount = 1
-            for l_chapter, l_nameOr, l_nameOr2, l_nameEn, l_nameFr in l_cursor:
-
-                l_tocLink = se3_utilities.makeLinkCommon(
-                    p_context, 'Qur', l_chapter, '1', l_chapter,
-                    p_command='P',
-                    p_class='TocLink',
-                    p_v2='x')
-
-                l_response += ('<p class="QuranSurah">' + l_tocLink +
-                               ': {0} - {1}</p>\n').format(
-                    l_nameFr if p_context['z'] == 'fr' else l_nameEn,
-                    l_nameOr2
-                )
-
-                # column break 1-57 / 58-114
-                if l_chapterCount == 57:
-                    l_response += '</div><div class="QuranTocCol2">\n'
-
-                l_chapterCount += 1
-
-            l_response += '</div></div>\n'
-        # Bible & All scripture (Book name + list of chapter numbers)
-        else:
-            for l_bookId, l_chapterCount, l_nameEn, l_nameFr in l_cursor:
-
-                l_chapLinks = ' '.join([
-                    se3_utilities.makeLinkCommon(
-                        p_context, l_bookId, i, '1', i,
-                        p_command='P',
-                        p_class='TocLink',
-                        p_v2='x')
-                    for i in range(1, l_chapterCount+1)
-                ])
-
-                l_response += '<p class="TocBook">{0}: {1}</p>\n'.format(
-                    l_nameFr if p_context['z'] == 'fr' else l_nameEn, l_chapLinks
-                )
-
-        l_cursor.close()
-
-    except Exception as l_exception:
-        g_loggerSE3.warning('Something went wrong {0}'.format(l_exception.args))
-
-    p_dbConnectionPool.releaseConnection(l_dbConnection)
-
-    return l_response, p_context, ec_app_params.g_appTitle

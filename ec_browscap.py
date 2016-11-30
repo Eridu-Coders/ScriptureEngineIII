@@ -25,8 +25,8 @@ except ImportError:
 
 # log = logging.getLogger(__name__)
 
-log = logging.getLogger(g_appName + '.browscap')
-if g_verboseModeOn:
+log = logging.getLogger(EcAppParam.gcm_appName + '.browscap')
+if EcAppParam.gcm_verboseModeOn:
     log.setLevel(logging.INFO)
 
 TYPE_CSV = 1
@@ -156,7 +156,7 @@ def load_browscap_file(browscap_file_path):
                     log.warning('50 000 rows loaded from Browscap local source file %s', browscap_file_path)
 
                 # Progress message in case verbose mode is on
-                if g_verboseModeOn:
+                if EcAppParam.gcm_verboseModeOn:
                     print('   Rows read:', len(regex_cache), end='\r')
 
                 try:
@@ -169,7 +169,7 @@ def load_browscap_file(browscap_file_path):
                     continue
 
             # End of progress message in case verbose mode is on
-            if g_verboseModeOn:
+            if EcAppParam.gcm_verboseModeOn:
                 print()
         return Browscap(browscap_data, regex_cache, browscap_file_path, TYPE_CSV,
                         version, release_date)
@@ -454,9 +454,12 @@ class Browscap(object):
     def initBrowscap(cls, p_skip=False):
         if not p_skip:
             log.info("Downloading latest version of Browscap file ...")
-            Downloader(g_browscapLatestVersionUrl, g_browscapUrl).get(g_browscapLocalFile)
+            Downloader(
+                EcAppParam.gcm_browscapLatestVersionUrl,
+                EcAppParam.gcm_browscapUrl
+            ).get(EcAppParam.gcm_browscapLocalFile)
             log.info("Processing Browscap file ...")
-            cls.cm_browscap = load_browscap_file(g_browscapLocalFile)
+            cls.cm_browscap = load_browscap_file(EcAppParam.gcm_browscapLocalFile)
 
     cache = {}
 

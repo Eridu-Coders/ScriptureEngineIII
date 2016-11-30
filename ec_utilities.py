@@ -15,7 +15,6 @@ import psutil
 from string import Template
 
 from ec_app_params import *
-from ec_local_param import *
 
 __author__ = 'fi11222'
 
@@ -27,16 +26,16 @@ class EcLogger:
     @classmethod
     def logInit(cls):
         # Creates the column headers for the CSV log file
-        l_fLog = open(g_logFile, 'w')
+        l_fLog = open(EcAppParam.gcm_logFile, 'w')
         l_fLog.write('LOGGER_NAME;TIME;LEVEL;MODULE;FILE;FUNCTION;LINE;MESSAGE\n')
         l_fLog.close()
 
         # Create the main logger
-        cls.cm_logger = logging.getLogger(g_appName)
+        cls.cm_logger = logging.getLogger(EcAppParam.gcm_appName)
 
         # One handler for the console (only up to INFO messages) and another for the CSV file (everything)
         l_handlerConsole = logging.StreamHandler()
-        l_handlerFile = logging.FileHandler(g_logFile, mode='a')
+        l_handlerFile = logging.FileHandler(EcAppParam.gcm_logFile, mode='a')
 
         # Custom Formatter for the CSV file --> eliminates multiple spaces (and \r\n)
         class EcCsvFormatter(logging.Formatter):
@@ -63,7 +62,7 @@ class EcLogger:
                 l_formatted = super().format(p_record)
 
                 if p_record.levelno >= logging.WARNING:
-                    sendMail(
+                    EcMailer.sendMail(
                         '{0}-{1}[{2}]/{3}'.format(
                             p_record.levelname,
                             p_record.module,
@@ -80,13 +79,13 @@ class EcLogger:
                                                   '"%(filename)s";"%(funcName)s";%(lineno)d;"%(message)s"'))
 
         # If verbose mode on, both handlers receive messages up to INFO
-        if g_verboseModeOn:
+        if EcAppParam.gcm_verboseModeOn:
             cls.cm_logger.setLevel(logging.INFO)
             l_handlerConsole.setLevel(logging.INFO)
             l_handlerFile.setLevel(logging.INFO)
 
         # If debug mode is on, then the console stays as it is but the CSV file now receives everything
-        if g_debugModeOn:
+        if EcAppParam.gcm_debugModeOn:
             cls.cm_logger.setLevel(logging.DEBUG)
             l_handlerFile.setLevel(logging.DEBUG)
 
@@ -99,108 +98,112 @@ class EcLogger:
         cls.cm_logger.debug('-->> Start logging')
 
 
-g_loggerUtilities = logging.getLogger(g_appName + '.util')
-if g_verboseModeOn:
+g_loggerUtilities = logging.getLogger(EcAppParam.gcm_appName + '.util')
+if EcAppParam.gcm_verboseModeOn:
     g_loggerUtilities.setLevel(logging.INFO)
-if g_debugModeOn:
+if EcAppParam.gcm_debugModeOn:
     g_loggerUtilities.setLevel(logging.DEBUG)
-
-
-g_sendMailGovernor = dict()
-
 
 # sends an e-mail through smtp
 # For Amazon SES howto, see:
 # http://blog.noenieto.com/blog/html/2012/06/18/using_amazon_ses_with_your_python_applications.html
-def sendMail(p_subject, p_message):
-    # message context with headers and body
-    l_message = """From: {0}
-        To: {1}
-        Date: {2}
-        Subject: {3}
+class EcMailer:
+    cm_sendMailGovernor = None
 
-        {4}
-    """.format(
-        g_mailSender,
-        ', '.join(g_mailRecipients),
-        email.utils.format_datetime(datetime.datetime.now(tz=pytz.utc)),
-        p_subject,
-        p_message
-    )
+    @classmethod
+    def initMailer(cls):
+        cls.cm_sendMailGovernor = dict()
 
-    # removes spaces at the begining of lines
-    l_message = re.sub('^[ \t\r\f\v]+', '', l_message, flags=re.MULTILINE)
+    @classmethod
+    def sendMail(cls, p_subject, p_message):
+        # message context with headers and body
+        l_message = """From: {0}
+            To: {1}
+            Date: {2}
+            Subject: {3}
 
-    # limitation of email sent
-    l_now = time.time()
-    try:
-        # the list of all UNIX timestamps when this subject was sent in the previous 5 min at least
-        l_thisSubjectHistory = g_sendMailGovernor[p_subject]
-    except KeyError:
-        l_thisSubjectHistory = [l_now]
+            {4}
+        """.format(
+            EcAppParam.gcm_mailSender,
+            ', '.join(EcAppParam.gcm_mailRecipients),
+            email.utils.format_datetime(datetime.datetime.now(tz=pytz.utc)),
+            p_subject,
+            p_message
+        )
 
-    l_thisSubjectHistory.append(l_now)
+        # removes spaces at the begining of lines
+        l_message = re.sub('^[ \t\r\f\v]+', '', l_message, flags=re.MULTILINE)
 
-    l_thisSubjectHistoryNew = list()
-    l_count = 0
-    for l_pastsend in l_thisSubjectHistory:
-        if l_now - l_pastsend < 5*60:
-            l_count += 1
-            l_thisSubjectHistoryNew.append(l_pastsend)
+        # limitation of email sent
+        l_now = time.time()
+        try:
+            # the list of all UNIX timestamps when this subject was sent in the previous 5 min at least
+            l_thisSubjectHistory = cls.cm_sendMailGovernor[p_subject]
+        except KeyError:
+            l_thisSubjectHistory = [l_now]
 
-    g_sendMailGovernor[p_subject] = l_thisSubjectHistoryNew
+        l_thisSubjectHistory.append(l_now)
 
-    # maximum : 10 with the same subject every 5 minutes
-    if l_count > 10:
-        # overflow stored the message in a separate file
-        l_fLog = open(re.sub('\.csv', '.overflow_msg', g_logFile), 'a')
-        l_fLog.write('>>>>>>>\n' + l_message)
-        l_fLog.close()
-        return
+        l_thisSubjectHistoryNew = list()
+        l_count = 0
+        for l_pastsend in l_thisSubjectHistory:
+            if l_now - l_pastsend < 5*60:
+                l_count += 1
+                l_thisSubjectHistoryNew.append(l_pastsend)
 
-    # all messages
-    l_fLogName = re.sub('\.csv', '.all_msg', g_logFile)
-    l_fLog = open(l_fLogName, 'a')
-    l_fLog.write('>>>>>>>\n' + l_message)
-    l_fLog.close()
+        cls.cm_sendMailGovernor[p_subject] = l_thisSubjectHistoryNew
 
-    try:
-        # smtp client init
-        if g_amazonSmtp:
-            l_smtpObj = smtplib.SMTP(
-                host=g_smtpServer,
-                port=587,
-                timeout=10)
-            l_smtpObj.starttls()
-            l_smtpObj.ehlo()
-            l_smtpObj.login(g_sesUserName, g_sesPassword)
-        else:
-            l_smtpObj = smtplib.SMTP(g_smtpServer)
+        # maximum : 10 with the same subject every 5 minutes
+        if l_count > 10:
+            # overflow stored the message in a separate file
+            l_fLog = open(re.sub('\.csv', '.overflow_msg', EcAppParam.gcm_logFile), 'a')
+            l_fLog.write('>>>>>>>\n' + l_message)
+            l_fLog.close()
+            return
 
-        # sending message
-        l_smtpObj.sendmail(g_mailSender, g_mailRecipients, l_message)
-
-        # end tls session (Amazon SES only)
-        if g_amazonSmtp:
-            l_smtpObj.quit()
-    except smtplib.SMTPException as l_eception:
-        # if failure, stores the message in a separate file
-        l_fLog = open(re.sub('\.csv', '.rejected_msg', g_logFile), 'a')
-        l_fLog.write('>>>>>>>\n' + l_message)
-        l_fLog.close()
-
-        # and create a log record in another separate file (distinct from the main log file)
-        l_fLog = open(re.sub('\.csv', '.smtp_error', g_logFile), 'a')
-        l_fLog.write(
-            'Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;113;{1}\n'.format(
-                datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M.%S'),
-                re.sub('\s+', ' ', repr(l_eception))
-            ))
-        l_fLog.close()
-    except Exception as e:
+        # all messages
+        l_fLogName = re.sub('\.csv', '.all_msg', EcAppParam.gcm_logFile)
         l_fLog = open(l_fLogName, 'a')
-        l_fLog.write('>>>>>>>\n!!!!! ' + repr(e))
+        l_fLog.write('>>>>>>>\n' + l_message)
         l_fLog.close()
+
+        try:
+            # smtp client init
+            if EcAppParam.gcm_amazonSmtp:
+                l_smtpObj = smtplib.SMTP(
+                    host=EcAppParam.gcm_smtpServer,
+                    port=587,
+                    timeout=10)
+                l_smtpObj.starttls()
+                l_smtpObj.ehlo()
+                l_smtpObj.login(EcAppParam.gcm_sesUserName, EcAppParam.gcm_sesPassword)
+            else:
+                l_smtpObj = smtplib.SMTP(EcAppParam.gcm_smtpServer)
+
+            # sending message
+            l_smtpObj.sendmail(EcAppParam.gcm_mailSender, EcAppParam.gcm_mailRecipients, l_message)
+
+            # end tls session (Amazon SES only)
+            if EcAppParam.gcm_amazonSmtp:
+                l_smtpObj.quit()
+        except smtplib.SMTPException as l_eception:
+            # if failure, stores the message in a separate file
+            l_fLog = open(re.sub('\.csv', '.rejected_msg', EcAppParam.gcm_logFile), 'a')
+            l_fLog.write('>>>>>>>\n' + l_message)
+            l_fLog.close()
+
+            # and create a log record in another separate file (distinct from the main log file)
+            l_fLog = open(re.sub('\.csv', '.smtp_error', EcAppParam.gcm_logFile), 'a')
+            l_fLog.write(
+                'Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;113;{1}\n'.format(
+                    datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M.%S'),
+                    re.sub('\s+', ' ', repr(l_eception))
+                ))
+            l_fLog.close()
+        except Exception as e:
+            l_fLog = open(l_fLogName, 'a')
+            l_fLog.write('>>>>>>>\n!!!!! ' + repr(e))
+            l_fLog.close()
 
 
 # ------------------------- Customized template class ------------------------------------------------------------------
@@ -225,13 +228,13 @@ class EcConnectionPool(threading.Thread):
     def __init__(self):
         super().__init__(daemon=True)
 
-        if not g_noConnectionPool:
+        if not EcAppParam.gcm_noConnectionPool:
             # lock to protect the connection pool critical sections (pick-up and release)
             self.m_connectionPoolLock = threading.Lock()
             self.m_connectionPool = []
 
             # fill the connection pool
-            for i in range(g_connectionPoolCount):
+            for i in range(EcAppParam.gcm_connectionPoolCount):
                 self.m_connectionPool.append( self.getNewConnection() )
 
             # starts the refresh thread
@@ -240,9 +243,9 @@ class EcConnectionPool(threading.Thread):
     def getNewConnection(self):
         try:
             l_connection = EcConnector(
-                user=g_dbUser, password=g_dbPassword,
-                host=g_dbServer,
-                database=g_dbDatabase)
+                user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
+                host=EcAppParam.gcm_dbServer,
+                database=EcAppParam.gcm_dbDatabase)
         except mysql.connector.Error as l_exception:
             g_loggerUtilities.critical(
                 'Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
@@ -251,7 +254,7 @@ class EcConnectionPool(threading.Thread):
         return l_connection
 
     def getConnection(self):
-        if g_noConnectionPool:
+        if EcAppParam.gcm_noConnectionPool:
             l_connection = self.getNewConnection()
         else:
             l_connection = None
@@ -290,7 +293,7 @@ class EcConnectionPool(threading.Thread):
         return l_connection
 
     def releaseConnection(self, p_connection):
-        if g_noConnectionPool:
+        if EcAppParam.gcm_noConnectionPool:
             p_connection.close()
         else:
             # only access this CRITICAL SECTION one thread at a time
@@ -312,7 +315,7 @@ class EcConnectionPool(threading.Thread):
             check_system_health()
 
             # Warning message if pool count abnormally low --> top up pool with new connections
-            if len(self.m_connectionPool) < g_connectionPoolCount/3:
+            if len(self.m_connectionPool) < EcAppParam.gcm_connectionPoolCount/3:
                 g_loggerUtilities.warning('Connections left: {0} - topping up'.format(len(self.m_connectionPool)))
 
                 # only access to this CRITICAL SECTION one thread at a time
@@ -320,7 +323,7 @@ class EcConnectionPool(threading.Thread):
                 self.m_connectionPoolLock.acquire()
 
                 # Add a third fill of new connections
-                for i in range(g_connectionPoolCount/3):
+                for i in range(EcAppParam.gcm_connectionPoolCount/3):
                     g_loggerUtilities.info('topping up: {0}'.format(i))
                     self.m_connectionPool.append( self.getNewConnection() )
 
@@ -366,7 +369,7 @@ class EcConnector(mysql.connector.MySQLConnection):
         EcConnector.cm_connectorCount += 1
 
         # life span = g_dbcLifeAverage +- 1/2 (in hours)
-        l_lifespan = g_dbcLifeAverage + (.5 - random.random())
+        l_lifespan = EcAppParam.gcm_dbcLifeAverage + (.5 - random.random())
         self.m_expirationDate = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(hours=l_lifespan)
 
         super().__init__(**kwargs)

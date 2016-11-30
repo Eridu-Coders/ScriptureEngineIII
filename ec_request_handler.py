@@ -6,17 +6,17 @@ import json
 import urllib.parse
 import hashlib
 
-from ec_utilities import *
+from ec_app_core import *
 
-import se3_utilities
+#import se3_utilities
 
 __author__ = 'fi11222'
 
 
-g_loggerHandler = logging.getLogger(g_appName + '.rq_handler')
-if g_verboseModeOn:
+g_loggerHandler = logging.getLogger(EcAppParam.gcm_appName + '.rq_handler')
+if EcAppParam.gcm_verboseModeOn:
     g_loggerHandler.setLevel(logging.INFO)
-if g_debugModeOn:
+if EcAppParam.gcm_debugModeOn:
     g_loggerHandler.setLevel(logging.DEBUG)
 
 
@@ -37,52 +37,54 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
     cm_connectionPool = None
 
     # Template string for the browser test page
-    cm_templateString = ''
+    cm_browserTestPage = ''
 
     # Template string for the bad browser message page
     cm_badBrowserPage = ''
 
     @classmethod
-    def initClass(cls, p_browscap, p_appCore, p_templatePath, p_badBroserPath):
+    def initClass(cls, p_browscap, p_appCore, p_browserTestPath, p_badBrowserPath):
         cls.cm_termIDCreationLock = threading.Lock()
         cls.cm_browscap = p_browscap
         cls.cm_appCore = p_appCore
 
-        cls.cm_connectionPool = EcConnectionPool()
+        cls.cm_connectionPool = p_appCore.getConnectionPool()
 
+        # load browser test templates string
         try:
-            with open(p_templatePath, 'r') as l_fTemplate:
-                cls.cm_templateString = l_fTemplate.read()
+            with open(p_browserTestPath, 'r') as l_fTemplate:
+                cls.cm_browserTestPage = l_fTemplate.read()
         except OSError as e:
             g_loggerHandler.critical(
                 'Could not open template file [{0}]. Exception: [{1}]. Aborting.'.format(
-                    p_templatePath, str(e)))
+                    p_browserTestPath, str(e)))
             raise
 
         g_loggerHandler.info('Loaded template file [{0}]. Len = {1}'.format(
-            p_templatePath, len(cls.cm_templateString)))
+            p_browserTestPath, len(cls.cm_browserTestPage)))
 
+        # load bad browser message templates string
         try:
-            with open(p_badBroserPath, 'r') as l_fTemplate:
+            with open(p_badBrowserPath, 'r') as l_fTemplate:
                 cls.cm_badBrowserPage = l_fTemplate.read()
         except OSError as e:
             g_loggerHandler.critical(
                 'Could not open bad browser file [{0}]. Exception: [{1}]. Aborting.'.format(
-                    p_badBroserPath, str(e)))
+                    p_badBrowserPath, str(e)))
             raise
 
         g_loggerHandler.info('Loaded bad browser file [{0}]. Len = {1}'.format(
-            p_badBroserPath, len(cls.cm_badBrowserPage)))
+            p_badBrowserPath, len(cls.cm_badBrowserPage)))
 
     def __init__(self, p_request, p_client_address, p_server):
         self.m_handlerID = EcRequestHandler.cm_handlerCount
         EcRequestHandler.cm_handlerCount += 1
 
         # each instance has its own logger with a name that includes the thread it is riding on
-        self.m_logger = logging.getLogger(g_appName + '.HR-' + threading.current_thread().name)
-        if g_verboseModeOn:
+        self.m_logger = logging.getLogger(EcAppParam.gcm_appName + '.HR-' + threading.current_thread().name)
+        if EcAppParam.gcm_verboseModeOn:
             self.m_logger.setLevel(logging.INFO)
-        if g_debugModeOn:
+        if EcAppParam.gcm_debugModeOn:
             self.m_logger.setLevel(logging.DEBUG)
 
         # the unique identifier of the browser (called here a "terminal")
@@ -266,10 +268,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             l_cookieKey = (l_cookieString.split('=')[0]).strip()
             l_cookieValue = (l_cookieString.split('=')[1]).strip()
 
-            if l_cookieKey != g_sessionName:
+            if l_cookieKey != EcAppParam.gcm_sessionName:
                 # this can happen if there is a version change and old cookies remain at large
                 self.m_logger.warning(self.pack_massage('Cookie found but wrong name: "{0}" Should be "{1}"'.format(
-                    l_cookieKey, g_sessionName)))
+                    l_cookieKey, EcAppParam.gcm_sessionName)))
                 # in this case, the cookie is to be destroyed, before a new one is created
                 self.m_delCookie = l_cookieKey
             else:
@@ -537,9 +539,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_response = l_pageTemplate.substitute(
             LinkPrevious='.' + l_oldPath,
             NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
-            BadBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'BadBrowserMsg'),
-            GainAccessMsg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccessMsg'),
-            ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
+            BadBrowserMsg=EcAppCore.get_user_string(self.m_contextDict, 'BadBrowserMsg'),
+            GainAccessMsg=EcAppCore.get_user_string(self.m_contextDict, 'GainAccessMsg'),
+            ThisLinkMsg=EcAppCore.get_user_string(self.m_contextDict, 'ThisLinkMsg')
         )
         # In NewTarget the re.sub above is there to handle the case where the path is a bare "/"
 
@@ -558,7 +560,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
         # construct the browser capabilities test page
-        l_pageTemplate = EcTemplate(EcRequestHandler.cm_templateString)
+        l_pageTemplate = EcTemplate(EcRequestHandler.cm_browserTestPage)
 
         l_oldPath = self.path
         while re.search('&y=.*&', l_oldPath):
@@ -570,9 +572,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_response = l_pageTemplate.substitute(
             NewTarget=re.sub('/&y', '/?y', '.' + l_oldPath + '&y={0}'.format(self.m_terminalID)),
             NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
-            TestingBrowserMsg=se3_utilities.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
-            GainAccess1Msg=se3_utilities.get_user_string(self.m_contextDict, 'GainAccess1Msg'),
-            ThisLinkMsg=se3_utilities.get_user_string(self.m_contextDict, 'ThisLinkMsg')
+            TestingBrowserMsg=EcAppCore.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
+            GainAccess1Msg=EcAppCore.get_user_string(self.m_contextDict, 'GainAccess1Msg'),
+            ThisLinkMsg=EcAppCore.get_user_string(self.m_contextDict, 'ThisLinkMsg')
         )
         # In NewTarget the re.sub above is there to handle the case where the path is a bare "/"
 
@@ -646,7 +648,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             # cookie destruction if necessary
             if self.m_delCookie is not None:
                 l_cookieString = '{0}=deleted; Domain={1}; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'.format(
-                    self.m_delCookie, g_appDomain)
+                    self.m_delCookie, EcAppParam.gcm_appDomain)
                 self.send_header('Set-Cookie', l_cookieString)
 
             # send the cookie containing the terminal ID in the headers
@@ -656,20 +658,25 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 # hundred year cookie (duration in g_cookiePersistence)
                 l_expire = (datetime.datetime.now(tz=pytz.utc) +
-                            datetime.timedelta(g_cookiePersistence)).strftime('%a, %d %b %Y %H:%M:%S %Z')
+                            datetime.timedelta(EcAppParam.gcm_cookiePersistence)).strftime('%a, %d %b %Y %H:%M:%S %Z')
 
                 l_cookieString = '{0}={1}; Domain={2}; Path=/; Expires={3}; HttpOnly'\
-                    .format(g_sessionName, self.m_terminalID, g_appDomain, l_expire)
+                    .format(EcAppParam.gcm_sessionName, self.m_terminalID, EcAppParam.gcm_appDomain, l_expire)
 
                 self.send_header('Set-Cookie', l_cookieString)
 
         super().end_headers()
 
-    def buildResponse(self, p_dbConnection):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
+    def getPreviousContext(self):
+        return self.m_previousContext
 
+    def getContext(self):
+        return self.m_contextDict
+
+    def getTerminalID(self):
+        return self.m_terminalID
+
+    def getPaths(self):
         l_barePath = re.sub('[&\?]y=.*$', '', self.path)
         # the re.sub() removes the y=xxxxx parameter (terminal ID used to test browser capabilities).
         # It handles both the case where y is at the end of several parameters (&y=) and
@@ -678,21 +685,32 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         l_noJSPath = re.sub('/&y=', '/?y=', l_barePath + '&y=bad_browser')
         # the re.sub() handles the case where y is directly located after / (/?y=)
 
+        return l_barePath, l_noJSPath
+
+    def buildResponse(self, p_dbConnection):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+
         # call the rest of the app to get the appropriate response
-        l_response, l_newDict = \
-            EcRequestHandler.cm_appCore.getResponse(
-                self.m_previousContext,
-                self.m_contextDict,
-                EcRequestHandler.cm_connectionPool,
-                l_barePath,
-                l_noJSPath,
-                self.m_terminalID
-            )
+        l_response, l_newDict = EcRequestHandler.cm_appCore.getResponse(self)
+        #l_response, l_newDict = \
+        #    EcRequestHandler.cm_appCore.getResponse(
+        #        self.m_previousContext,
+        #        self.m_contextDict,
+        #        EcRequestHandler.cm_connectionPool,
+        #        l_barePath,
+        #        l_noJSPath,
+        #        self.m_terminalID
+        #    )
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
 
         # store the final context (possibly modified by the app)
+
+        # CORRECTION: for the moment, only the unmodified context is stored
+        l_storeContext = self.m_contextDict
         l_query = """
             update TB_TERMINAL
             set
@@ -700,7 +718,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 TX_CONTEXT = '{0}',
                 F_VALIDATED = 'YES'
             where TERMINAL_ID = '{1}'
-            ;""".format(json.dumps(self.m_contextDict,
+            ;""".format(json.dumps(l_storeContext,
                                    ensure_ascii=False).replace("'", "''").replace("\\", "\\\\"),
                         self.m_terminalID)
 
