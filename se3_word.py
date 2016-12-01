@@ -24,7 +24,7 @@ class Se3_Word(Se3ResponseBuilder):
             return l_response, self.m_context, 'Error'
     
         l_uiLanguage = self.m_context['z']
-        l_pcBookId = self.m_app.m_bookAlias[self.m_context['b'].lower().strip()]
+        l_pcBookId = self.m_app.getBookFromAlias(self.m_context['b'].lower().strip())
         l_pcChapter = self.m_context['c']
         l_pcVerse = self.m_context['v']
     
@@ -327,7 +327,7 @@ class Se3_Word(Se3ResponseBuilder):
     
         if p_wordId is not None:
             # called from Word, with a non '_' word ID
-            l_pcBookId = self.m_app.m_bookAlias[self.m_context['b'].lower().strip()]
+            l_pcBookId = self.m_app.getBookFromAlias(self.m_context['b'].lower().strip())
             l_pcChapter = self.m_context['c']
             l_pcVerse = self.m_context['v']
         else:

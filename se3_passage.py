@@ -24,7 +24,7 @@ class Se3_Passage(Se3ResponseBuilder):
             return l_response, self.m_context, 'Error'
     
         l_uiLanguage = self.m_context['z']
-        l_pcBookId = self.m_app.m_bookAlias[self.m_context['b'].lower().strip()]
+        l_pcBookId = self.m_app.getBookFromAlias(self.m_context['b'].lower().strip())
         l_pcChapter = self.m_context['c']
         l_wholeChapter = (self.m_context['w'] == 'x')
     

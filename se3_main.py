@@ -300,13 +300,27 @@ class Se3AppCore(EcAppCore):
     #            Chapter count for the book = len(g_bookChapter['id']) - 1
 
     def chapterCount(self, p_bookId):
-        return len(self.m_bookChapter[p_bookId]) - 1
+        try:
+            return len(self.m_bookChapter[p_bookId]) - 1
+        except KeyError:
+            self.m_loggerSE3.warning('Unknown book ID: ' + p_bookId)
+            raise
 
     def getBookAttributes(self, p_bookId):
-        return self.m_bookChapter[p_bookId][0]
+        try:
+            return self.m_bookChapter[p_bookId][0]
+        except KeyError:
+            self.m_loggerSE3.warning('Unknown book ID: ' + p_bookId)
+            raise
 
     def getChapterVerseCount(self, p_bookId, p_chapter):
-        return self.m_bookChapter[p_bookId][p_chapter]
+        try:
+            return self.m_bookChapter[p_bookId][p_chapter]
+        except KeyError as e:
+            self.m_loggerSE3.warning('Unknown book ID/Chapter: {0}/{1} [{2}]'.format(
+                p_bookId, p_chapter, repr(e))
+            )
+            raise
 
     def init_book_chapter(self):
         l_connector = self.m_connectionPool.getConnection()
@@ -379,6 +393,13 @@ class Se3AppCore(EcAppCore):
     # self.m_bookAlias = {}  # Dictionary giving the correct book ID from one of its allowed aliases
     # (rm, rom, ... --> Rom)
 
+    def getBookFromAlias(self, p_alias):
+        try:
+            return self.m_bookAlias[p_alias]
+        except KeyError:
+            self.m_loggerSE3.warning('Unknown book alias: ' + p_alias)
+            raise
+
     def init_book_alias(self):
         l_connector = self.m_connectionPool.getConnection()
 
@@ -415,7 +436,7 @@ class Se3AppCore(EcAppCore):
     def get_version_vector(self, p_context, p_forceAll=False):
         # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have
         # been checked before)
-        l_pcBookId = self.m_bookAlias[p_context['b'].lower().strip()]
+        l_pcBookId = self.getBookFromAlias(p_context['b'].lower().strip())
 
         if p_forceAll:
             if l_pcBookId == 'Qur':
@@ -445,7 +466,7 @@ class Se3AppCore(EcAppCore):
 
         # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have been
         # checked before)
-        l_pcBookId = self.m_bookAlias[p_context['b'].lower().strip()]
+        l_pcBookId = self.getBookFromAlias(p_context['b'].lower().strip())
 
         if p_QuranAndBible:
             return self.get_vl_internal(self.m_quranVersionId, p_context['q']) + \
@@ -729,7 +750,7 @@ class Se3AppCore(EcAppCore):
                 l_book, l_chapter, l_verse1, l_verse2)
         else:
             # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
-            l_pcBookId = self.m_bookAlias[l_book.lower().strip()]
+            l_pcBookId = self.getBookFromAlias(l_book.lower().strip())
 
             # chapter must be a valid number
             try:
@@ -787,7 +808,7 @@ class Se3AppCore(EcAppCore):
                 l_book, l_chapter, l_verse)
         else:
             # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
-            l_pcBookId = self.m_bookAlias[l_book.lower().strip()]
+            l_pcBookId = self.getBookFromAlias(l_book.lower().strip())
 
             # chapter must be a valid number
             try:
@@ -846,7 +867,7 @@ class Se3AppCore(EcAppCore):
                     l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
             else:
                 # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys as checked above)
-                l_pcBookId = self.m_bookAlias[l_book.lower().strip()]
+                l_pcBookId = self.getBookFromAlias(l_book.lower().strip())
 
                 # chapter must be a valid number
                 try:
@@ -905,7 +926,7 @@ class Se3AppCore(EcAppCore):
     # get the French and English full chapter name corresponding to context (p_context['b'] + p_context['c'])
     def get_chapter_names(self, p_context, p_dbConnection):
         # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have been checked before)
-        l_pcBookId = self.m_bookAlias[p_context['b'].lower().strip()]
+        l_pcBookId = self.getBookFromAlias(p_context['b'].lower().strip())
 
         l_query = """
             select ST_NAME_EN, ST_NAME_FR
