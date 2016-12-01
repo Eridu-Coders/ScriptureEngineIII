@@ -115,8 +115,9 @@ class Se3_Lexicon(Se3ResponseBuilder):
         'Ῥ': 'Ρ'
     }
     
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_Lexicon created')
 
     # -------------------------- Search Result -----------------------------------------------------------------------------
     def buildResponse(self):

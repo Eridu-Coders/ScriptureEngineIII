@@ -18,6 +18,7 @@ class EcAppParam:
     gcm_mailSender = LocalParam.gcm_mailSender
     gcm_smtpServer = LocalParam.gcm_smtpServer
     gcm_amazonSmtp = LocalParam.gcm_amazonSmtp
+    gcm_sesIamUser = LocalParam.gcm_sesIamUser
     gcm_sesUserName = LocalParam.gcm_sesUserName
     gcm_sesPassword = LocalParam.gcm_sesPassword
     gcm_appRoot = LocalParam.gcm_appRoot
@@ -27,7 +28,7 @@ class EcAppParam:
 
     # general parameters
     gcm_appName = 'ScriptureEngineIII'
-    gcm_appVersion = '3.4.0'
+    gcm_appVersion = '3.4.1'
     gcm_appTitle = 'Scripture Search Engine III'
 
     # HTTP server parameters
@@ -278,7 +279,8 @@ class EcAppParam:
         'fr-w_freqBBible': 'Occurences (NASB)',
         'en-w_freqBQuran': 'Translation Frequencies (B)',
         'fr-w_freqBQuran': 'Occurences (B)',
-        'en-w_limitMessage': 'Only the first {0} occurences are displayed. In order to display the rest (max. {1}) click:',
+        'en-w_limitMessage':
+            'Only the first {0} occurences are displayed. In order to display the rest (max. {1}) click:',
         'fr-w_limitMessage': """
             Seuls les {0} premières occurences sont affichées. Pour voir les suivantes (max. {1}) cliquer:
         """,

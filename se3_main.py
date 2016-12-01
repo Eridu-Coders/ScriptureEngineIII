@@ -130,30 +130,30 @@ __author__ = 'fi11222'
 # ------------------------- Response building class --------------------------------------------------------------------
 class Se3ResponseFactory:
     @classmethod
-    def buildNew(cls, p_app, p_requestHandler):
+    def buildNew(cls, p_app, p_requestHandler, p_context):
         l_context = p_requestHandler.getContext()
 
         # single verse
         if l_context['K'] == 'V':
-            return Se3_SingleVerse(p_app, p_requestHandler)
+            return Se3_SingleVerse(p_app, p_requestHandler, p_context)
         # passage
         elif l_context['K'] == 'P':
-            return Se3_Passage(p_app, p_requestHandler)
+            return Se3_Passage(p_app, p_requestHandler, p_context)
         # word (lexicon)
         elif l_context['K'][0] == 'W':
-            return Se3_Word(p_app, p_requestHandler)
+            return Se3_Word(p_app, p_requestHandler, p_context)
         # root
         elif l_context['K'][0] == 'R':
-            return Se3_Root(p_app, p_requestHandler)
+            return Se3_Root(p_app, p_requestHandler, p_context)
         # search
         elif l_context['K'][0] == 'S':
-            return Se3_Search(p_app, p_requestHandler)
+            return Se3_Search(p_app, p_requestHandler, p_context)
         # table of contents
         elif l_context['K'][0] == 'T':
-            return Se3_Toc(p_app, p_requestHandler)
+            return Se3_Toc(p_app, p_requestHandler, p_context)
         # Arabic Lexicon
         elif l_context['K'][0] == 'L':
-            return Se3_Lexicon(p_app, p_requestHandler)
+            return Se3_Lexicon(p_app, p_requestHandler, p_context)
         else:
             return '<p>No Response (You should not be seeing this!)</p>'
 
@@ -214,7 +214,6 @@ class Se3AppCore(EcAppCore):
 
     # these serve as default values for p_context['l'] and p_context['q'] respectively
 
-    # TODO ???? !!!! ????
     # helper function to avoid accessing global variables outside of their file
     def getVersionList(self, p_bibleQuran='B'):
         if p_bibleQuran == 'B':
@@ -225,22 +224,6 @@ class Se3AppCore(EcAppCore):
     # loads the version vectors from the database (performed at app startup)
     def init_versions(self):
         l_connector = self.m_connectionPool.getConnection()
-        #try:
-            # this is necessary because the connection pool has not yet been initialized
-            # (It is only initialized in the EcRequestHandler class init to which the newly created app is passed as
-            # a parameter)
-            #l_connector = EcConnector(
-            #    user=g_dbUser, password=g_dbPassword,
-            #   host=g_dbServer,
-            #    database=g_dbDatabase)
-
-            #l_connector = mysql.connector.connect(
-            #    user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
-            #    host=EcAppParam.gcm_dbServer,
-            #    database=EcAppParam.gcm_dbDatabase)
-        #except mysql.connector.Error as l_exception:
-        #    self.m_loggerSE3.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
-        #    raise
 
         try:
             # all versions except ground text
@@ -296,7 +279,6 @@ class Se3AppCore(EcAppCore):
             self.m_loggerSE3.debug('g_bibleVersionId: {0}'.format(self.m_bibleVersionId))
             self.m_loggerSE3.debug('g_quranVersionId: {0}'.format(self.m_quranVersionId))
 
-            #l_connector.close()
             self.m_connectionPool.releaseConnection(l_connector)
 
             self.m_loggerSE3.info('g_bibleVersionId loaded. Size: {0}'.format(len(self.m_bibleVersionId)))
@@ -317,17 +299,17 @@ class Se3AppCore(EcAppCore):
     # Therefore: Verse count for a given chapter = g_bookChapter['id'][chapter number]
     #            Chapter count for the book = len(g_bookChapter['id']) - 1
 
+    def chapterCount(self, p_bookId):
+        return len(self.m_bookChapter[p_bookId]) - 1
+
+    def getBookAttributes(self, p_bookId):
+        return self.m_bookChapter[p_bookId][0]
+
+    def getChapterVerseCount(self, p_bookId, p_chapter):
+        return self.m_bookChapter[p_bookId][p_chapter]
+
     def init_book_chapter(self):
         l_connector = self.m_connectionPool.getConnection()
-        #try:
-        #   # this is necessary because the connection pool has not yet been initialized
-        #   l_connector = mysql.connector.connect(
-        #       user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
-        #       host=EcAppParam.gcm_dbServer,
-        #       database=EcAppParam.gcm_dbDatabase)
-        #except mysql.connector.Error as l_exception:
-        #    g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
-        #    raise
 
         try:
             # All books
@@ -380,7 +362,6 @@ class Se3AppCore(EcAppCore):
             l_cursor.close()
             g_loggerUtilities.debug('Cursor Closed')
 
-            #l_connector.close()
             self.m_connectionPool.releaseConnection(l_connector)
             g_loggerUtilities.debug('Connector released')
 
@@ -400,14 +381,6 @@ class Se3AppCore(EcAppCore):
 
     def init_book_alias(self):
         l_connector = self.m_connectionPool.getConnection()
-        #try:
-        #    l_connector = mysql.connector.connect(
-        #        user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
-        #        host=EcAppParam.gcm_dbServer,
-        #        database=EcAppParam.gcm_dbDatabase)
-        #except mysql.connector.Error as l_exception:
-        #    g_loggerUtilities.critical('Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
-        #    raise
 
         try:
             l_query = """
@@ -427,7 +400,6 @@ class Se3AppCore(EcAppCore):
                 self.m_bookAlias[l_bookAlias] = l_bookId
 
             l_cursor.close()
-            #l_connector.close()
             self.m_connectionPool.releaseConnection(l_connector)
 
             g_loggerUtilities.info('g_bookAlias loaded. Size: {0}'.format(len(self.m_bookAlias)))
@@ -767,7 +739,8 @@ class Se3AppCore(EcAppCore):
                     l_book, l_chapter, l_verse1, l_verse2)
 
             # chapter must be in the right range based on the book table
-            if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+            #if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+            if l_intChapter < 1 or l_intChapter > self.chapterCount(l_pcBookId):
                 return EcAppCore.get_user_string(p_context, 'e_wrongChapterPassage').format(
                     l_book, l_chapter, l_verse1, l_verse2)
             else:
@@ -788,12 +761,13 @@ class Se3AppCore(EcAppCore):
                             l_book, l_chapter, l_verse1, l_verse2)
 
                 # v1 must be in the right range as determined based on the chapter and book
-                if l_intVerse1 < 1 or l_intVerse1 > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                #if l_intVerse1 < 1 or l_intVerse1 > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                if l_intVerse1 < 1 or l_intVerse1 > self.getChapterVerseCount(l_pcBookId, l_intChapter):
                     return EcAppCore.get_user_string(p_context, 'e_wrongV1Passage').format(
                         l_book, l_chapter, l_verse1, l_verse2)
                 # v2 must be in the same range as v1 and also greater than v1
                 elif l_verse2 != 'x' and \
-                        (l_intVerse2 < 1 or l_intVerse2 > self.m_bookChapter[l_pcBookId][l_intChapter] or
+                        (l_intVerse2 < 1 or l_intVerse2 > self.getChapterVerseCount(l_pcBookId, l_intChapter) or
                                  l_intVerse1 > l_intVerse2):
                     return EcAppCore.get_user_string(p_context, 'e_wrongV2Passage').format(
                         l_book, l_chapter, l_verse1, l_verse2)
@@ -823,7 +797,8 @@ class Se3AppCore(EcAppCore):
                     l_book, l_chapter, l_verse)
 
             # chapter must be in the right range based on the book table
-            if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+            #if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+            if l_intChapter < 1 or l_intChapter > self.chapterCount(l_pcBookId):
                 return EcAppCore.get_user_string(p_context, 'e_wrongChapterVerse').format(
                     l_book, l_chapter, l_verse)
             else:
@@ -835,7 +810,7 @@ class Se3AppCore(EcAppCore):
                         l_book, l_chapter, l_verse)
 
                 # verse must be in the right range as determined based on the chapter and book
-                if l_intVerse < 1 or l_intVerse > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                if l_intVerse < 1 or l_intVerse > self.getChapterVerseCount(l_pcBookId, l_intChapter):
                     return EcAppCore.get_user_string(p_context, 'e_wrongVVerse').format(
                         l_book, l_chapter, l_verse)
 
@@ -881,7 +856,8 @@ class Se3AppCore(EcAppCore):
                         l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
                 # chapter must be in the right range based on the book table
-                if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+                #if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+                if l_intChapter < 1 or l_intChapter > self.chapterCount(l_pcBookId):
                     return EcAppCore.get_user_string(p_context, 'e_wrongChapterWord').format(
                         l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
                 else:
@@ -893,7 +869,7 @@ class Se3AppCore(EcAppCore):
                             l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
                     # verse must be in the right range as determined based on the chapter and book
-                    if l_intVerse < 1 or l_intVerse > self.m_bookChapter[l_pcBookId][l_intChapter]:
+                    if l_intVerse < 1 or l_intVerse > self.getChapterVerseCount(l_pcBookId, l_intChapter):
                         return EcAppCore.get_user_string(p_context, 'e_wrongVWord').format(
                             l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
                     else:
@@ -960,13 +936,10 @@ class Se3AppCore(EcAppCore):
     def getResponse(self, p_requestHandler):
         self.m_loggerSE3.info('Getting response from App Core')
 
-        #return self.se3_entryPoint(
-        #    p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID)
-        return self.se3_entryPoint(p_requestHandler)
+    #    return self.se3_entryPoint(p_requestHandler)
 
     # ---------------------- Application entry point -------------------------------------------------------------------
-    #def se3_entryPoint(self, p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
-    def se3_entryPoint(self, p_requestHandler):
+    #def se3_entryPoint(self, p_requestHandler):
         self.m_loggerSE3.info('Entering SE3')
 
         # if debugging, reload template for each request
@@ -974,92 +947,36 @@ class Se3AppCore(EcAppCore):
             self.loadTemplates()
 
         l_previousContext = p_requestHandler.getPreviousContext()
-        l_dbConnectionPool = self.m_connectionPool
-        
+
         # default values, certain common controls, parameter expansion, ...
         l_context = self.preprocess_context(p_requestHandler.getContext(), l_previousContext)
 
         # passage/book/verse references given in search box --> transformed into respective P/V commands
         l_context = self.trap_references(l_context)
 
-        # +++++++++++++++++ A) response creation +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # +++++++++++++++++ A) response creation +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # gets the proper response depending on the command parameter (l_context['K'])
         # this is not yet the whole page but only the part which goes in the main content area
-
-        l_builder = Se3ResponseFactory.buildNew(self, p_requestHandler)
+        l_builder = Se3ResponseFactory.buildNew(self, p_requestHandler, l_context)
         l_response, l_context, l_title = l_builder.buildResponse()
 
-        # sigle verse
-        #if l_context['K'] == 'V':
-        #    l_response, l_context, l_title = \
-        #        se3_single_verse.get_single_verse(l_previousContext, l_context, l_dbConnectionPool)
-        # passage
-        #elif l_context['K'] == 'P':
-        #   l_response, l_context, l_title = se3_passage.get_passage(l_previousContext, l_context, l_dbConnectionPool)
-        ## word (lexicon)
-        #elif l_context['K'][0] == 'W':
-        #    l_response, l_context, l_title = se3_word.get_word(l_previousContext, l_context, l_dbConnectionPool)
-        # root
-        #elif l_context['K'][0] == 'R':
-        #    l_response, l_context, l_title = se3_root.get_root(l_previousContext, l_context, l_dbConnectionPool)
-        # search
-        #elif l_context['K'][0] == 'S':
-        #    l_response, l_context, l_title = se3_search.get_search(l_previousContext, l_context, l_dbConnectionPool)
-        # table of contents
-        #elif l_context['K'][0] == 'T':
-        #    l_response, l_context, l_title = self.get_toc(l_previousContext, l_context, l_dbConnectionPool)
-        # Arabic Lexicon
-        #elif l_context['K'] == 'La':
-        #    l_response, l_context, l_title = se3_lexicon.lexicon_arabic(l_previousContext, l_context, l_dbConnectionPool)
-        # Hebrew Lexicon
-        #elif l_context['K'] == 'Lh':
-        #    l_response, l_context, l_title = se3_lexicon.lexicon_hebrew(l_previousContext, l_context, l_dbConnectionPool)
-        # Greek Lexicon
-        #elif l_context['K'] == 'Lg':
-        #    l_response, l_context, l_title = se3_lexicon.lexicon_greek(l_previousContext, l_context, l_dbConnectionPool)
-        #else:
-        #    l_response = '<p>No Response (You should not be seeing this!)</p>'
+        # +++++++++++++++++ B) substitution values +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        # +++++++++++++++++ B) substitution values +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-        # ............. B.1) header elements ...............................................................................
+        # ............. B.1) header elements ...........................................................................
 
         l_bibleVersionControl, l_quranVersionControl, l_paramControl, l_statusDisplay = \
-            self.internal_get_header_controls(l_context)
+            self.build_header_controls(l_context)
 
-        # ............. B.2) dimensions ....................................................................................
+        # ............. B.2) dimensions ................................................................................
 
-        l_dimensions = self.internal_get_dimensions()
+        l_dimensions = self.get_dimensions()
 
-        # ............. B.3) other elements ................................................................................
+        # ............. B.3) other elements ............................................................................
         # determines the values of all the §{xx} variables for the template substitution
 
         # dimensions table + context / previous context tables are displayed only in debug mode
-        l_dimensionsTable = ''
-        l_oldContextTable = ''
-        l_newContextTable = ''
-
-        if EcAppParam.gcm_debugModeOn:
-            l_hiddenFieldsType = 'text'
-            l_hiddenFieldsStyle = ''
-
-            l_dimensionsTable = '<p>Dimensions:</p><table style="border: 1px solid black;">'
-            for l_key in l_dimensions.keys():
-                l_dimensionsTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_dimensions[l_key])
-            l_dimensionsTable += '</table>\n'
-
-            l_oldContextTable = '<p>Old Context:</p><table style="border: 1px solid black;">'
-            for l_key, l_value in l_previousContext.items():
-                l_oldContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
-            l_oldContextTable += '</table>\n'
-
-            l_newContextTable = '<p>Context:</p><table style="border: 1px solid black;">'
-            for l_key, l_value in l_context.items():
-                l_newContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
-            l_newContextTable += '</table>\n'
-        else:
-            l_hiddenFieldsType = 'hidden'
-            l_hiddenFieldsStyle = 'display: none;'
+        l_hiddenFieldsStyle, l_hiddenFieldsType, l_dimensionsTable, l_oldContextTable, l_newContextTable = \
+            self.debugTables(l_dimensions, l_previousContext, l_context)
 
         # create appropriate template substitution key/values for each element of the context
         l_inputValues = {}
@@ -1079,7 +996,8 @@ class Se3AppCore(EcAppCore):
         l_substituteVar = l_dimensions
         l_substituteVar.update(l_inputValues)
 
-        l_substituteVar.update(self.internal_get_labels(l_context))
+        # add various labels all over the control section of the page, including comb box values
+        l_substituteVar.update(self.get_labels(l_context))
 
         self.m_loggerSE3.debug('l_substituteVar: {0}'.format(l_substituteVar))
 
@@ -1087,27 +1005,60 @@ class Se3AppCore(EcAppCore):
         l_urlPath, l_noJSPath = p_requestHandler.getPaths()
         l_terminalID = p_requestHandler.getTerminalID()
         l_pageTemplate = EcTemplate(self.m_homePageTemplate)
-        l_response = l_pageTemplate.substitute(l_substituteVar,
-                                               WindowTitle=l_title,
-                                               UrlPath=l_urlPath,
-                                               NoJSPath=l_noJSPath,
-                                               FooterText='{0} v. {1}<br/>Terminal ID: {2}'.format(
-                                                   EcAppParam.gcm_appTitle, EcAppParam.gcm_appVersion, l_terminalID),
-                                               HiddenFieldsStyle=l_hiddenFieldsStyle,
-                                               HiddenFieldsType=l_hiddenFieldsType,
-                                               StatusLine=l_statusDisplay,
-                                               Parameters=l_paramControl,
-                                               BibleVersions=l_bibleVersionControl,
-                                               QuranVersions=l_quranVersionControl,
-                                               Response=l_response,
-                                               OldContextTable=l_oldContextTable,
-                                               NewContextTable=l_newContextTable,
-                                               DimensionsTable=l_dimensionsTable)
+        l_response = l_pageTemplate.substitute(
+            l_substituteVar,
+            WindowTitle=l_title,
+            UrlPath=l_urlPath,
+            NoJSPath=l_noJSPath,
+            FooterText='{0} v. {1}<br/>Terminal ID: {2}'.format(
+               EcAppParam.gcm_appTitle, EcAppParam.gcm_appVersion, l_terminalID),
+            HiddenFieldsStyle=l_hiddenFieldsStyle,
+            HiddenFieldsType=l_hiddenFieldsType,
+            StatusLine=l_statusDisplay,
+            Parameters=l_paramControl,
+            BibleVersions=l_bibleVersionControl,
+            QuranVersions=l_quranVersionControl,
+            Response=l_response,
+            OldContextTable=l_oldContextTable,
+            NewContextTable=l_newContextTable,
+            DimensionsTable=l_dimensionsTable
+        )
 
         self.m_loggerSE3.info('SE3 returning')
         return l_response, l_context
 
-    def internal_get_labels(self, p_context):
+    # dimensions table + context / previous context tables are displayed only in debug mode
+    def debugTables(self, p_dimensions, p_previousContext, p_context):
+        l_dimensionsTable = ''
+        l_oldContextTable = ''
+        l_newContextTable = ''
+
+        if EcAppParam.gcm_debugModeOn:
+            l_hiddenFieldsType = 'text'
+            l_hiddenFieldsStyle = ''
+
+            l_dimensionsTable = '<p>Dimensions:</p><table style="border: 1px solid black;">'
+            for l_key in p_dimensions.keys():
+                l_dimensionsTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, p_dimensions[l_key])
+            l_dimensionsTable += '</table>\n'
+
+            l_oldContextTable = '<p>Old Context:</p><table style="border: 1px solid black;">'
+            for l_key, l_value in p_previousContext.items():
+                l_oldContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
+            l_oldContextTable += '</table>\n'
+
+            l_newContextTable = '<p>Context:</p><table style="border: 1px solid black;">'
+            for l_key, l_value in p_context.items():
+                l_newContextTable += '<tr><td>{0}</td><td>{1}</td></tr>'.format(l_key, l_value)
+            l_newContextTable += '</table>\n'
+        else:
+            l_hiddenFieldsType = 'hidden'
+            l_hiddenFieldsStyle = 'display: none;'
+
+        return l_hiddenFieldsStyle, l_hiddenFieldsType, l_dimensionsTable, l_oldContextTable, l_newContextTable
+
+    # various labels all over the control section of the page, including comb box values
+    def get_labels(self, p_context):
         l_substituteVar = dict()
 
         # Search form labels and current values
@@ -1210,7 +1161,7 @@ class Se3AppCore(EcAppCore):
     # <nav>
     # <div id="Content">
     # <div id="RestOfPage">
-    def internal_get_dimensions(self):
+    def get_dimensions(self):
         # all values in em
         l_dimensions = dict()
 
@@ -1248,7 +1199,7 @@ class Se3AppCore(EcAppCore):
 
         return l_dimensions
 
-    def internal_get_header_controls(self, p_context):
+    def build_header_controls(self, p_context):
         # number of version selection checkboxes per column
         l_segmentLength = 10
         # Max number of versions to display in the status display

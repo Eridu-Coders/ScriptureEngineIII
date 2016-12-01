@@ -7,8 +7,9 @@ from se3_app_param import *
 __author__ = 'fi11222'
 
 class Se3_Search(Se3ResponseBuilder):
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_Search created')
 
     # -------------------------- Search Result -----------------------------------------------------------------------------
     def buildResponse(self):

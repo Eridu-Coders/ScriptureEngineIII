@@ -9,8 +9,9 @@ from se3_app_param import *
 __author__ = 'fi11222'
 
 class Se3_SingleVerse(Se3ResponseBuilder):
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_SingleVerse created')
 
     # ---------------------- Single verse HTML response ----------------------------------------------------------------
     def buildResponse(self):
@@ -36,7 +37,8 @@ class Se3_SingleVerse(Se3ResponseBuilder):
     
         # get all attributes of the book the verse belongs to
         l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr = \
-            self.m_app.m_bookChapter[l_pcBookId][0]
+            self.m_app.getBookAttributes(l_pcBookId)
+            #self.m_app.m_bookChapter[l_pcBookId][0]
     
         l_verseRef = '{0} {1}:{2}'.format(
             l_nameFr if l_uiLanguage == 'fr' else l_nameEn,
@@ -452,9 +454,8 @@ class Se3_SingleVerse(Se3ResponseBuilder):
                 # previous book id since both verse and chapter are = 1
                 l_previousBook = p_bookPrev
                 # last chapter of the previous book
-                # g_bookChapter contains for each chapter a tuple at index 0 plus a verse count value for each chapter
-                # hence, the last chapter = the number of chapters = the element count of the list for this book minus one
-                l_previousChapter = len(self.m_app.m_bookChapter[l_previousBook]) - 1
+                l_previousChapter = self.m_app.chapterCount(l_previousBook)
+                #l_previousChapter = len(self.m_app.m_bookChapter[l_previousBook]) - 1
             else:
                 # same book
                 l_previousBook = p_pcBookId
@@ -462,7 +463,8 @@ class Se3_SingleVerse(Se3ResponseBuilder):
                 l_previousChapter = int(p_pcChapter) - 1
     
             # verse number = las verse of the new chapter = verse count of this chapter (numbering starts at 1)
-            l_previousVerse = self.m_app.m_bookChapter[l_previousBook][l_previousChapter]
+            l_previousVerse = self.m_app.getChapterVerseCount(l_previousBook, l_previousChapter)
+            #l_previousVerse = self.m_app.m_bookChapter[l_previousBook][l_previousChapter]
         else:
             # simplest case: just need to decrease verse number
             l_previousBook = p_pcBookId
@@ -470,9 +472,11 @@ class Se3_SingleVerse(Se3ResponseBuilder):
             l_previousVerse = int(p_pcVerse) - 1
     
         # Next
-        if p_pcVerse == str(self.m_app.m_bookChapter[p_pcBookId][int(p_pcChapter)]):
+        #if p_pcVerse == str(self.m_app.m_bookChapter[p_pcBookId][int(p_pcChapter)]):
+        if p_pcVerse == str( self.m_app.getChapterVerseCount(p_pcBookId, int(p_pcChapter)) ):
             # last verse of the chapter = verse cont for that chapter
-            if p_pcChapter == str(len(self.m_app.m_bookChapter[p_pcBookId]) - 1):
+            #if p_pcChapter == str(len(self.m_app.m_bookChapter[p_pcBookId]) - 1):
+            if p_pcChapter == str(self.m_app.chapterCount(p_pcBookId)):
                 # last chapter = chapter count of the book = the element count of the list for this book minus one
                 # --> first chapter of next book
                 l_nextBook = p_bookNext
@@ -500,7 +504,8 @@ class Se3_SingleVerse(Se3ResponseBuilder):
     
         # 5 adjacent verses
         l_5start = max(int(p_pcVerse) - 2, 1)
-        l_5end = min(l_5start + 4, self.m_app.m_bookChapter[p_pcBookId][int(p_pcChapter)])
+        l_5end = min(l_5start + 4, self.m_app.getChapterVerseCount(p_pcBookId, int(p_pcChapter)))
+        #l_5end = min(l_5start + 4, self.m_app.m_bookChapter[p_pcBookId][int(p_pcChapter)])
         if l_5end - l_5start < 4:
             l_5start = max(l_5end - 4, 1)
     
@@ -513,7 +518,8 @@ class Se3_SingleVerse(Se3ResponseBuilder):
     
         # 9 adjacent verses
         l_9start = max(int(p_pcVerse) - 4, 1)
-        l_9end = min(l_9start + 8, self.m_app.m_bookChapter[p_pcBookId][int(p_pcChapter)])
+        l_9end = min(l_9start + 8, self.m_app.getChapterVerseCount(p_pcBookId, int(p_pcChapter)))
+        #l_9end = min(l_9start + 8, self.m_app.m_bookChapter[p_pcBookId][int(p_pcChapter)])
         if l_9end - l_9start < 8:
             l_9start = max(l_9end - 8, 1)
     

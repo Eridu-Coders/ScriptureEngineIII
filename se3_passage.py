@@ -7,8 +7,9 @@ from se3_app_param import *
 __author__ = 'fi11222'
 
 class Se3_Passage(Se3ResponseBuilder):
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_Passage created')
 
     # -------------------------- Passage Response --------------------------------------------------------------------------
     def buildResponse(self):
@@ -31,7 +32,9 @@ class Se3_Passage(Se3ResponseBuilder):
         if l_wholeChapter:
             # whole chapter
             l_pcVerseStart = 1
-            l_pcVerseEnd = self.m_app.m_bookChapter[l_pcBookId][int(l_pcChapter)]
+
+            l_pcVerseEnd = self.m_app.getChapterVerseCount(l_pcBookId, int(l_pcChapter))
+            #l_pcVerseEnd = self.m_app.m_bookChapter[l_pcBookId][int(l_pcChapter)]
         else:
             l_pcVerseStart = self.m_context['v']
             l_pcVerseEnd = self.m_context['w']
@@ -40,7 +43,8 @@ class Se3_Passage(Se3ResponseBuilder):
     
         # get all attributes of the book the verse belongs to
         l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_chapterShortEn, l_chapterShortFr = \
-            self.m_app.m_bookChapter[l_pcBookId][0]
+            self.m_app.getBookAttributes(l_pcBookId)
+        #    self.m_app.m_bookChapter[l_pcBookId][0]
     
         # window title
         if l_wholeChapter:
@@ -111,9 +115,8 @@ class Se3_Passage(Se3ResponseBuilder):
                 # previous book id since both verse and chapter are = 1
                 l_previousBook = l_bookPrev
                 # last chapter of the previous book
-                # g_bookChapter contains for each chapter a tuple at index 0 plus a verse count value for each chapter
-                # hence, the last chapter = the number of chapters = the element count of the list for this book minus one
-                l_previousChapter = len(self.m_app.m_bookChapter[l_previousBook]) - 1
+                #l_previousChapter = len(self.m_app.m_bookChapter[l_previousBook]) - 1
+                l_previousChapter = self.m_app.chapterCount(l_previousBook)
             else:
                 # same book
                 l_previousBook = l_pcBookId
@@ -121,7 +124,7 @@ class Se3_Passage(Se3ResponseBuilder):
                 l_previousChapter = int(l_pcChapter) - 1
     
             # next
-            if l_pcChapter == str(len(self.m_app.m_bookChapter[l_pcBookId]) - 1):
+            if l_pcChapter == str(self.m_app.chapterCount(l_pcBookId)):
                 # last chapter = chapter count of the book = the element count of the list for this book minus one
                 # --> first chapter of next book
                 l_nextBook = l_bookNext

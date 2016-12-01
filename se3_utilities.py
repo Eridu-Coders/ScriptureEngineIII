@@ -10,18 +10,20 @@ __author__ = 'fi11222'
 
 # ------------------------- Response building class --------------------------------------------------------------------
 class Se3ResponseBuilder:
-    def __init__(self, p_app, p_requestHandler):
-        self.m_app = p_app
-        self.m_requestHandler = p_requestHandler
-
-        self.m_context = self.m_requestHandler.getContext()
-        self.m_previousContext = self.m_requestHandler.getPreviousContext()
-
+    def __init__(self, p_app, p_requestHandler, p_context):
         self.m_logger = logging.getLogger(EcAppParam.gcm_appName + '.Se3ResponseBuilder')
         if EcAppParam.gcm_verboseModeOn:
             self.m_logger.setLevel(logging.INFO)
         if EcAppParam.gcm_debugModeOn:
             self.m_logger.setLevel(logging.DEBUG)
+        self.m_logger.info('+++ Se3ResponseBuilder created')
+
+        self.m_app = p_app
+        self.m_requestHandler = p_requestHandler
+
+        self.m_context = p_context
+        self.m_previousContext = self.m_requestHandler.getPreviousContext()
+
 
     # default build response: does nothing
     def buildResponse(self):
@@ -211,8 +213,9 @@ class Se3ResponseBuilder:
         return l_neighborhood.strip()
 
 class Se3_Toc(Se3ResponseBuilder):
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_Toc created')
 
     def buildResponse(self):
         self.m_logger.info('Getting TOC response')

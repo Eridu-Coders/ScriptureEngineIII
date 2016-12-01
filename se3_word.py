@@ -7,8 +7,9 @@ from se3_app_param import *
 __author__ = 'fi11222'
 
 class Se3_Word(Se3ResponseBuilder):
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_Word created')
 
     # -------------------------- Passage Response --------------------------------------------------------------------------
     def buildResponse(self):
@@ -36,8 +37,9 @@ class Se3_Word(Se3ResponseBuilder):
     
         # get all attributes of the book the verse belongs to
         l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_chapterShortEn, l_chapterShortFr = \
-            self.m_app.m_bookChapter[l_pcBookId][0]
-    
+            self.m_app.getBookAttributes(l_pcBookId)
+            #self.m_app.m_bookChapter[l_pcBookId][0]
+
         # ground text style based on book collection
         l_groundStyle = 'wGroundHebrew'
         if l_idGroup0 == 'NT':
@@ -446,8 +448,9 @@ class Se3_Word(Se3ResponseBuilder):
             for l_ground, l_translit, l_bookId, l_chapter, l_verse, l_word, l_neighborhood in l_cursor:
                 # chapter info for this occurence
                 l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_chapterShortEn, l_chapterShortFr = \
-                        self.m_app.m_bookChapter[l_bookId][0]
-    
+                    self.m_app.getBookAttributes(l_bookId)
+                    #self.m_app.m_bookChapter[l_bookId][0]
+
                 # l_interlLocal: id of the interlinear version used for this occurence
                 if p_idStrongs[0:1] == 'G':
                     l_groundStyle = 'wGroundGreek'

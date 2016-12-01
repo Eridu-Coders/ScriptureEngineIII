@@ -5,8 +5,9 @@ from se3_word import *
 __author__ = 'fi11222'
 
 class Se3_Root(Se3_Word):
-    def __init__(self, p_app, p_requestHandler):
-        super().__init__(p_app, p_requestHandler)
+    def __init__(self, p_app, p_requestHandler, p_context):
+        super().__init__(p_app, p_requestHandler, p_context)
+        self.m_logger.info('+++ Se3_Root created')
 
     # -------------------------- Root Response -----------------------------------------------------------------------------
     def buildResponse(self):
@@ -194,6 +195,7 @@ class Se3_Root(Se3_Word):
     
             for l_ground, l_translit, l_type, l_def, l_idStrongs,  l_idRootByte in l_cursor:
                 l_idRoot = l_idRootByte.decode('utf-8')
+                self.m_logger.debug('l_idRoot: ' + l_idRoot)
     
                 # ground text style based on Strong's ID initial
                 l_groundStyle = 'rGroundHebrew'
@@ -203,7 +205,7 @@ class Se3_Root(Se3_Word):
                     l_groundStyle = 'rGroundArabic'
     
                 l_occuVersion, l_occuCount, l_occuString = \
-                    self.getOccurences(self.m_context, l_dbConnection, l_idStrongs)
+                    self.getOccurences(l_dbConnection, l_idStrongs)
     
                 l_rootCountDict[l_idRoot] += l_occuCount
     
