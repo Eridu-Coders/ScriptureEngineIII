@@ -17,7 +17,7 @@ __author__ = 'fi11222'
 
 # Multi-threaded HTTP server according to https://pymotw.com/2/BaseHTTPServer/index.html#module-BaseHTTPServer
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
-    """Handle requests in a separate thread."""
+    """Handles requests in a separate thread each."""
 
 # ----------------------------------------- main() ---------------------------------------------------------------------
 random.seed()

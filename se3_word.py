@@ -34,7 +34,8 @@ class Se3_Word(Se3ResponseBuilder):
         l_pcIdStrongs = self.m_context['d'].split('-')[2]
     
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
-    
+        l_dbConnection.debugData = 'Se3_Word.buildResponse main working connection'
+
         # get all attributes of the book the verse belongs to
         l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_chapterShortEn, l_chapterShortFr = \
             self.m_app.getBookAttributes(l_pcBookId)

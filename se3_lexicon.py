@@ -133,7 +133,8 @@ class Se3_Lexicon(Se3ResponseBuilder):
     def lexicon_arabic(self):
     
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
-    
+        l_dbConnection.debugData = 'Se3_Lexicon.lexicon_arabic main working connection'
+
         # Page structure : an outer div with an inner floating table (display: inline-block)
         # with 2 columns
         # each column contain inline-block tables for each letter of the Arabic alphabet
@@ -198,7 +199,8 @@ class Se3_Lexicon(Se3ResponseBuilder):
     # except that here there are some translations in addition to transliterations
     def lexicon_hebrew(self):
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
-    
+        l_dbConnection.debugData = 'Se3_Lexicon.lexicon_hebrew main working connection'
+
         l_response = '<div class="LexOuter">\n<table class="LexInner"><tr><td class="LexLeft">\n'
     
         l_query = """
@@ -255,6 +257,7 @@ class Se3_Lexicon(Se3ResponseBuilder):
     # same general principle except that here there are no roots and that the lexicon entries are therefore words
     def lexicon_greek(self):
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
+        l_dbConnection.debugData = 'Se3_Lexicon.lexicon_greek main working connection'
     
         l_response = '<div class="LexOuter">\n<table class="LexInner"><tr><td class="LexLeft">\n'
     

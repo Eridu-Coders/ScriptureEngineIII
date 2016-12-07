@@ -224,6 +224,7 @@ class Se3AppCore(EcAppCore):
     # loads the version vectors from the database (performed at app startup)
     def init_versions(self):
         l_connector = self.m_connectionPool.getConnection()
+        l_connector.debugData = 'Se3AppCore.init_versions main working connection'
 
         try:
             # all versions except ground text
@@ -324,6 +325,7 @@ class Se3AppCore(EcAppCore):
 
     def init_book_chapter(self):
         l_connector = self.m_connectionPool.getConnection()
+        l_connector.debugData = 'Se3AppCore.init_book_chapter main working connection'
 
         try:
             # All books
@@ -402,6 +404,7 @@ class Se3AppCore(EcAppCore):
 
     def init_book_alias(self):
         l_connector = self.m_connectionPool.getConnection()
+        l_connector.debugData = 'Se3AppCore.init_book_alias main working connection'
 
         try:
             l_query = """

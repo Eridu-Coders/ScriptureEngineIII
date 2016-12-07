@@ -9,7 +9,10 @@ __author__ = 'fi11222'
 l_connectionPool = EcConnectionPool()
 
 l_connection = l_connectionPool.getConnection()
+l_connection.debugData = 'makeNeighborhoods READ connection'
+
 l_connectionWrite = l_connectionPool.getConnection()
+l_connectionWrite.debugData = 'makeNeighborhoods WRITE connection'
 
 l_query = """
     select

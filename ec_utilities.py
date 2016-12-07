@@ -71,6 +71,41 @@ class EcLogger:
                         l_formatted
                     )
 
+                    l_conn = EcConnectionPool.getNewConnection()
+                    l_conn.debugData = 'EcConsoleFormatter'
+                    l_cursor = l_conn.cursor()
+                    try:
+                        l_cursor.execute("""
+                            insert into TB_MSG(
+                                ST_NAME,
+                                ST_LEVEL,
+                                ST_MODULE,
+                                ST_FILENAME,
+                                ST_FUNCTION,
+                                N_LINE,
+                                TX_MSG
+                            )
+                            values('{0}', '{1}', '{2}', '{3}', '{4}', {5}, '{6}');
+                        """.format(
+                            p_record.name,
+                            p_record.levelname,
+                            p_record.module,
+                            p_record.pathname,
+                            p_record.funcName,
+                            p_record.lineno,
+                            re.sub("'", "''", re.sub('\s+', ' ', p_record.msg))
+                        ))
+                        l_conn.commit()
+                    except Exception as e:
+                        EcMailer.sendMail('TB_MSG insert failure: {0}-{1}'.format(
+                            type(e).__name__,
+                            repr(e)
+                        ), 'Sent from EcConsoleFormatter')
+                        raise
+
+                    l_cursor.close()
+                    l_conn.close()
+
                 return l_formatted
 
         # Install formatters
@@ -167,6 +202,7 @@ class EcMailer:
         l_fLog.write('>>>>>>>\n' + l_message)
         l_fLog.close()
 
+        l_stepPassed = 0
         try:
             # smtp client init
             if EcAppParam.gcm_amazonSmtp:
@@ -174,19 +210,43 @@ class EcMailer:
                     host=EcAppParam.gcm_smtpServer,
                     port=587,
                     timeout=10)
+                l_stepPassed = 101
+
                 l_smtpObj.starttls()
+                l_stepPassed = 102
+
                 l_smtpObj.ehlo()
+                l_stepPassed = 103
+
                 l_smtpObj.login(EcAppParam.gcm_sesUserName, EcAppParam.gcm_sesPassword)
+                l_stepPassed = 104
+            elif EcAppParam.gcm_gmailSmtp:
+                # Gmail / TLS authentication
+
+                # smtp client init
+                l_smtpObj = smtplib.SMTP(EcAppParam.gcm_smtpServer, 587)
+                l_stepPassed = 201
+
+                # initialize TLS connection
+                l_smtpObj.starttls()
+                l_stepPassed = 202
+                l_smtpObj.ehlo()
+                l_stepPassed = 203
+
+                # authentication
+                l_smtpObj.login(EcAppParam.gcm_mailSender, EcAppParam.gcm_gmailPassword)
+                l_stepPassed = 204
             else:
                 l_smtpObj = smtplib.SMTP(EcAppParam.gcm_smtpServer)
 
             # sending message
             l_smtpObj.sendmail(EcAppParam.gcm_mailSender, EcAppParam.gcm_mailRecipients, l_message)
+            l_stepPassed = 99
 
-            # end tls session (Amazon SES only)
-            if EcAppParam.gcm_amazonSmtp:
+            # end tls session (Amazon SES or Gmail)
+            if EcAppParam.gcm_amazonSmtp or EcAppParam.gcm_gmailSmtp:
                 l_smtpObj.quit()
-        except smtplib.SMTPException as l_eception:
+        except smtplib.SMTPException as e:
             # if failure, stores the message in a separate file
             l_fLog = open(re.sub('\.csv', '.rejected_msg', EcAppParam.gcm_logFile), 'a')
             l_fLog.write('>>>>>>>\n' + l_message)
@@ -195,19 +255,20 @@ class EcMailer:
             # and create a log record in another separate file (distinct from the main log file)
             l_fLog = open(re.sub('\.csv', '.smtp_error', EcAppParam.gcm_logFile), 'a')
             l_fLog.write(
-                'Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;113;{1}\n'.format(
+                'Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;113;[Step = {1}] {2}\n'.format(
                     datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M.%S'),
-                    re.sub('\s+', ' ', repr(l_eception))
+                    l_stepPassed,
+                    re.sub('\s+', ' ', + type(e).__name__ + '-' + repr(e))
                 ))
             l_fLog.close()
         except Exception as e:
             l_fLog = open(l_fLogName, 'a')
-            l_fLog.write('>>>>>>>\n!!!!! ' + repr(e))
+            l_fLog.write('>>>>>>>\n!!!!! [Step = {0}] {1}-{2}'.format(l_stepPassed, type(e).__name__, repr(e)))
             l_fLog.close()
 
 
 # ------------------------- Customized template class ------------------------------------------------------------------
-def check_system_health():
+def check_system_health(p_completeCheck=True):
     l_mem = psutil.virtual_memory()
 
     g_loggerUtilities.info('Available RAM: {0} Mb ({1} % usage)'.format(
@@ -216,6 +277,52 @@ def check_system_health():
     if l_mem.percent > 75:
         g_loggerUtilities.warning('Available RAM: {0} Mb ({1} % usage)'.format(
             l_mem.available/(1024*1024), l_mem.percent))
+
+    if p_completeCheck:
+        g_loggerUtilities.info('Complete health system check')
+        l_cpu = psutil.cpu_times()
+        l_swap = psutil.swap_memory()
+        l_diskRoot = psutil.disk_usage('/')
+        l_net = psutil.net_io_counters()
+        l_processCount = len(psutil.pids())
+
+        # log message in TB_MSG
+        l_conn = EcConnectionPool.getNewConnection()
+        l_conn.debugData = 'check_system_health'
+        l_cursor = l_conn.cursor()
+        try:
+            l_cursor.execute("""
+                insert into TB_MSG(
+                    ST_NAME,
+                    ST_LEVEL,
+                    ST_MODULE,
+                    ST_FILENAME,
+                    ST_FUNCTION,
+                    N_LINE,
+                    TX_MSG
+                )
+                values('{0}', '{1}', '{2}', '{3}', '{4}', {5}, '{6}');
+            """.format(
+                'xxx',
+                'XXX',
+                'ec_app_core',
+                './ec_app_core.py',
+                'check_system_health',
+                0,
+                'MEM: {0}/CPU: {1}/SWAP: {2}/DISK(root): {3}/NET: {4}/PROCESSES: {5}'.format(
+                    l_mem, l_cpu, l_swap, l_diskRoot, l_net, l_processCount
+                )
+            ))
+            l_conn.commit()
+        except Exception as e:
+            EcMailer.sendMail('TB_EC_MSG insert failure: {0}-{1}'.format(
+                type(e).__name__,
+                repr(e)
+            ), 'Sent from EcConsoleFormatter')
+            raise
+
+        l_cursor.close()
+        l_conn.close()
 
 
 # ------------------------- Customized template class ------------------------------------------------------------------
@@ -228,6 +335,10 @@ class EcConnectionPool(threading.Thread):
     def __init__(self):
         super().__init__(daemon=True)
 
+        self.m_connectionList = []
+        self.m_getCalls = 0
+        self.m_releaseCalls = 0
+
         if not EcAppParam.gcm_noConnectionPool:
             # lock to protect the connection pool critical sections (pick-up and release)
             self.m_connectionPoolLock = threading.Lock()
@@ -235,12 +346,16 @@ class EcConnectionPool(threading.Thread):
 
             # fill the connection pool
             for i in range(EcAppParam.gcm_connectionPoolCount):
-                self.m_connectionPool.append( self.getNewConnection() )
+                l_connection = EcConnectionPool.getNewConnection()
+                self.m_connectionList += [l_connection]
+                self.m_connectionPool.append( l_connection )
 
-            # starts the refresh thread
-            self.start()
+        # starts the refresh thread
+        self.refreshCounter = 0
+        self.start()
 
-    def getNewConnection(self):
+    @staticmethod
+    def getNewConnection():
         try:
             l_connection = EcConnector(
                 user=EcAppParam.gcm_dbUser, password=EcAppParam.gcm_dbPassword,
@@ -251,11 +366,15 @@ class EcConnectionPool(threading.Thread):
                 'Cannot create connector. Exception [{0}]. Aborting.'.format(l_exception))
             raise
 
+        l_connection.debugData = 'obtained from getNewConnection()'
         return l_connection
 
     def getConnection(self):
+        self.m_getCalls += 1
+
         if EcAppParam.gcm_noConnectionPool:
-            l_connection = self.getNewConnection()
+            l_connection = EcConnectionPool.getNewConnection()
+            self.m_connectionList += [l_connection]
         else:
             l_connection = None
 
@@ -293,6 +412,17 @@ class EcConnectionPool(threading.Thread):
         return l_connection
 
     def releaseConnection(self, p_connection):
+        self.m_releaseCalls += 1
+
+        try:
+            self.m_connectionList.remove(p_connection)
+        except Exception as e:
+            g_loggerUtilities.info('Could not remove connection ({0}) fromm_connectionList: {1}-{2}'.format(
+                p_connection.debugData,
+                type(e).__name__,
+                repr(e)
+            ))
+
         if EcAppParam.gcm_noConnectionPool:
             p_connection.close()
         else:
@@ -307,12 +437,39 @@ class EcConnectionPool(threading.Thread):
     def run(self):
         g_loggerUtilities.info('Connection refresh thread started ...')
         while True:
+            #l_dummyConn = self.getConnection()
+            #l_dummyConn.debugData = 'Dummy connection to test debug report'
+
             # sleeps for 30 seconds
             time.sleep(30)
-            g_loggerUtilities.info('Hello')
+            g_loggerUtilities.info('Refresher thread waking up ....')
 
-            # Before anything, do a system health check
-            check_system_health()
+            # Before anything, do a system health check (full every 5 min)
+            check_system_health(self.refreshCounter%10 == 0)
+
+            # Full open connection report every 30 s. if in debug mode
+            if EcAppParam.gcm_debugModeOn:
+                g_loggerUtilities.info('Full connection Report [DEBUG]')
+                l_connReport = 'get/release: {0}/{1}\n'.format(self.m_getCalls, self.m_releaseCalls)
+                for l_conn in self.m_connectionList:
+                    l_connReport += l_conn.debugData + '\n'
+
+                EcMailer.sendMail('Open Connections Report', l_connReport)
+
+            # List of rotten connections every 15 minutes
+            if self.refreshCounter%30 == 0:
+                for l_conn in self.m_connectionList:
+                    l_rottenReport = 'get/release: {0}/{1}\n'.format(self.m_getCalls, self.m_releaseCalls)
+                    if l_conn.isRotten():
+                        l_rottenReport += l_conn.debugData + '\n'
+
+                    EcMailer.sendMail('Rotten Connection Report', l_rottenReport)
+
+            self.refreshCounter += 1
+
+            # No need to go further if no connection pool
+            if EcAppParam.gcm_noConnectionPool:
+                continue
 
             # Warning message if pool count abnormally low --> top up pool with new connections
             if len(self.m_connectionPool) < EcAppParam.gcm_connectionPoolCount/3:
@@ -364,9 +521,11 @@ class EcConnector(mysql.connector.MySQLConnection):
         g_loggerUtilities.info('EcConnector initialized. cm_connectorCount = {0}'.format(cls.cm_connectorCount))
 
     def __init__(self, **kwargs):
+        self.m_debugData = 'Brand New'
+
         self.m_connectorID = EcConnector.cm_connectorCount
-        g_loggerUtilities.debug('Creating EcConnector #{0} ....'.format(self.m_connectorID))
         EcConnector.cm_connectorCount += 1
+        g_loggerUtilities.debug('Creating EcConnector #{0} ....'.format(self.m_connectorID))
 
         # life span = g_dbcLifeAverage +- 1/2 (in hours)
         l_lifespan = EcAppParam.gcm_dbcLifeAverage + (.5 - random.random())
@@ -377,8 +536,25 @@ class EcConnector(mysql.connector.MySQLConnection):
         g_loggerUtilities.info('EcConnector #{2} created. Life span = {0:.2f} hours. Expiry: {1}'.format(
             l_lifespan, self.m_expirationDate, self.m_connectorID))
 
+    @property
+    def debugData(self):
+        return '[{0}] {1}-{2}'.format(
+            self.m_connectorID,
+            self.m_expirationDate,
+            self.m_debugData
+        )
+    @debugData.setter
+    def debugData(self, p_debugData):
+        self.m_debugData += '/' + p_debugData
+        g_loggerUtilities.info('[{0}] Setting debugData: '.format(self.m_connectorID) + self.m_debugData)
+
+    # past expiration date
     def isStale(self):
         return self.m_expirationDate < datetime.datetime.now(tz=pytz.utc)
+
+    # 1 hour past expiration date
+    def isRotten(self):
+        return self.m_expirationDate < datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(hours=1)
 
     def getID(self):
         return self.m_connectorID

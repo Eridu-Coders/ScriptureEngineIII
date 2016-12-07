@@ -21,6 +21,8 @@ class EcAppParam:
     gcm_sesIamUser = LocalParam.gcm_sesIamUser
     gcm_sesUserName = LocalParam.gcm_sesUserName
     gcm_sesPassword = LocalParam.gcm_sesPassword
+    gcm_gmailSmtp = LocalParam.gcm_gmailSmtp
+    gcm_gmailPassword = LocalParam.gcm_gmailPassword
     gcm_appRoot = LocalParam.gcm_appRoot
 
     # Static files root
@@ -28,7 +30,7 @@ class EcAppParam:
 
     # general parameters
     gcm_appName = 'ScriptureEngineIII'
-    gcm_appVersion = '3.4.1'
+    gcm_appVersion = '3.4.2'
     gcm_appTitle = 'Scripture Search Engine III'
 
     # HTTP server parameters

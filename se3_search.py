@@ -18,6 +18,7 @@ class Se3_Search(Se3ResponseBuilder):
         self.m_logger.debug('self.m_context: {0}'.format(self.m_context))
     
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
+        l_dbConnection.debugData = 'Se3_Search.buildResponse main working connection'
         l_response = ''
     
         # parameters

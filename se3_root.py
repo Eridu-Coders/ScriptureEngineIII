@@ -22,7 +22,8 @@ class Se3_Root(Se3_Word):
             return l_response, self.m_context, 'Error'
     
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
-    
+        l_dbConnection.debugData = 'Se3_Root.buildResponse main working connection'
+
         # split components of the root id field
         l_rootIdList = self.m_context['d'].split('|')
     

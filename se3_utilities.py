@@ -181,6 +181,7 @@ class Se3ResponseBuilder:
         ;""".format(p_interlinear, p_bookId, p_chapter, p_verse, p_wordStart, p_wordEnd)
 
         l_connector = p_dbConnectionPool.getConnection()
+        l_connector.debugData = 'Se3ResponseBuilder.getNeighborhood main working connection'
 
         l_neighborhood = ''
         l_logger.info('l_query {0}'.format(l_query))
@@ -223,6 +224,7 @@ class Se3_Toc(Se3ResponseBuilder):
         self.m_logger.debug('p_context: {0}'.format(self.m_context))
 
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
+        l_dbConnection.debugData = 'Se3_Toc.buildResponse main working connection'
 
         l_response = ''
 

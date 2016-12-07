@@ -161,6 +161,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # pick a DB connection from the pool
         l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
+        l_dbConnection.debugData = 'EcRequestHandler.do_GET main working connection'
 
         l_clientIpPort = self.client_address[0] + ':' + str(self.client_address[1])
         self.m_logger.info('------------ do_Get() START ------------------------------------')
@@ -591,6 +592,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # pick a DB connection from the pool
         l_dbConnection = EcRequestHandler.cm_connectionPool.getConnection()
+        l_dbConnection.debugData = 'EcRequestHandler.end_headers main working connection'
 
         self.m_logger.info('------------ end_headers() START ------------------------------------')
         self.m_logger.info('Handler ID       : {0}'.format(self.m_handlerID))

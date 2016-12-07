@@ -34,7 +34,8 @@ class Se3_SingleVerse(Se3ResponseBuilder):
         self.m_logger.debug('self.m_context[K]: {0}'.format(self.m_context['K']))
     
         l_dbConnection = self.m_app.getConnectionPool().getConnection()
-    
+        l_dbConnection.debugData = 'Se3_SingleVerse.buildResponse main working connection'
+
         # get all attributes of the book the verse belongs to
         l_bibleQuran, l_idGroup0, l_idGroup1, l_bookPrev, l_bookNext, l_nameEn, l_nameFr = \
             self.m_app.getBookAttributes(l_pcBookId)
