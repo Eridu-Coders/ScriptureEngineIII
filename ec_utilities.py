@@ -255,15 +255,23 @@ class EcMailer:
             # and create a log record in another separate file (distinct from the main log file)
             l_fLog = open(re.sub('\.csv', '.smtp_error', EcAppParam.gcm_logFile), 'a')
             l_fLog.write(
-                'Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;113;[Step = {1}] {2}\n'.format(
+                ('Util;{0};CRITICAL;ec_utilities;ec_utilities.py;sendMail;0;' +
+                 'SMTP={1}/U={2}/P={3}/[Step = {4}] {5}\n').format(
                     datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M.%S'),
+                    EcAppParam.gcm_smtpServer,
+                    EcAppParam.gcm_mailSender,
+                    EcAppParam.gcm_gmailPassword,
                     l_stepPassed,
                     re.sub('\s+', ' ', + type(e).__name__ + '-' + repr(e))
                 ))
             l_fLog.close()
         except Exception as e:
             l_fLog = open(l_fLogName, 'a')
-            l_fLog.write('>>>>>>>\n!!!!! [Step = {0}] {1}-{2}'.format(l_stepPassed, type(e).__name__, repr(e)))
+            l_fLog.write('>>>>>>>\n!!!!!\nSMTP={0}\nU={1}\nP={2}\n[Step = {3}] {4}-{5}'.format(
+                EcAppParam.gcm_smtpServer,
+                EcAppParam.gcm_mailSender,
+                EcAppParam.gcm_gmailPassword,
+                l_stepPassed, type(e).__name__, repr(e)))
             l_fLog.close()
 
 
