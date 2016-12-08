@@ -262,7 +262,7 @@ class EcMailer:
                     EcAppParam.gcm_mailSender,
                     EcAppParam.gcm_gmailPassword,
                     l_stepPassed,
-                    re.sub('\s+', ' ', + type(e).__name__ + '-' + repr(e))
+                    re.sub('\s+', ' ', type(e).__name__ + '-' + repr(e))
                 ))
             l_fLog.close()
         except Exception as e:
