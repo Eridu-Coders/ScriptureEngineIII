@@ -15,6 +15,7 @@ class EcAppParam:
     gcm_debugModeOn = LocalParam.gcm_debugModeOn
     gcm_verboseModeOn = LocalParam.gcm_verboseModeOn
     gcm_skipBrowscap = LocalParam.gcm_skipBrowscap
+    gcm_allConnectionsReport = LocalParam.gcm_allConnectionsReport
     gcm_mailSender = LocalParam.gcm_mailSender
     gcm_smtpServer = LocalParam.gcm_smtpServer
     gcm_amazonSmtp = LocalParam.gcm_amazonSmtp

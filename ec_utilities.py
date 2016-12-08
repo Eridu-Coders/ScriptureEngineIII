@@ -382,7 +382,7 @@ class EcConnectionPool(threading.Thread):
 
         if EcAppParam.gcm_noConnectionPool:
             l_connection = EcConnectionPool.getNewConnection()
-            self.m_connectionList += [l_connection]
+            self.m_connectionList.append(l_connection)
         else:
             l_connection = None
 
@@ -425,7 +425,7 @@ class EcConnectionPool(threading.Thread):
         try:
             self.m_connectionList.remove(p_connection)
         except Exception as e:
-            g_loggerUtilities.info('Could not remove connection ({0}) fromm_connectionList: {1}-{2}'.format(
+            g_loggerUtilities.warning('Could not remove connection ({0}) fromm_connectionList: {1}-{2}'.format(
                 p_connection.debugData,
                 type(e).__name__,
                 repr(e)
@@ -456,22 +456,31 @@ class EcConnectionPool(threading.Thread):
             check_system_health(self.refreshCounter%10 == 0)
 
             # Full open connection report every 30 s. if in debug mode
-            if EcAppParam.gcm_debugModeOn:
+            if EcAppParam.gcm_allConnectionsReport:
                 g_loggerUtilities.info('Full connection Report [DEBUG]')
-                l_connReport = 'get/release: {0}/{1}\n'.format(self.m_getCalls, self.m_releaseCalls)
+                l_connReport = '[{0}] get/release: {1}/{2}\n'.format(
+                    datetime.datetime.now(tz=pytz.utc), self.m_getCalls, self.m_releaseCalls)
                 for l_conn in self.m_connectionList:
                     l_connReport += l_conn.debugData + '\n'
 
-                EcMailer.sendMail('Open Connections Report', l_connReport)
+                l_fLogName = re.sub('\.csv', '.all_connections', EcAppParam.gcm_logFile)
+                l_fLog = open(l_fLogName, 'w')
+                l_fLog.write(l_connReport)
+                l_fLog.close()
+
 
             # List of rotten connections every 15 minutes
             if self.refreshCounter%30 == 0:
                 for l_conn in self.m_connectionList:
-                    l_rottenReport = 'get/release: {0}/{1}\n'.format(self.m_getCalls, self.m_releaseCalls)
+                    l_rottenReport = '[{0}] get/release: {1}/{2}\n'.format(
+                        datetime.datetime.now(tz=pytz.utc), self.m_getCalls, self.m_releaseCalls)
                     if l_conn.isRotten():
                         l_rottenReport += l_conn.debugData + '\n'
 
-                    EcMailer.sendMail('Rotten Connection Report', l_rottenReport)
+                    l_fLogName = re.sub('\.csv', '.rotten_connections', EcAppParam.gcm_logFile)
+                    l_fLog = open(l_fLogName, 'w')
+                    l_fLog.write(l_rottenReport)
+                    l_fLog.close()
 
             self.refreshCounter += 1
 
