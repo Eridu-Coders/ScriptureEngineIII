@@ -351,5 +351,6 @@ class Se3_Toc(Se3ResponseBuilder):
         except Exception as l_exception:
             self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
 
+        # release db connection to the pool
         self.m_app.getConnectionPool().releaseConnection(l_dbConnection)
         return l_response, self.m_context, EcAppParam.gcm_appTitle
