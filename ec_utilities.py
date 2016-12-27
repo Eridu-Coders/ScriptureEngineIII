@@ -102,7 +102,7 @@ class EcLogger:
                             'TB_MSG insert failure: {0}-{1}'.format(type(e).__name__, repr(e)),
                             'Sent from EcConsoleFormatter. l_sql : ' + l_sql
                         )
-                        # raise
+                        raise
 
                     l_cursor.close()
                     l_conn.close()
