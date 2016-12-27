@@ -31,7 +31,7 @@ class EcAppParam:
 
     # general parameters
     gcm_appName = 'ScriptureEngineIII'
-    gcm_appVersion = '3.4.2b'
+    gcm_appVersion = '3.4.2c'
     gcm_appTitle = 'Scripture Search Engine III'
 
     # HTTP server parameters
