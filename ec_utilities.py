@@ -74,34 +74,35 @@ class EcLogger:
                     l_conn = EcConnectionPool.getNewConnection()
                     l_conn.debugData = 'EcConsoleFormatter'
                     l_cursor = l_conn.cursor()
+                    l_sql = """
+                        insert into TB_MSG(
+                            ST_NAME,
+                            ST_LEVEL,
+                            ST_MODULE,
+                            ST_FILENAME,
+                            ST_FUNCTION,
+                            N_LINE,
+                            TX_MSG
+                        )
+                        values('{0}', '{1}', '{2}', '{3}', '{4}', {5}, '{6}');
+                    """.format(
+                        p_record.name,
+                        p_record.levelname,
+                        p_record.module,
+                        p_record.pathname,
+                        p_record.funcName,
+                        p_record.lineno,
+                        re.sub("'", "''", re.sub('\s+', ' ', p_record.msg))
+                    )
                     try:
-                        l_cursor.execute("""
-                            insert into TB_MSG(
-                                ST_NAME,
-                                ST_LEVEL,
-                                ST_MODULE,
-                                ST_FILENAME,
-                                ST_FUNCTION,
-                                N_LINE,
-                                TX_MSG
-                            )
-                            values('{0}', '{1}', '{2}', '{3}', '{4}', {5}, '{6}');
-                        """.format(
-                            p_record.name,
-                            p_record.levelname,
-                            p_record.module,
-                            p_record.pathname,
-                            p_record.funcName,
-                            p_record.lineno,
-                            re.sub("'", "''", re.sub('\s+', ' ', p_record.msg))
-                        ))
+                        l_cursor.execute(l_sql)
                         l_conn.commit()
                     except Exception as e:
-                        EcMailer.sendMail('TB_MSG insert failure: {0}-{1}'.format(
-                            type(e).__name__,
-                            repr(e)
-                        ), 'Sent from EcConsoleFormatter')
-                        raise
+                        EcMailer.sendMail(
+                            'TB_MSG insert failure: {0}-{1}'.format(type(e).__name__, repr(e)),
+                            'Sent from EcConsoleFormatter. l_sql : ' + l_sql
+                        )
+                        # raise
 
                     l_cursor.close()
                     l_conn.close()
