@@ -57,7 +57,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         except OSError as e:
             g_loggerHandler.critical(
                 'Could not open template file [{0}]. Exception: [{1}]. Aborting.'.format(
-                    p_browserTestPath, str(e)))
+                    p_browserTestPath, repr(e)))
             raise
 
         g_loggerHandler.info('Loaded template file [{0}]. Len = {1}'.format(
@@ -70,7 +70,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         except OSError as e:
             g_loggerHandler.critical(
                 'Could not open bad browser file [{0}]. Exception: [{1}]. Aborting.'.format(
-                    p_badBrowserPath, str(e)))
+                    p_badBrowserPath, repr(e)))
             raise
 
         g_loggerHandler.info('Loaded bad browser file [{0}]. Len = {1}'.format(
@@ -341,7 +341,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as l_exception:
                 self.m_logger.warning(self.pack_massage(
                     'Something went wrong  while retrieving ' +
-                    'previous context: {0}. Rowcount: {1}'.format(l_exception, l_rowcount)))
+                    'previous context: {0}. Rowcount: {1}'.format(repr(l_exception), l_rowcount)))
                 self.m_terminalID = None
                 self.m_validatedTerminal = False
 
@@ -391,7 +391,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                     # will go here if the row could not be inserted because the ID already existed
                     self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
                                           'to create Terminal ID: {0}. Error: {1} '.format(
-                                              self.m_terminalID, l_exception)))
+                                              self.m_terminalID, repr(l_exception))))
                     l_created = False
 
             self.m_logger.debug('Thread [{0}] waiting'.format(threading.currentThread().getName()))
@@ -487,7 +487,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as l_exception:
             self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
                                   'to execute this logging query: {0} Error: {1}'.format(
-                                      l_query, l_exception.args)))
+                                      l_query, repr(l_exception))))
 
         # ---------------------------------- Release DB connection -----------------------------------------------------
 
@@ -525,7 +525,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as l_exception:
             self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
                                   'to execute this query: {0} Error: {1}'.format(
-                                      l_query, l_exception.args)))
+                                      l_query, repr(l_exception))))
 
         # construct the bad browser page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
@@ -635,7 +635,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as l_exception:
             self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
                                   'to execute this logging query: {0} Error: {1}'.format(
-                                      l_query, l_exception.args)))
+                                      l_query, repr(l_exception))))
 
         # return DB connection to the pool
         self.m_logger.info('------------ end_headers() RELEASE CONN ------------------------------')
@@ -734,4 +734,4 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as l_exception:
             self.m_logger.warning(self.pack_massage('Something went wrong while storing the ' +
                                   'previous context: {0}. Error: {1}'.format(
-                                      l_query, l_exception.args)))
+                                      l_query, repr(l_exception))))

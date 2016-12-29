@@ -84,23 +84,24 @@ class EcLogger:
                             N_LINE,
                             TX_MSG
                         )
-                        values('{0}', '{1}', '{2}', '{3}', '{4}', {5}, '{6}');
-                    """.format(
+                        values(%s, %s, %s, %s, %s, %s, %s);
+                    """
+                    l_parameters = (
                         p_record.name,
                         p_record.levelname,
                         p_record.module,
                         p_record.pathname,
                         p_record.funcName,
                         p_record.lineno,
-                        re.sub("'", "''", re.sub('\s+', ' ', p_record.msg))
-                    )
+                        p_record.msg)
+
                     try:
-                        l_cursor.execute(l_sql)
+                        l_cursor.execute(l_sql, l_parameters)
                         l_conn.commit()
                     except Exception as e:
                         EcMailer.sendMail(
                             'TB_MSG insert failure: {0}-{1}'.format(type(e).__name__, repr(e)),
-                            'Sent from EcConsoleFormatter. l_sql : ' + l_sql
+                            'Sent from EcConsoleFormatter. l_sql : {0}/{1}'.format(l_sql, repr(l_parameters))
                         )
                         raise
 
