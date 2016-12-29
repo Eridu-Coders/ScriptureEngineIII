@@ -344,8 +344,8 @@ class Se3_Search(Se3ResponseBuilder):
                 if l_word in l_wordList:
                     continue
     
-                l_booleanQuery += l_operator + l_word.decode('utf-8') + l_wildcard + ' '
-                # l_booleanQuery += l_operator + l_word + l_wildcard + ' '
+                # l_booleanQuery += l_operator + l_word.decode('utf-8') + l_wildcard + ' '
+                l_booleanQuery += l_operator + l_word + l_wildcard + ' '
     
                 l_word = self.clean_search_word(l_word).strip()
                 if len(l_word) > 0:
