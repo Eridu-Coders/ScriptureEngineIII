@@ -12,6 +12,7 @@ class EcAppParam:
     gcm_dbServer = LocalParam.gcm_dbServer
     gcm_dbUserLocal = LocalParam.gcm_dbUserLocal
     gcm_dbPasswordLocal = LocalParam.gcm_dbPasswordLocal
+    gcm_allowDoubleRunning = LocalParam.gcm_allowDoubleRunning
     gcm_debugModeOn = LocalParam.gcm_debugModeOn
     gcm_verboseModeOn = LocalParam.gcm_verboseModeOn
     gcm_skipBrowscap = LocalParam.gcm_skipBrowscap
