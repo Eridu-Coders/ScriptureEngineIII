@@ -8,6 +8,8 @@ from se3_root import *
 from se3_search import *
 from se3_lexicon import *
 
+import traceback
+
 __author__ = 'fi11222'
 
 # ---------------------- Overall principles ----------------------------------------------------------------------------
@@ -151,7 +153,7 @@ class Se3ResponseFactory:
         # table of contents
         elif l_context['K'][0] == 'T':
             return Se3_Toc(p_app, p_requestHandler, p_context)
-        # Arabic Lexicon
+        # Lexicon
         elif l_context['K'][0] == 'L':
             return Se3_Lexicon(p_app, p_requestHandler, p_context)
         else:
@@ -165,7 +167,7 @@ class Se3AppCore(EcAppCore):
 
         self.m_homePageTemplatePath = p_templatePath
 
-        # ---------------------- Logging ---------------------------------------------------------------------------------------
+        # ---------------------- Logging -------------------------------------------------------------------------------
         self.m_loggerSE3 = logging.getLogger(EcAppParam.gcm_appName + '.se3_main')
         if EcAppParam.gcm_verboseModeOn:
             self.m_loggerSE3.setLevel(logging.INFO)
@@ -623,7 +625,7 @@ class Se3AppCore(EcAppCore):
 
         return l_context
 
-    # ---------------- Trapping of passage references ----------------------------------------------------------------------
+    # ---------------- Trapping of passage references ------------------------------------------------------------------
     # Captures passage, book and verse references given in the search box
     # No control is done here only trapping the probable reference values ---> proper control is done later, at the
     # command handling module level
@@ -738,7 +740,7 @@ class Se3AppCore(EcAppCore):
 
         return l_context
 
-    # ---------------- Parameter control -----------------------------------------------------------------------------------
+    # ---------------- Parameter control -------------------------------------------------------------------------------
     # ensure correct values for the parameters needed by the passage command ('P')
     # called at the beginning of get_passage()
     def passage_control(self, p_context):
@@ -821,7 +823,7 @@ class Se3AppCore(EcAppCore):
                     l_book, l_chapter, l_verse)
 
             # chapter must be in the right range based on the book table
-            #if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+            # if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
             if l_intChapter < 1 or l_intChapter > self.chapterCount(l_pcBookId):
                 return EcAppCore.get_user_string(p_context, 'e_wrongChapterVerse').format(
                     l_book, l_chapter, l_verse)
@@ -880,7 +882,7 @@ class Se3AppCore(EcAppCore):
                         l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
 
                 # chapter must be in the right range based on the book table
-                #if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
+                # if l_intChapter < 1 or l_intChapter > len(self.m_bookChapter[l_pcBookId]) - 1:
                 if l_intChapter < 1 or l_intChapter > self.chapterCount(l_pcBookId):
                     return EcAppCore.get_user_string(p_context, 'e_wrongChapterWord').format(
                         l_book, l_chapter, l_verse, l_wordId, l_interlinearId, l_idStrongs)
@@ -925,10 +927,11 @@ class Se3AppCore(EcAppCore):
 
         return ''
 
-    # ------------------------- Chapter names (en/fr) ----------------------------------------------------------------------
+    # ------------------------- Chapter names (en/fr) ------------------------------------------------------------------
     # get the French and English full chapter name corresponding to context (p_context['b'] + p_context['c'])
     def get_chapter_names(self, p_context, p_dbConnection):
-        # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys --> must have been checked before)
+        # Get the correct book name (assumes p_context['b'] belongs to g_bookAlias keys -->
+        # must have been checked before)
         l_pcBookId = self.getBookFromAlias(p_context['b'].lower().strip())
 
         l_query = """
@@ -956,14 +959,19 @@ class Se3AppCore(EcAppCore):
         return l_chapterEn, l_chapterFr
 
     # -------------------- Call Point from EcRequestHandler ------------------------------------------------------------
-    #def getResponse(self, p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
+    # def getResponse(self, p_previousContext, p_context, p_dbConnectionPool, p_urlPath, p_noJSPath, p_terminalID):
     def getResponse(self, p_requestHandler):
         self.m_loggerSE3.info('Getting response from App Core')
-
-    #    return self.se3_entryPoint(p_requestHandler)
+        try:
+            return self.se3_entryPoint(p_requestHandler)
+        except Exception:
+            l_stacktrace = traceback.format_exc()
+            self.m_loggerSE3.warning('Se3AppCore.getResponse() unexpected error:\n' + l_stacktrace)
+            return '<p>Se3AppCore.getResponse() unexpected error:</p>' + \
+                '<pre>{0}</pre>'.format(l_stacktrace), p_requestHandler.getContext()
 
     # ---------------------- Application entry point -------------------------------------------------------------------
-    #def se3_entryPoint(self, p_requestHandler):
+    def se3_entryPoint(self, p_requestHandler):
         self.m_loggerSE3.info('Entering SE3')
 
         # if debugging, reload template for each request
