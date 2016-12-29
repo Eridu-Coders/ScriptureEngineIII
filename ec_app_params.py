@@ -564,7 +564,7 @@ class EcAppParam:
         'en-ThisLinkMsg': 'This Link',
         'fr-ThisLinkMsg': 'ce lien',
 
-        'en-c_pressBackButton': 'Please press the <BACK> button of your browser and try something else.',
-        'fr-c_pressBackButton': 'Merci d\'appuyer sur le bouton <BACK> de votre browser et d\'essayer une autre action.'
+        'en-c_pressBackButton': 'Please press the "BACK" button of your browser and try something else.',
+        'fr-c_pressBackButton': 'Merci d\'appuyer sur le bouton "BACK" de votre browser et d\'essayer une autre action.'
     }
 
