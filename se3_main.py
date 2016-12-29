@@ -968,7 +968,9 @@ class Se3AppCore(EcAppCore):
             l_stacktrace = traceback.format_exc()
             self.m_loggerSE3.warning('Se3AppCore.getResponse() unexpected error:\n' + l_stacktrace)
             return '<p>Se3AppCore.getResponse() unexpected error:</p>' + \
-                '<pre>{0}</pre>'.format(l_stacktrace), p_requestHandler.getContext()
+                '<pre>{0}</pre>'.format(l_stacktrace) + \
+                '<p>{0}</p>'.format(EcAppCore.get_user_string(p_requestHandler.getContext(), 'c_pressBackButton')), \
+                   p_requestHandler.getContext()
 
     # ---------------------- Application entry point -------------------------------------------------------------------
     def se3_entryPoint(self, p_requestHandler):
