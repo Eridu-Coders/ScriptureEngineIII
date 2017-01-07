@@ -62,14 +62,15 @@ class EcLogger:
                 l_formatted = super().format(p_record)
 
                 if p_record.levelno >= logging.WARNING:
-                    EcMailer.sendMail(
-                        '{0}-{1}[{2}]/{3}'.format(
-                            p_record.levelname,
-                            p_record.module,
-                            p_record.lineno,
-                            p_record.funcName),
-                        l_formatted
-                    )
+                    if not re.search('\[NOMAIL\]', l_formatted):
+                        EcMailer.sendMail(
+                            '{0}-{1}[{2}]/{3}'.format(
+                                p_record.levelname,
+                                p_record.module,
+                                p_record.lineno,
+                                p_record.funcName),
+                            l_formatted
+                        )
 
                     l_conn = EcConnectionPool.getNewConnection()
                     l_conn.debugData = 'EcConsoleFormatter'

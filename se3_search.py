@@ -4,6 +4,8 @@ from se3_utilities import *
 from ec_app_core import *
 from se3_app_param import *
 
+import traceback
+
 __author__ = 'fi11222'
 
 class Se3_Search(Se3ResponseBuilder):
@@ -11,7 +13,7 @@ class Se3_Search(Se3ResponseBuilder):
         super().__init__(p_app, p_requestHandler, p_context)
         self.m_logger.info('+++ Se3_Search created')
 
-    # -------------------------- Search Result -----------------------------------------------------------------------------
+    # -------------------------- Search Result -------------------------------------------------------------------------
     def buildResponse(self):
         self.m_logger.info('Getting search response')
         self.m_logger.debug('p_previousContext: {0}'.format(self.m_previousContext))
@@ -101,8 +103,10 @@ class Se3_Search(Se3ResponseBuilder):
                     break
     
             l_cursor.close()
-        except Exception as l_exception:
-            self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
+        except Exception:
+            l_stacktrace = traceback.format_exc()
+            self.m_logger.warning('Something went wrong:\n' + l_stacktrace)
+            # self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
     
         self.m_app.getConnectionPool().releaseConnection(l_dbConnection)
     

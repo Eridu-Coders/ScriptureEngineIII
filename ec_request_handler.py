@@ -241,7 +241,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                         self.m_badTerminal = True
 
         else:
-            self.m_logger.warning(self.pack_massage('No User-Agent in : {0}'.format(repr(l_headers))))
+            self.m_logger.warning(self.pack_massage('[NOMAIL] No User-Agent in : {0}'.format(repr(l_headers))))
 
         # ------------------------------------- Language ---------------------------------------------------------------
         # handles the (incorrect) case where we have "accept language" instead of "accept-language"
@@ -694,17 +694,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-        # call the rest of the app to get the appropriate response
+        # get response from App
         l_response, l_newDict = EcRequestHandler.cm_appCore.getResponse(self)
-        #l_response, l_newDict = \
-        #    EcRequestHandler.cm_appCore.getResponse(
-        #        self.m_previousContext,
-        #        self.m_contextDict,
-        #        EcRequestHandler.cm_connectionPool,
-        #        l_barePath,
-        #        l_noJSPath,
-        #        self.m_terminalID
-        #    )
 
         # and send it
         self.wfile.write(bytes(l_response, 'utf-8'))
