@@ -275,8 +275,12 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             if l_cookieKey != EcAppParam.gcm_sessionName:
                 # this can happen if there is a version change and old cookies remain at large
                 # or in case of an attempted break-in
-                self.m_logger.warning(self.pack_massage('Cookie found but wrong name: "{0}" Should be "{1}"'.format(
-                    l_cookieKey, EcAppParam.gcm_sessionName)))
+                self.m_logger.warning(
+                    self.pack_massage(
+                        'Cookie found but wrong name: "{0}" Should be "{1}"'.format(
+                            l_cookieKey, EcAppParam.gcm_sessionName)
+                    )
+                )
                 # in this case, the cookie is to be destroyed, before a new one is created
                 self.m_delCookie = l_cookieKey
             else:
@@ -293,7 +297,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             not re.match('/favicon.ico', self.path):
 
             self.m_badTerminal = True
-            self.m_reason = 'Request for a path other than /, /?... /static/, /test-error/, /robots.txt or /favicon.ico'
+            self.m_reason = \
+                'Request for a path other than /, /?... /static/, /test-error/, /robots.txt or /favicon.ico'
         else:
             self.m_badTerminal = False
 
@@ -303,7 +308,10 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_terminalID = None
             else:
                 self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
-                self.m_reason = 'Cookie Terminal ID different from y=, Cookies probably disabled'
+                self.m_reason = \
+                    'Cookie Terminal ID <{0}> different from y=<{1}>, Cookies probably disabled'.format(
+                        self.m_terminalID, self.m_contextDict['y']
+                    )
                 self.m_validatedTerminal = not self.m_badTerminal
 
         # ------------------------------------- Previous Context -------------------------------------------------------
