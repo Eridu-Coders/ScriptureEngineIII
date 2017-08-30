@@ -309,9 +309,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
                 self.m_reason = \
-                    'Cookie Terminal ID <{0}> different from y=<{1}>, Cookies probably disabled'.format(
-                        self.m_terminalID, self.m_contextDict['y']
-                    )
+                    'Cookie Terminal ID ({0}) different from y=({1}), Cookies probably disabled'.format(
+                        self.m_terminalID, self.m_contextDict['y'])
                 self.m_validatedTerminal = not self.m_badTerminal
 
         # ------------------------------------- Previous Context -------------------------------------------------------
