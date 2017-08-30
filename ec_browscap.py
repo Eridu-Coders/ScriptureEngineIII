@@ -171,8 +171,7 @@ def load_browscap_file(browscap_file_path):
             # End of progress message in case verbose mode is on
             if EcAppParam.gcm_verboseModeOn:
                 print()
-        return Browscap(browscap_data, regex_cache, browscap_file_path, TYPE_CSV,
-                        version, release_date)
+        return Browscap(browscap_data, regex_cache, browscap_file_path, TYPE_CSV, version, release_date)
     except IOError:
         log.exception('Error while reading browscap source file %s', browscap_file_path)
         raise

@@ -14,7 +14,6 @@ __author__ = 'fi11222'
 
 # ################################ SEE se3.main.py for global intro ####################################################
 
-
 # Multi-threaded HTTP server according to https://pymotw.com/2/BaseHTTPServer/index.html#module-BaseHTTPServer
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     """Handles requests in a separate thread each."""
