@@ -267,25 +267,28 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         if 'cookie' in self.m_headersDict.keys():
             # only one cookie used, to store existing Terminal ID (if any)
             l_cookieString = str(self.m_headersDict['cookie'])
-            self.m_logger.info('Raw Cookie string: {0}'.format(l_cookieString))
-            self.m_reason = l_cookieString + '<br/>'
+            self.m_logger.info('Raw Cookie string: [{0}]'.format(l_cookieString))
+            self.m_reason = 'Raw Cookie string: [' + l_cookieString + ']<br/>'
 
-            l_cookieKey = (l_cookieString.split('=')[0]).strip()
-            l_cookieValue = (l_cookieString.split('=')[1]).strip()
+            # l_cookieKey = (l_cookieString.split('=')[0]).strip()
+            # l_cookieValue = (l_cookieString.split('=')[1]).strip()
+            l_match = re.search('{0}=([^;]*)'.format(EcAppParam.gcm_sessionName), l_cookieString)
 
-            if l_cookieKey != EcAppParam.gcm_sessionName:
+            # if l_cookieKey != EcAppParam.gcm_sessionName:
+            if not l_match:
                 # this can happen if there is a version change and old cookies remain at large
                 # or in case of an attempted break-in
                 self.m_logger.warning(
                     self.pack_massage(
-                        'Cookie found but wrong name: "{0}" Should be "{1}"'.format(
-                            l_cookieKey, EcAppParam.gcm_sessionName)
+                        'Cookie(s) found but wrong name: "{0}" Should be "{1}"'.format(
+                            l_cookieString, EcAppParam.gcm_sessionName)
                     )
                 )
                 # in this case, the cookie is to be destroyed, before a new one is created
-                self.m_delCookie = l_cookieKey
+                # self.m_delCookie = l_cookieKey
             else:
                 # the proper cookie has been found
+                l_cookieValue = l_match.group(1)
                 self.m_logger.info('Terminal ID (old): {0}'.format(l_cookieValue))
                 self.m_terminalID = l_cookieValue
 
