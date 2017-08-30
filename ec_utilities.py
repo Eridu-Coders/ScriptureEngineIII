@@ -62,45 +62,48 @@ class EcLogger:
                 l_formatted = super().format(p_record)
 
                 if p_record.levelno >= logging.WARNING:
-                    EcMailer.sendMail(
-                        '{0}-{1}[{2}]/{3}'.format(
-                            p_record.levelname,
-                            p_record.module,
-                            p_record.lineno,
-                            p_record.funcName),
-                        l_formatted
-                    )
+                    if not re.search('\[NOMAIL\]', l_formatted):
+                        EcMailer.sendMail(
+                            '{0}-{1}[{2}]/{3}'.format(
+                                p_record.levelname,
+                                p_record.module,
+                                p_record.lineno,
+                                p_record.funcName),
+                            l_formatted
+                        )
 
                     l_conn = EcConnectionPool.getNewConnection()
                     l_conn.debugData = 'EcConsoleFormatter'
                     l_cursor = l_conn.cursor()
+                    l_sql = """
+                        insert into TB_MSG(
+                            ST_NAME,
+                            ST_LEVEL,
+                            ST_MODULE,
+                            ST_FILENAME,
+                            ST_FUNCTION,
+                            N_LINE,
+                            TX_MSG
+                        )
+                        values(%s, %s, %s, %s, %s, %s, %s);
+                    """
+                    l_parameters = (
+                        p_record.name,
+                        p_record.levelname,
+                        p_record.module,
+                        p_record.pathname,
+                        p_record.funcName,
+                        p_record.lineno,
+                        p_record.msg)
+
                     try:
-                        l_cursor.execute("""
-                            insert into TB_MSG(
-                                ST_NAME,
-                                ST_LEVEL,
-                                ST_MODULE,
-                                ST_FILENAME,
-                                ST_FUNCTION,
-                                N_LINE,
-                                TX_MSG
-                            )
-                            values('{0}', '{1}', '{2}', '{3}', '{4}', {5}, '{6}');
-                        """.format(
-                            p_record.name,
-                            p_record.levelname,
-                            p_record.module,
-                            p_record.pathname,
-                            p_record.funcName,
-                            p_record.lineno,
-                            re.sub("'", "''", re.sub('\s+', ' ', p_record.msg))
-                        ))
+                        l_cursor.execute(l_sql, l_parameters)
                         l_conn.commit()
                     except Exception as e:
-                        EcMailer.sendMail('TB_MSG insert failure: {0}-{1}'.format(
-                            type(e).__name__,
-                            repr(e)
-                        ), 'Sent from EcConsoleFormatter')
+                        EcMailer.sendMail(
+                            'TB_MSG insert failure: {0}-{1}'.format(type(e).__name__, repr(e)),
+                            'Sent from EcConsoleFormatter. l_sql : {0}/{1}'.format(l_sql, repr(l_parameters))
+                        )
                         raise
 
                     l_cursor.close()

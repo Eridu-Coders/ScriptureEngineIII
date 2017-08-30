@@ -36,13 +36,12 @@ for l_pid in [p for p in os.listdir('/proc') if p.isdigit()]:
                 and re.search('python3', l_cmd) is not None:
             print('[{0}] l_cmd : <{1}>'.format(l_pid, l_cmd))
             l_countApp += 1
-        # print('l_cmd : ' + l_cmd)
     except IOError:
         # process has already terminated
         continue
 
-if l_countApp > 1:
-    print('Already Running ...')
+if l_countApp > (2 if EcAppParam.gcm_allowDoubleRunning else 1):
+    print('Already Running (l_countApp = {0}) ...'.format(l_countApp))
     EcMailer.sendMail('Already Running ...', 'l_countApp = {0}'.format(l_countApp))
     sys.exit(0)
 

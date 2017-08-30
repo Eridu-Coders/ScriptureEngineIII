@@ -12,6 +12,7 @@ class EcAppParam:
     gcm_dbServer = LocalParam.gcm_dbServer
     gcm_dbUserLocal = LocalParam.gcm_dbUserLocal
     gcm_dbPasswordLocal = LocalParam.gcm_dbPasswordLocal
+    gcm_allowDoubleRunning = LocalParam.gcm_allowDoubleRunning
     gcm_debugModeOn = LocalParam.gcm_debugModeOn
     gcm_verboseModeOn = LocalParam.gcm_verboseModeOn
     gcm_skipBrowscap = LocalParam.gcm_skipBrowscap
@@ -31,7 +32,7 @@ class EcAppParam:
 
     # general parameters
     gcm_appName = 'ScriptureEngineIII'
-    gcm_appVersion = '3.4.2'
+    gcm_appVersion = '3.4.5'
     gcm_appTitle = 'Scripture Search Engine III'
 
     # HTTP server parameters
@@ -561,6 +562,9 @@ class EcAppParam:
         """,
 
         'en-ThisLinkMsg': 'This Link',
-        'fr-ThisLinkMsg': 'ce lien'
+        'fr-ThisLinkMsg': 'ce lien',
+
+        'en-c_pressBackButton': 'Please press the "BACK" button of your browser and try something else.',
+        'fr-c_pressBackButton': 'Merci d\'appuyer sur le bouton "BACK" de votre browser et d\'essayer une autre action.'
     }
 
