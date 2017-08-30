@@ -24,6 +24,28 @@ class EcLogger:
     cm_logger = None
 
     @classmethod
+    def purge_msg(cls):
+        l_conn = EcConnectionPool.getNewConnection()
+        l_conn.debugData = 'EcConsoleFormatter'
+        l_cursor = l_conn.cursor()
+        l_sql = """
+            delete FROM `TB_MSG` WHERE `DT_MSG` < ADDDATE(NOW(), INTERVAL -1 YEAR);
+        """
+
+        try:
+            l_cursor.execute(l_sql)
+            l_conn.commit()
+        except Exception as e:
+            EcMailer.sendMail(
+                'TB_MSG purge failure: {0}'.format(repr(e)),
+                'Sent from EcLogger::purge_msg(). l_sql : {0}'.format(l_cursor.statement)
+            )
+            raise
+
+        l_cursor.close()
+        l_conn.close()
+
+    @classmethod
     def logInit(cls):
         # Creates the column headers for the CSV log file
         l_fLog = open(EcAppParam.gcm_logFile, 'w')
@@ -492,7 +514,7 @@ class EcConnectionPool(threading.Thread):
                 continue
 
             # Warning message if pool count abnormally low --> top up pool with new connections
-            if len(self.m_connectionPool) < EcAppParam.gcm_connectionPoolCount/3:
+            if len(self.m_connectionPool) < int(EcAppParam.gcm_connectionPoolCount/3):
                 g_loggerUtilities.warning('Connections left: {0} - topping up'.format(len(self.m_connectionPool)))
 
                 # only access to this CRITICAL SECTION one thread at a time
@@ -500,7 +522,7 @@ class EcConnectionPool(threading.Thread):
                 self.m_connectionPoolLock.acquire()
 
                 # Add a third fill of new connections
-                for i in range(EcAppParam.gcm_connectionPoolCount/3):
+                for i in range(int(EcAppParam.gcm_connectionPoolCount/3)):
                     g_loggerUtilities.info('topping up: {0}'.format(i))
                     self.m_connectionPool.append( self.getNewConnection() )
 

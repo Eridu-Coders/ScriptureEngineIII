@@ -69,9 +69,14 @@ while True:
         time.sleep(1)
         continue
 
-
 # init mysql connector class
 EcConnector.classInit()
+
+if l_countApp > 1:
+    EcLogger.cm_logger.info('>>>>>> DOUBLE RUNNING <<<<<<')
+
+# purge TB_MSG table
+EcLogger.purge_msg()
 
 try:
     # browscap init

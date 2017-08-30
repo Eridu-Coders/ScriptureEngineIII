@@ -96,6 +96,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # flag indicating that the terminal does not have the required capabilities (cookies, JS)
         self.m_badTerminal = False
 
+        # reason for bad browser determination, if any
+        self.m_reason = ''
+
         # flag indicating that the cookie is to be destroyed when the headers are generated
         self.m_delCookie = None
 
@@ -271,6 +274,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             if l_cookieKey != EcAppParam.gcm_sessionName:
                 # this can happen if there is a version change and old cookies remain at large
+                # or in case of an attempted break-in
                 self.m_logger.warning(self.pack_massage('Cookie found but wrong name: "{0}" Should be "{1}"'.format(
                     l_cookieKey, EcAppParam.gcm_sessionName)))
                 # in this case, the cookie is to be destroyed, before a new one is created
@@ -281,12 +285,17 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_terminalID = l_cookieValue
 
         # ---------------------------------- Detection of invalid browsers ---------------------------------------------
-        # if the path is not one of the cases below, it cannot be good (malevolent robot)
-        self.m_badTerminal = not (self.path == '/' or re.match('/\?', self.path)) and \
+        # if the path is not one of the cases below, it cannot be good (malevolent robot or script attack)
+        if not (self.path == '/' or re.match('/\?', self.path)) and \
             not re.match('/static/', self.path) and \
             not re.match('/test-error/', self.path) and \
             not re.match('/robots.txt', self.path) and \
-            not re.match('/favicon.ico', self.path)
+            not re.match('/favicon.ico', self.path):
+
+            self.m_badTerminal = True
+            self.m_reason = 'Request for a path other than /, /?... /static/, /test-error/, /robots.txt or /favicon.ico'
+        else:
+            self.m_badTerminal = False
 
         if 'y' in self.m_contextDict.keys() and not self.m_badTerminal:
             if self.m_contextDict['y'] == 'restart':
@@ -294,6 +303,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_terminalID = None
             else:
                 self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
+                self.m_reason = 'Cookie Terminal ID different from y=, Cookies probably disabled'
                 self.m_validatedTerminal = not self.m_badTerminal
 
         # ------------------------------------- Previous Context -------------------------------------------------------
@@ -321,7 +331,6 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.m_terminalID = None
                     self.m_validatedTerminal = False
                 else:
-
                     # retrieve former context
                     for l_context, l_validated in l_cursor:
                         self.m_logger.info('Previous context : {0}'.format(l_context))
@@ -336,6 +345,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                             # in "Detection of invalid browsers" section
                             if not self.m_validatedTerminal:
                                 self.m_badTerminal = True
+                                self.m_reason = 'Terminal validation failed'
 
                 l_cursor.close()
             except Exception as l_exception:
@@ -352,6 +362,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             # make sure that only one thread at a time has access to this CRITICAL section
             EcRequestHandler.cm_termIDCreationLock.acquire()
+            ###### START OF CRITICAL SECTION
             self.m_logger.debug('Thread [{0}] after lock'.format(threading.currentThread().getName()))
 
             l_created = False
@@ -396,7 +407,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             self.m_logger.debug('Thread [{0}] waiting'.format(threading.currentThread().getName()))
 
-            # END OF CRITICAL SECTION
+            ###### END OF CRITICAL SECTION
             EcRequestHandler.cm_termIDCreationLock.release()
             self.m_logger.debug('Thread [{0}] released lock'.format(threading.currentThread().getName()))
 
@@ -406,6 +417,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             sys.exit()
 
         self.m_logger.info('Terminal ID      : {0}'.format(self.m_terminalID))
+        if len(self.m_terminalID) > 32:
+            self.m_logger.warning(self.pack_massage('Abnormally long m_terminalID:' + self.m_terminalID))
 
         # ---------------------------------- Response ------------------------------------------------------------------
         if re.match('/static/', self.path):
@@ -460,34 +473,37 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 , `TX_PATH`
                 , `TX_CONTEXT`
             )
-            values('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}', '{12}', '{13}')
-            ;""".format(
-                self.m_terminalID,
-                self.client_address[0],
-                self.client_address[1],
-                'Y' if self.m_badTerminal else 'N',
-                self.m_userAgent,
-                self.m_browser.replace("'", "''"),
-                self.m_browserVersion.replace("'", "''"),
-                self.m_renderingEngine.replace("'", "''"),
-                self.m_platform.replace("'", "''"),
-                self.m_platformDesc.replace("'", "''"),
-                self.m_devName.replace("'", "''"),
-                self.m_devMaker.replace("'", "''"),
-                self.path,
-                json.dumps(self.m_contextDict).replace("'", "''"))
+            values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ;"""
+        # values('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}', '{12}', '{13}')
 
-        self.m_logger.debug('l_query: {0}'.format(l_query))
+        l_parameters = (
+            self.m_terminalID[:32],
+            self.client_address[0][:45],
+            self.client_address[1],
+            'Y' if self.m_badTerminal else 'N',
+            self.m_userAgent,
+            self.m_browser[:30],
+            self.m_browserVersion[:10],
+            self.m_renderingEngine[:30],
+            self.m_platform[:30],
+            self.m_platformDesc[:50],
+            self.m_devName[:30],
+            self.m_devMaker[:30],
+            self.path,
+            json.dumps(self.m_contextDict)
+        )
+
+        l_cursor = l_dbConnection.cursor()
         try:
-            l_cursor = l_dbConnection.cursor()
-            l_cursor.execute(l_query)
+            l_cursor.execute(l_query, l_parameters)
             # the cursor is executed and THEN, the connection is committed
             l_dbConnection.commit()
             l_cursor.close()
         except Exception as l_exception:
             self.m_logger.warning(self.pack_massage('Something went wrong while attempting ' +
                                   'to execute this logging query: {0} Error: {1}'.format(
-                                      l_query, repr(l_exception))))
+                                      l_cursor.statement, repr(l_exception))))
 
         # ---------------------------------- Release DB connection -----------------------------------------------------
 
@@ -541,6 +557,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             LinkPrevious='.' + l_oldPath,
             NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
             BadBrowserMsg=EcAppCore.get_user_string(self.m_contextDict, 'BadBrowserMsg'),
+            BadBrowserReason=self.m_reason,
             GainAccessMsg=EcAppCore.get_user_string(self.m_contextDict, 'GainAccessMsg'),
             ThisLinkMsg=EcAppCore.get_user_string(self.m_contextDict, 'ThisLinkMsg')
         )
