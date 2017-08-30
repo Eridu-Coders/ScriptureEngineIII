@@ -268,6 +268,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             # only one cookie used, to store existing Terminal ID (if any)
             l_cookieString = str(self.m_headersDict['cookie'])
             self.m_logger.info('Raw Cookie string: {0}'.format(l_cookieString))
+            self.m_reason = l_cookieString + '<br/>'
 
             l_cookieKey = (l_cookieString.split('=')[0]).strip()
             l_cookieValue = (l_cookieString.split('=')[1]).strip()
@@ -297,7 +298,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             not re.match('/favicon.ico', self.path):
 
             self.m_badTerminal = True
-            self.m_reason = \
+            self.m_reason += \
                 'Request for a path other than /, /?... /static/, /test-error/, /robots.txt or /favicon.ico'
         else:
             self.m_badTerminal = False
@@ -308,7 +309,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.m_terminalID = None
             else:
                 self.m_badTerminal = (self.m_terminalID != self.m_contextDict['y'])
-                self.m_reason = \
+                self.m_reason += \
                     'Cookie Terminal ID ({0}) different from y=({1}), Cookies probably disabled'.format(
                         self.m_terminalID, self.m_contextDict['y'])
                 self.m_validatedTerminal = not self.m_badTerminal
@@ -352,7 +353,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
                             # in "Detection of invalid browsers" section
                             if not self.m_validatedTerminal:
                                 self.m_badTerminal = True
-                                self.m_reason = 'Terminal validation failed'
+                                self.m_reason += 'Terminal validation failed'
 
                 l_cursor.close()
             except Exception as l_exception:
