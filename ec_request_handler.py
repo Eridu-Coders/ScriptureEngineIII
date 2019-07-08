@@ -609,6 +609,8 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.m_logger.info('l_new_target_restart={0}'.format(l_new_target_restart))
 
         l_response = l_pageTemplate.substitute(
+            CookieID=self.m_terminalID,
+            CookieName=EcAppParam.gcm_sessionName,
             NewTarget=l_new_target,
             NewTargetRestart=l_new_target_restart,
             TestingBrowserMsg=EcAppCore.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
