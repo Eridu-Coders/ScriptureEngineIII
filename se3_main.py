@@ -1041,6 +1041,8 @@ class Se3AppCore(EcAppCore):
         l_pageTemplate = EcTemplate(self.m_homePageTemplate)
         l_response = l_pageTemplate.substitute(
             l_substituteVar,
+            CookieID=p_requestHandler.getTerminalID(),
+            CookieName=EcAppParam.gcm_sessionName,
             WindowTitle=l_title,
             UrlPath=l_urlPath,
             NoJSPath=l_noJSPath,

@@ -8,6 +8,7 @@ from se3_app_param import *
 
 __author__ = 'fi11222'
 
+
 class Se3_SingleVerse(Se3ResponseBuilder):
     def __init__(self, p_app, p_requestHandler, p_context):
         super().__init__(p_app, p_requestHandler, p_context)
@@ -19,7 +20,7 @@ class Se3_SingleVerse(Se3ResponseBuilder):
         self.m_logger.debug('p_previousContext: {0}'.format(self.m_previousContext))
         self.m_logger.debug('p_context: {0}'.format(self.m_context))
     
-        # ---------------------- Parameter check ---------------------------------------------------------------------------
+        # ---------------------- Parameter check -----------------------------------------------------------------------
         l_response = self.m_app.verse_control(self.m_context)
     
         if len(l_response) > 0:
@@ -52,10 +53,10 @@ class Se3_SingleVerse(Se3ResponseBuilder):
         # start of response string
         l_response = '<table id="svOuterTable">\n'
     
-        # ----------------- Top Banner -------------------------------------------------------------------------------------
+        # ----------------- Top Banner ---------------------------------------------------------------------------------
         l_topBanner = self.topBanner(l_idGroup0, l_pcVerse, l_pcChapter, l_bookPrev, l_pcBookId, l_bookNext)
     
-        # ----------------- Verse Title ------------------------------------------------------------------------------------
+        # ----------------- Verse Title --------------------------------------------------------------------------------
         l_chapterEn, l_chapterFr = self.m_app.get_chapter_names(self.m_context, l_dbConnection)
     
         l_chapterName = (l_chapterFr if l_uiLanguage == 'fr' else l_chapterEn) \
@@ -64,7 +65,7 @@ class Se3_SingleVerse(Se3ResponseBuilder):
     
         l_response += '<tr><td colspan="2" class="svVerseTitle">{0}</td></tr>\n'.format(l_chapterName)
     
-        # ----------------- Ground Text ------------------------------------------------------------------------------------
+        # ----------------- Ground Text --------------------------------------------------------------------------------
         # HTML style used here and for the interlinear displays
         l_groundStyle = 'svGroundHebrew'
         if l_idGroup0 == 'NT':
@@ -108,10 +109,10 @@ class Se3_SingleVerse(Se3ResponseBuilder):
         if l_kjvOrNasbDisplayed:
             l_refRowSpan += 1
     
-        # ----------------- Verse Ref --------------------------------------------------------------------------------------
+        # ----------------- Verse Ref ----------------------------------------------------------------------------------
         l_response += '<tr><td rowspan="{0}" class="vVerseRef">{1}</td>\n'.format(l_refRowSpan, l_verseRef)
     
-        # ----------------- Interlinear ------------------------------------------------------------------------------------
+        # ----------------- Interlinear --------------------------------------------------------------------------------
         # Quran Corpus interlinear for the Quran and Bible Hub for the rest
         if l_idGroup0 == 'FT':
             l_interlinearId = 'C'
@@ -180,7 +181,7 @@ class Se3_SingleVerse(Se3ResponseBuilder):
     
         self.m_logger.debug('self.m_context[K] H: {0}'.format(self.m_context['K']))
     
-        # ----------------- LXX --------------------------------------------------------------------------------------------
+        # ----------------- LXX ----------------------------------------------------------------------------------------
         # only available for OT obviously
         if l_lxxDisplayed:
             l_query = """
@@ -271,7 +272,7 @@ class Se3_SingleVerse(Se3ResponseBuilder):
             except Exception as l_exception:
                 self.m_logger.warning('Something went wrong {0}'.format(l_exception.args))
     
-        # ----------------- KJV & NASB -------------------------------------------------------------------------------------
+        # ----------------- KJV & NASB ---------------------------------------------------------------------------------
         # both are display in the same sequence of svInterlinearWord tables each one in its own translation cell
         # as ground text and transliteration are the same
     
