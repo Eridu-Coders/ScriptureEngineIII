@@ -56,7 +56,7 @@ class EcAppParam:
     gcm_dbcLifeAverage = 2
 
     # Logging
-    gcm_mailRecipients = ['nicolas.reimen@gmail.com', 'nrtmp@free.fr']
+    gcm_mailRecipients = ['nicolas.reimen@gmail.com']
     gcm_logFile = os.path.join(gcm_appRoot, 'Log/ec_log.csv')
 
     # Templates

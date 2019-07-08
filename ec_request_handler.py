@@ -294,7 +294,7 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # ---------------------------------- Detection of invalid browsers ---------------------------------------------
         # if the path is not one of the cases below, it cannot be good (malevolent robot or script attack)
-        if not (self.path == '/' or re.match('/\?', self.path)) and \
+        if not (self.path == '/' or re.match(r'/\?', self.path) or re.match(r'/SEIII/', self.path)) and \
             not re.match('/static/', self.path) and \
             not re.match('/test-error/', self.path) and \
             not re.match('/robots.txt', self.path) and \
@@ -432,8 +432,9 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.m_logger.warning(self.pack_massage('Abnormally long m_terminalID:' + self.m_terminalID))
 
         # ---------------------------------- Response ------------------------------------------------------------------
-        if re.match('/static/', self.path):
+        if re.match('/static/', self.path) or re.match('/SEIII/static/', self.path):
             # fetching a static document --> rely on the base class functionality
+            self.path = re.sub('/SEIII', '', self.path)
             super().do_GET()
         elif re.match('/test-error/', self.path):
             # test trigger path to send a warning email (for e-mail setup testing purposes
@@ -442,16 +443,16 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.m_logger.warning(self.pack_massage('Error Email Test'))
 
             super().do_GET()
-        elif re.match('/robots.txt', self.path):
+        elif re.match('/robots.txt', self.path) or re.match('/SEIII/robots.txt', self.path):
             # redirect robots.txt fetch to the appropriate location
             self.path = '/static/robots.txt'
             super().do_GET()
-        elif re.match('/favicon.ico', self.path):
+        elif re.match('/favicon.ico', self.path) or re.match('/SEIII/favicon.ico', self.path):
             # redirect favicon fetch to the appropriate location
             self.path = '/static/images/favicon.ico'
             # PyCharm should not complain about this, self.path is an attribute of the base class Goddammit
             super().do_GET()
-        elif self.path == '/' or re.match('/\?', self.path):
+        elif self.path == '/' or re.match(r'/\?', self.path) or re.match(r'/SEIII/', self.path):
             if self.m_validatedTerminal:
                 # validated terminal: this is where the rest of the application is called
                 self.buildResponse(l_dbConnection)
@@ -557,16 +558,17 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # construct the bad browser page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_badBrowserPage)
 
-        l_oldPath = self.path
-        while re.search('&y=.*&', l_oldPath):
-            l_oldPath = re.sub('&y=.*&', '&', self.path)
-        while re.search('\?y=.*&', l_oldPath):
-            l_oldPath = re.sub('\?y=.*&', '?', self.path)
-        l_oldPath = re.sub('[&\?]y=.*$', '', l_oldPath)
+        l_oldPath = 'http://' + self.m_headersDict['host'] + self.path
+        while re.search('&y=[^&]*&', l_oldPath):
+            l_oldPath = re.sub('&y=[^&]*&', '&', self.path)
+        while re.search(r'\?y=[^&]*&', l_oldPath):
+            l_oldPath = re.sub(r'\?y=[^&]*&', '?', self.path)
+        l_oldPath = re.sub(r'[&?]y=.*$', '', l_oldPath)
 
+        self.m_logger.info('l_oldPath={0}'.format(l_oldPath))
         l_response = l_pageTemplate.substitute(
-            LinkPrevious='.' + l_oldPath,
-            NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
+            LinkPrevious=l_oldPath,
+            NewTargetRestart=re.sub('/&y', '/?y', l_oldPath + '&y=restart'),
             BadBrowserMsg=EcAppCore.get_user_string(self.m_contextDict, 'BadBrowserMsg'),
             BadBrowserReason=self.m_reason,
             GainAccessMsg=EcAppCore.get_user_string(self.m_contextDict, 'GainAccessMsg'),
@@ -591,16 +593,24 @@ class EcRequestHandler(http.server.SimpleHTTPRequestHandler):
         # construct the browser capabilities test page
         l_pageTemplate = EcTemplate(EcRequestHandler.cm_browserTestPage)
 
-        l_oldPath = self.path
-        while re.search('&y=.*&', l_oldPath):
-            l_oldPath = re.sub('&y=.*&', '&', self.path)
-        while re.search('\?y=.*&', l_oldPath):
-            l_oldPath = re.sub('\?y=.*&', '?', self.path)
-        l_oldPath = re.sub('[&\?]y=.*$', '', l_oldPath)
+        l_oldPath = 'http://' + self.m_headersDict['host'] + self.path
+        while re.search('&y=[^&]*&', l_oldPath):
+            l_oldPath = re.sub('&y=[^&]*&', '&', self.path)
+        while re.search(r'\?y=[^&]*&', l_oldPath):
+            l_oldPath = re.sub(r'\?y=[^&]*&', '?', self.path)
+        l_oldPath = re.sub(r'[&?]y=.*$', '', l_oldPath)
+
+        self.m_logger.info('l_oldPath={0}'.format(l_oldPath))
+
+        l_new_target = re.sub('/&y', '/?y', l_oldPath + '&y={0}'.format(self.m_terminalID))
+        l_new_target_restart = re.sub('/&y', '/?y', l_oldPath + '&y=restart')
+
+        self.m_logger.info('l_new_target={0}'.format(l_new_target))
+        self.m_logger.info('l_new_target_restart={0}'.format(l_new_target_restart))
 
         l_response = l_pageTemplate.substitute(
-            NewTarget=re.sub('/&y', '/?y', '.' + l_oldPath + '&y={0}'.format(self.m_terminalID)),
-            NewTargetRestart=re.sub('/&y', '/?y', '.' + l_oldPath + '&y=restart'),
+            NewTarget=l_new_target,
+            NewTargetRestart=l_new_target_restart,
             TestingBrowserMsg=EcAppCore.get_user_string(self.m_contextDict, 'TestingBrowserMsg'),
             GainAccess1Msg=EcAppCore.get_user_string(self.m_contextDict, 'GainAccess1Msg'),
             ThisLinkMsg=EcAppCore.get_user_string(self.m_contextDict, 'ThisLinkMsg')
